@@ -1,0 +1,311 @@
+# CLAUDE.md — Wingdai
+
+This file gives Claude Code the context needed to work on this repository. It is derived from the Wingdai product/business plan. Read it before writing any code — several of these rules exist because getting them wrong is expensive (money, legal exposure, or rider trust), not just "nice to have."
+
+---
+
+## 1. What this product is
+
+Wingdai is a **hyperlocal food-delivery platform** for Thailand. The thesis: delivery economics only work when the average delivery distance is short (1–1.5 km) inside a dense zone. **The strategy is zone-type-agnostic** — a university area, a condo cluster, and an office district all qualify equally; the founder picks whichever dense zone they can access first, not a specific demographic. Short distance lets one rider complete 4–5 orders/hour instead of ~2. That efficiency is what funds a **15% commission (GP)** instead of the industry's 30–35% — which means restaurants don't need to inflate menu prices, which means **the customer pays the same price as walking into the store.**
+
+Don't assume the founder or the target zone is student-specific anywhere in the product — the business model generalizes across zone types and across who's running it. Zone-type is a config/data decision, not a hardcoded assumption (see §7).
+
+Every architectural and product decision below exists to protect that thesis. If a feature request conflicts with it, flag it — don't just build it.
+
+---
+
+## 2. Current phase — READ THIS FIRST
+
+We are building **Phase 1 (MVP)**. Scope discipline matters more than speed here; the plan explicitly calls scope creep the most common way this kind of business dies.
+
+**Build now (Phase 1):**
+- One mobile app, role-based UI — but **not** a simple 1-account-1-role model anymore (see §4 for the updated account architecture)
+- Username + password login, with a one-time phone OTP verification at registration (not at every login)
+- **Auto-dispatch** (§6.3) — this was deferred to Phase 2 in earlier plan revisions; it has been pulled into Phase 1. Build the scoring + sequential-offer engine now, seeded with restaurant-set constant prep times (no historical data needed to start). Keep a manual-override path for admins as a safety net.
+- **Semi-automated refund/dispute** (§6.4) — system auto-verifies and proposes a decision; admin confirms with one tap. Not admin-typed-from-scratch, and not fully automatic payout either.
+- Admin dashboard built **exception-based by default** (only orders needing attention), not a raw live-order firehose — this is a Phase 1 requirement now, not a later optimization, because it was flagged as a scaling concern up front.
+- PromptPay payment only (no cards yet)
+- Order state machine + refund recording
+- **Bilingual UI (Thai + English), auto-selected from device locale** — moved *into* Phase 1 by an explicit decision on 2026-07-21. This was previously on the "do not build yet" list; it is no longer. Thai is the source language, English is the second locale. Every user-facing string goes through the i18n layer from the first commit — retrofitting i18n is far more expensive than starting with it.
+
+**Do NOT build yet, even if it looks easy to add:**
+- Group Order
+- Promotions / coupons / discount codes
+- Card payments
+- Fully automated ledger + payout runs (see the note in §6.2 — Phase 1 can log refund/payout data without building the automated reconciliation engine yet)
+- Any grocery/non-restaurant vertical, any "super app" feature (rides, courier, bill pay)
+- Loyalty points, in-app chat, AI recommendations
+
+If you're asked to add something from the "do not build yet" list, say so and ask for confirmation before proceeding — it's very likely someone forgot which phase we're in, not a deliberate change of plan.
+
+**Note on scope:** Phase 1 is meaningfully larger now than in earlier plan revisions (auto-dispatch and semi-automated refund verification both moved in from Phase 2). Budget more time accordingly — don't silently compress the timeline to match the old Phase 1 estimate.
+
+---
+
+## 3. Non-negotiable product principles
+
+These override convenience or "faster to build this way." If a shortcut would violate one of these, stop and flag it instead of shipping it silently.
+
+1. **Density over coverage** — don't build features that assume/encourage city-wide coverage before a single zone is profitable.
+2. **App price == in-store price** — never silently add markup to menu prices. Any fee must be its own line item (delivery fee, service fee), never folded into the item price.
+3. **No cash-burn subsidies** — no discount-code system, no "unlimited free delivery" mechanics. Every order should be structured to have positive contribution margin.
+4. **No rider-speed pressure** — never build a KPI, leaderboard, or notification that rewards riders for going faster. Speed comes from shorter distances (zone density), not from pushing riders.
+5. **PromptPay-first** — PromptPay QR is the default and primary payment path. Card payment fees (3.2–3.65%) vs PromptPay (0.8–1.8%) materially change unit economics, so the UI/flow should never make card payment the path of least resistance.
+6. **Ops must work from a phone** — the Admin role UI must be fully usable on a mobile screen. Don't design admin screens assuming a desktop/wide viewport is available.
+
+---
+
+## 4. Architecture: one mobile app, capability-based roles
+
+There is **one React Native app**, not separate apps per user type. But the account model is **not** a simple 1-account-1-role enum anymore — read this carefully before touching auth or navigation code.
+
+### 4.1 Account types and how they're created
+
+| Account type | How it's created | Notes |
+|---|---|---|
+| `user` (customer) | Public registration | Default account type. Can later gain a merchant capability (below). |
+| `rider` | Public registration | Chosen at signup. **A rider can also place customer orders** (decided 2026-07-21) — the rider account carries customer ordering as a capability, the same way a `user` account can carry a merchant capability. |
+| Merchant | **Not a signup type at all** | An **upgrade** applied to an existing `user` account — see §4.3 |
+| `admin` | **Never public** | Provisioned directly by the company (DB seed / internal tool). There is no public registration path or UI entry point for this. |
+
+### 4.2 Auth flow
+
+- **Login:** username + password.
+- **Register:** username, password, phone number, name — phone number gets a **one-time OTP verification at registration** (not at every login). This matters even though login itself doesn't use OTP: riders, restaurants, and customers need working contact numbers for delivery coordination, and skipping verification opens the door to fake-number signups.
+- **Forgot password:** a real flow is needed now (wasn't required under the old OTP-only login) — reset via SMS to the verified number or via email.
+- At the end of registration, the user picks **`user` or `rider`** — nothing else is offered here.
+
+### 4.3 Merchant is a capability, not an account type
+
+A logged-in `user` account can tap "Open your restaurant" from their profile, fill out a restaurant registration form, and submit it for admin approval. Once approved, **that same account** gains access to the Merchant Stack via an in-app role switcher — it does not become a new account and does not require re-registering.
+
+This means the navigation model is not a flat "route once by user_type" — it's:
+
+```
+AuthStack (username/password login, register, forgot password)
+  → after login, check account_type:
+       "user"
+           → CustomerStack (default view)
+           → if an approved merchant profile exists on this account:
+                show a role-switcher entry point → MerchantStack
+       "rider"
+           → if approved: RiderStack (default view)
+                          + role-switcher entry point → CustomerStack (can order food)
+           → if pending approval: an "awaiting approval" screen only — no other stack access,
+                                  including no customer ordering
+       "admin" (provisioned by the company, never via public registration)
+           → AdminStack
+```
+
+**Consequence for permission handling:** background location for the rider role still only applies to `rider` accounts. It should never be requested from a `user` account, even one with an approved merchant profile.
+
+**Fraud/conflict-of-interest rule — enforce this at the application layer, not just as a UI nicety:** a user must not be able to place an order from a restaurant they own. Check `restaurant.owner_user_id` against the ordering `user_id` on every order creation, server-side.
+
+**Resolved 2026-07-21 — a `rider` account CAN place customer orders** (the way a Grab driver can also order Grab food). This replaces the earlier "mutually exclusive" design.
+
+Consequences for navigation and data:
+- `account_type` still has exactly three values (`user | rider | admin`) — riders do **not** get a second account. Customer ordering is a capability available to both `user` and `rider` accounts.
+- A `rider` account therefore reaches **two** stacks: RiderStack (work) and CustomerStack (ordering), via the same role-switcher pattern already used for merchants.
+- Background location permission stays tied to **rider work mode only** — it must not be requested while a rider is browsing as a customer.
+- The conflict-of-interest rule extends: a rider must not be able to accept a delivery job for an order they placed themselves. Check this server-side at dispatch time, not just in the UI.
+
+**Why one app at all:** this is a solo/small-team build. One codebase, one deploy, one EAS Update pipeline. Merchant/rider/admin are "workers," not consumers — they don't need the install-friction protections a customer-facing app needs, so bundling them costs nothing.
+
+**Known trade-off to keep in mind:** because there's no web/PWA ordering flow, customers must install the app before ordering, which raises acquisition friction vs. a link-based flow. Compensate with the "same price as in-store" pitch and in-store QR codes pointing straight to the app store listing — this is a product/marketing mitigation, not something to solve in code, but worth remembering when designing onboarding.
+
+---
+
+## 5. Tech stack
+
+### Frontend (single app)
+| Layer | Choice | Notes |
+|---|---|---|
+| Framework | React Native + Expo | Use EAS Update for OTA bug fixes without app store review |
+| Navigation | React Navigation | Separate stack per role (§4) |
+| Server state | TanStack Query | |
+| Client state | Zustand | |
+| Forms | react-hook-form + zod | |
+| Maps | MapLibre GL (react-native) + MapTiler/Protomaps tiles | **Do not use the Google Maps SDK** — it bills per map load, which is unsustainable on a "customer stares at tracking screen for minutes" use case |
+| Push notifications | Expo Notifications → FCM | |
+
+**Making rider tracking feel as realtime as possible:** the map provider is not the lever here — MapLibre supports smooth marker animation just as well as Google Maps. Realtime-ness comes from three things, all of which should be built:
+1. **WebSocket push, never REST polling**, for location updates (the realtime/dispatch service already does this).
+2. **Rider location ping interval of ~3–5 seconds while actively delivering** (relax to 15–30s when online-but-idle, to save battery). This matches what Grab/Uber actually use — there's no need for continuous GPS streaming.
+3. **Client-side interpolation** — animate the marker's position between pings (tween/ease) instead of snapping, so movement reads as continuous even though updates arrive every few seconds.
+
+Do not treat "switch to Google Maps" as a way to get more realtime tracking — it isn't one, and it reintroduces the per-load billing risk noted above.
+
+### Backend — ✅ confirmed: Spring Boot + Go
+| Layer | Choice | Notes |
+|---|---|---|
+| Core API (money-handling) | Spring Boot 3, Java 21, virtual threads | auth, catalog, order, payment, promotion, ledger, notification — modular monolith. Strong ACID story for money-handling code. |
+| Realtime/dispatch | Go | WebSocket fan-out, location pings, rider matching/dispatch scoring (§6.3) — high connection count, low-latency, I/O-bound workload |
+
+**This decision is final.** Scaffold services against Java/Spring Boot and Go. A TypeScript-only (NestJS) alternative was considered and rejected — don't reintroduce it without an explicit new decision from the team.
+
+### Data & infrastructure (not affected by the frontend/backend decision above)
+- **PostgreSQL + PostGIS** — primary DB, zone boundaries, geospatial queries
+- **Redis** — cache, session store, `GEOSEARCH` index for rider matching, rate limiting, event streams
+- **No Kafka yet** — use a transactional outbox + Redis Streams; revisit only above ~100 orders/minute
+- **AWS ap-southeast-1** (Singapore) — acceptable ~30ms latency from Bangkok
+- **ECS Fargate + RDS Multi-AZ + ElastiCache** — do not reach for Kubernetes at this team size
+- **Terraform + GitHub Actions**
+- **Firebase Cloud Messaging** for push (free tier)
+- **Sentry + OpenTelemetry → Grafana Cloud**
+
+**Routing API cost trap:** never call a per-element routing API (e.g. Google Routes) against every candidate rider. Use Redis `GEOSEARCH` to shortlist 5–10 candidates first (free, in-memory), then call the routing API once for the selected rider. Self-host OSRM/Valhalla on an OpenStreetMap Thailand extract once volume justifies it.
+
+---
+
+## 6. Business rules that MUST be correct in code
+
+These aren't style preferences — get them wrong and it's a financial or legal problem, not a bug ticket.
+
+### 6.1 Commission
+Restaurant commission (GP) is **15%**, applied to the food subtotal only (not delivery fee or service fee). This number is the entire basis of the "no markup" pitch — never let it drift silently.
+
+### 6.2 Ledger — double-entry, append-only
+Every completed order must produce balanced ledger entries. Example for a ฿170 order (฿150 food, ฿15 delivery, ฿5 service fee):
+
+| Account | Debit | Credit |
+|---|---|---|
+| `cash` (from payment gateway) | ฿170.00 | |
+| `restaurant_payable` | | ฿127.50 |
+| `rider_payable` | | ฿30.00 |
+| `payment_fee_expense` | ฿1.36 | |
+| `platform_revenue` | | ฿13.86 |
+| **Total** | **฿171.36** | **฿171.36** ✓ |
+
+Rules:
+- Entries are **append-only** — never UPDATE or DELETE a ledger row. Corrections are reversal entries.
+- Write ledger entries in the **same DB transaction** as the order status change.
+- Weekly payout run: debit `restaurant_payable` → credit `cash`.
+- Daily reconciliation: ledger totals must match the payment gateway's settlement report; mismatch → alert immediately.
+
+**Phase 1 clarification:** per §2, Phase 1 does not need the fully automated payout/reconciliation engine — that's Phase 2. But when you do build it (or even a manual version now), the double-entry structure above is the target design; don't build something that will need a rewrite to become double-entry later.
+
+### 6.3 Dispatch — now Phase 1 scope, not a Phase 2 deferral
+This used to be deferred to Phase 2 with Phase 1 relying on manual admin assignment. **That has changed — auto-dispatch is now Phase 1 scope.** Build the engine described below before launch, not after. Keep a manual-override action available to admins regardless (for cases where auto-dispatch can't find a rider, or something's clearly wrong).
+
+Never dump a job into a shared pool riders race to accept — it rewards fast networks over the best-fit rider and creates dead time.
+
+Sequential offer, scored:
+```
+score(rider) = w1 × (1 / distance_to_restaurant)
+             + w2 × time_since_last_online   // fairness
+             + w3 × completion_rate
+             − w4 × current_active_jobs
+```
+Offer to the highest-scored rider → 15s to accept → if declined/timeout, offer to the next.
+
+**Critical timing rule — don't dispatch too early:**
+```
+dispatch_time = predicted_food_ready_time − rider_travel_time_to_restaurant
+```
+If a rider arrives before food is ready, they wait unpaid, their earnings/hour drops, and they churn. Predict prep time per restaurant from a moving average (by restaurant, time of day, order size); **seed it from a restaurant-set constant** (collected during restaurant onboarding, §7) since there's no historical order data on day 1 — the algorithm is designed to work cold-start, so this isn't a blocker to shipping auto-dispatch in Phase 1.
+
+**Batching:** if 2+ orders from the same/nearby restaurant are headed to nearby drop-offs within a 5-minute window, assign them to one rider.
+
+**Monitor closely at launch:** since there's no real prep-time data yet, watch Orders per Rider Hour (§8) closely in the first weeks and expect to tune the scoring weights and prep-time constants based on what actually happens.
+
+### 6.4 Refund & dispute — semi-automated, not manual-only
+The flow is: customer reports an issue → system auto-verifies → system proposes a decision → admin confirms/edits/rejects with one tap. This is **not** a fully manual admin workflow, and it's **not** a fully automatic payout either — a human always confirms before money moves.
+
+Auto-verify checks to run before presenting a recommendation to admin:
+- **Order status/timing** — is the order within the window disputes are even allowed for (e.g. within X hours of delivery)?
+- **Photo evidence** — compare the rider's delivery-confirmation photo (if any) against the customer's complaint.
+- **Historical pattern** — is this customer's, this restaurant's, or this rider's dispute rate abnormal? (fraud signal — don't auto-approve a customer who disputes an unusual fraction of their orders)
+- **Amount threshold** — below some threshold, it's reasonable to auto-suggest a fast full refund; above it, flag for closer review rather than auto-suggesting.
+
+Present the output as a recommendation with reasoning (e.g. "Suggest full refund of ฿150 — wrong item, customer provided a photo, this restaurant has no prior disputes"), not just a raw refund button. When admin confirms, it must **auto-generate a ledger reversal entry**, never a manual out-of-band ledger fix.
+
+Fault attribution convention: wrong item → restaurant's cost; spilled/damaged in transit → rider's cost; platform/system error → platform absorbs. Store this attribution on the refund record — it'll be needed for payout math and for restaurant/rider-facing reporting later.
+
+Instrument refund rate from day 1; > 2% is a signal something systemic broke, not just normal noise.
+
+### 6.5 Payment
+PromptPay QR is the default and only Phase 1 payment method. When card payment is added later, the fee delta (0.8–1.8% vs 3.2–3.65%) should be visible in internal margin reporting — don't let card become invisible overhead.
+
+---
+
+## 7. Core data entities (starting point, not final schema)
+
+`User (account_type: user|rider|admin)`, `Restaurant (owner_user_id → User)`, `MenuItem`, `Order`, `OrderItem`, `Address`, `RiderProfile`, `RiderDocument`, `LedgerEntry`, `Payout`, `RefundCase`, `Zone`.
+
+**`User.account_type` is `user | rider | admin` — not `customer | merchant | rider | admin`.** Merchant status lives on `Restaurant.owner_user_id`, a foreign key back to a `user`-type account, not as a value of `account_type`. A single `User` row can therefore be a plain customer, or a customer who also owns a `Restaurant`. Don't model merchant as a peer enum value next to `rider`/`admin` — that was the old design and it no longer matches the product spec.
+
+**`admin` accounts are never created through the public registration endpoint.** Seed them directly or build an internal-only provisioning tool; there is no public sign-up path for this account type.
+
+**`RiderProfile` / `RiderDocument` should capture (all required for admin approval):**
+- Identity: full legal name, Thai national ID number, date of birth, verified phone, selfie photo, ID card photo (front + back)
+- License & vehicle: vehicle type (motorcycle only for Phase 1), driver's license photo + expiry, vehicle registration number, vehicle registration book photo, compulsory motor insurance (พ.ร.บ.) photo + expiry
+- Payout: bank name, account number, account holder name — **should match the verified legal name**, as a basic anti-money-laundering / mule-account check
+- Safety: emergency contact name + phone
+- Preferred `Zone` (helps admin filter approvals by launch zone)
+- Signed independent-contractor agreement + PDPA consent for storing the above
+
+**`Restaurant` registration (submitted by a `user`-type account, not a separate signup) should capture:** name, cuisine category, address + coordinates (must fall within an active `Zone`), operating hours, storefront photo, a business/ID document, payout bank details, and a minimum starter menu before submission is allowed.
+
+Notes:
+- `Zone` matters early — density/beachhead logic (§Roles, §Dispatch) is all zone-scoped. Don't model this as a single flat city-wide table from the start.
+- **`Zone` should carry a `type` field** (e.g. `university` | `condo_cluster` | `office_district` | `mixed`), since the beachhead strategy applies equally across zone types (§1). Don't hardcode zone-type-specific assumptions (e.g. a semester calendar) into core zone or dispatch logic — keep seasonal/demand-pattern config (closure periods, peak hours, etc.) as per-zone-instance data, not as branching logic keyed on zone type.
+- Keep monetary fields as integers (satang) internally where practical to avoid floating-point drift in ledger math — the plan doesn't specify this, but it directly protects the "ledger must never be wrong" rule in §6.2.
+- The Admin dashboard should default to an **exception-based view** (orders past SLA, unresolved disputes, orders with no rider assigned after N minutes) rather than a raw live-order feed — this was flagged early specifically because a full firehose view stops being usable once order volume grows, and building the filtered view later means retrofitting, not just adding a toggle.
+
+---
+
+## 8. Metrics to instrument from day one
+
+The plan's North Star Metric is **Orders per Rider Hour**, not order count or user count. To compute it you need, from the very first version: rider online/offline timestamps and order-completion timestamps per rider. Build this logging in even before there's an analytics dashboard to show it.
+
+| Metric | Target | Why it matters |
+|---|---|---|
+| Orders per rider hour | ≥ 3.0 | Core of the whole economic model |
+| Contribution margin/order | > ฿0 from day 1 | No subsidized orders |
+| Restaurant accept rate | > 95% | Missed orders lose customers |
+| On-time delivery rate | > 90% | |
+| Median delivery time | < 30 min | |
+| Refund rate | < 2% | Above this = systemic issue |
+| 30-day repeat order rate | > 40% | Signal the product is actually good |
+| % paid via PromptPay | > 80% | Directly affects margin |
+| Auto-dispatch success rate (new) | > 90% (jobs successfully assigned without manual override) | Validates that the dispatch engine pulled into Phase 1 is actually working, not just shipped |
+
+---
+
+## 9. Suggested repo layout
+
+```
+/apps
+  /mobile              # React Native + Expo — role-based stacks live here
+/services
+  /core-api            # Spring Boot (Java 21) — auth, catalog, order, payment, ledger, notification
+  /dispatch            # Go — WebSocket realtime + auto-dispatch matching engine (§6.3)
+/packages
+  /shared-types        # generated from the OpenAPI spec — do not hand-duplicate types between FE/BE
+/infra                 # Terraform
+```
+
+---
+
+## 10. Resolved decisions
+
+- **Backend language: Spring Boot (Java 21) + Go.** Confirmed — see §5. Not open for revisiting without an explicit new decision from the team.
+- **Brand name: Wingdai** (decided 2026-07-21). Earlier revisions of this file said "FoodRush" — that name is retired. Use Wingdai everywhere: app display name, bundle identifier, copy, assets.
+- **A rider account can also place customer orders** (decided 2026-07-21) — see §4.3. Replaces the earlier mutually-exclusive design.
+- **Bilingual UI, Thai + English, auto-selected from device locale** (decided 2026-07-21) — moved into Phase 1 from the "do not build yet" list. See §2.
+- **Map tiles: Protomaps** (decided 2026-07-21) — self-hosted `.pmtiles`, no per-load billing, which is the cost trap §5 already warns about. MapLibre remains the renderer.
+- **Font scaling: disabled** (`allowFontScaling={false}`, decided 2026-07-21). Accepted tradeoff: users who enlarge system text will not see larger text in this app. Revisit if accessibility feedback demands it.
+- **Dark mode: yes, from the first commit** (decided 2026-07-21). Riders work at night; a bright screen while driving is a safety issue, not a preference. This requires a semantic token layer (`bg-surface`, `text-primary`, …) rather than components referencing raw palette values — retrofitting dark mode later means editing every file.
+- **Glass/blur is restricted to low-stakes screens** (decided 2026-07-21). React Native has no `backdrop-filter`; `expo-blur` looks good on iOS but is emulated and frame-expensive on Android. Blur is allowed on onboarding, profile, and receipt screens. It is **banned** on the merchant order queue (⭐ 60s countdown), the rider job offer (⭐ 15s countdown), and any live map screen — those use opaque surfaces. Do not trade frames on the two screens §2 marks as most failure-critical.
+
+## 11. Open decisions — resolve before scaffolding further
+
+1. **Customer acquisition mitigation** for mobile-only onboarding (in-store QR, launch incentive, etc.) — product decision, but may affect onboarding-flow code (deep links, referral codes).
+2. Zone type and boundaries for zone 1 (university / condo cluster / office district — see §1, all equally valid), first 10 restaurants, first 5 riders, on-call ownership, runway — business-side questions from the plan's appendix, not code questions, but they gate whether Phase 0 (manual, no-code validation) has actually passed. Don't be surprised if engineering work is asked to pause until these are answered.
+3. **Payment gateway** — Opn or Xendit? Needed before the payment module can be built against a real API. Until this is answered the app uses a **mocked** PromptPay QR screen (decided 2026-07-21) — visually complete, no real payment.
+4. Phase 1 now includes auto-dispatch and semi-automated refund verification, which is more scope than earlier plan revisions assumed — confirm the extended timeline is acceptable before committing to a launch date.
+5. **PDPA data controller identity** — legal name, address, and contact email of the person or company operating Wingdai. Required on the privacy policy before the app can be submitted to either app store. Cannot be guessed or looked up; must be supplied.
+
+---
+
+*This file should be updated whenever a decision in §11 is resolved (move it into §10), or when the phase in §2 advances.*
