@@ -1,0 +1,1183 @@
+{
+  "common": {
+    "appName": "Wingdai",
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "back": "Back",
+    "save": "Save",
+    "loading": "Loading",
+    "errorGeneric": "Something went wrong. Please try again.",
+    "time": {
+      "justNow": "Just now",
+      "minutesAgo": "{{count}} min ago",
+      "hoursAgo": "{{count}} h ago",
+      "yesterday": "Yesterday",
+      "daysAgo": "{{count}} d ago"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Log in",
+      "tagline": "In-store prices. Fast delivery in your zone.",
+      "identifier": "Username or phone",
+      "username": "Username",
+      "password": "Password",
+      "showPassword": "Show",
+      "hidePassword": "Hide",
+      "submit": "Log in",
+      "or": "or",
+      "google": "Continue with Google",
+      "forgot": "Forgot password",
+      "toRegister": "No account yet? Sign up",
+      "invalidCredentials": "Incorrect username or password",
+      "welcome": "Welcome back",
+      "subtitle": "Log in with your username or phone number.",
+      "newHere": "New to Wingdai?",
+      "googleFailed": "Google sign-in failed"
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Takes less than a minute.",
+      "username": "Username",
+      "email": "Email",
+      "optional": "· optional",
+      "emailInvalid": "Invalid email format",
+      "password": "Password",
+      "fullName": "Full name",
+      "phone": "Phone number",
+      "phonePlaceholder": "81 234 5678",
+      "phoneInvalid": "Please enter a valid phone number",
+      "usernameTaken": "That username is taken",
+      "terms": "I agree to the Terms & Privacy Policy",
+      "termsRequired": "Please accept the Terms & Privacy Policy",
+      "haveAccount": "Have an account?",
+      "toLogin": "Already have an account? Log in",
+      "required": "Please fill in all required fields",
+      "submit": "Create account",
+      "passwordTooShort": "Password must be at least 8 characters",
+      "phoneTaken": "This number is already registered, or too many code requests"
+    },
+    "otp": {
+      "title": "Verify your phone",
+      "description": "We sent a 6-digit code to your number",
+      "resend": "Send code again",
+      "invalid": "Incorrect code",
+      "resendIn": "Request a new code in {{seconds}}s",
+      "resendFailed": "Could not send a new code, please try again"
+    },
+    "chooseType": {
+      "title": "How will you use Wingdai?",
+      "user": "Order food",
+      "userDescription": "Order from nearby restaurants at in-store prices",
+      "rider": "Become a rider",
+      "riderDescription": "Take delivery jobs in your neighbourhood",
+      "subtitle": "You can switch anytime from your profile."
+    },
+    "forgot": {
+      "title": "Forgot password",
+      "description": "Enter the phone number you signed up with and we'll send you a code",
+      "submit": "Send code",
+      "sent": "If that number has an account, we've sent a code"
+    },
+    "pending": {
+      "title": "Awaiting approval",
+      "description": "We're reviewing your documents. You'll hear from us within 1-2 business days.",
+      "logout": "Log out",
+      "applyTitle": "Submit your rider application",
+      "applyDescription": "Fill in your details so our team can review them — about 5 minutes",
+      "apply": "Start application",
+      "rejectedTitle": "Application not approved",
+      "rejectedDescription": "Fix the points below and submit again",
+      "resubmit": "Fix and resubmit"
+    }
+  },
+  "roleSwitcher": {
+    "title": "Switch mode",
+    "confirmTitle": "Switch mode?",
+    "confirmBody": "You'll move to {{role}}. Anything in progress here stays as it is.",
+    "confirmSwitch": "Switch",
+    "customer": "Order food",
+    "customerDescription": "Discover kitchens near you and track delivery live.",
+    "merchant": "My kitchen",
+    "merchantDescription": "Manage your menu, take orders and see your sales.",
+    "rider": "Deliver & earn",
+    "riderDescription": "Pick up nearby jobs and earn on your own schedule.",
+    "admin": "Admin",
+    "adminDescription": "Review orders needing attention and approve requests.",
+    "superAdmin": "Platform settings",
+    "superAdminDescription": "Pricing, zones, roles and audit log"
+  },
+  "settings": {
+    "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "title": "Settings",
+    "profileHint": "App language and theme",
+    "langThDesc": "The app's source language",
+    "langEnDesc": "Second language",
+    "themeLightDesc": "Light background, easier in daylight",
+    "themeDarkDesc": "Dark background, easier on the eyes at night"
+  },
+  "customer": {
+    "home": {
+      "title": "Restaurants near you",
+      "nearby": "Near you",
+      "categoryAll": "All",
+      "open": "Open",
+      "closed": "Closed",
+      "minutes": "min",
+      "km": "km",
+      "announcement": "Now serving a new neighbourhood — order today",
+      "announcementKicker": "Announcement",
+      "greeting": "Near you right now",
+      "deliveryFee": "Delivery",
+      "empty": "No restaurants in this zone yet",
+      "deliverTo": "Deliver to",
+      "searchPlaceholder": "Search kitchens or dishes",
+      "announcementSub": "{{count}} kitchens within 1 km · avg 6 min",
+      "seeAll": "See all",
+      "notifications": "Notifications",
+      "noAddress": "Add a delivery address",
+      "deliveryFeeFrom": "from {{amount}}",
+      "opensAt": "Closed · opens {{time}}"
+    },
+    "search": {
+      "placeholder": "Search kitchens or dishes",
+      "cancel": "Cancel",
+      "results": "Results · {{count}}",
+      "empty": "No kitchens or dishes match your search",
+      "prompt": "Type a kitchen or dish name",
+      "deliveryFee": "delivery"
+    },
+    "cuisine": {
+      "rice": "Rice",
+      "noodle": "Noodles",
+      "somtam": "Somtam",
+      "drink": "Drinks",
+      "dessert": "Dessert"
+    },
+    "restaurant": {
+      "closed": "Closed now",
+      "menu": "Menu",
+      "add": "Add",
+      "viewCart": "View cart",
+      "items": "items",
+      "differentTitle": "Start a new cart?",
+      "differentBody": "Your cart has items from another restaurant. Clear it to order from here.",
+      "clearAndAdd": "Clear & add",
+      "cancel": "Cancel",
+      "soldOut": "Sold out today"
+    },
+    "item": {
+      "customize": "Customize",
+      "addToBasket": "Add to basket",
+      "required": "Required",
+      "optional": "Optional",
+      "noteLabel": "Note for the kitchen",
+      "noteHint": "e.g. no coriander, less spicy — the kitchen cannot reply here"
+    },
+    "tabs": {
+      "home": "Home",
+      "menu": "Menu",
+      "orders": "History",
+      "profile": "Me"
+    },
+    "categories": {
+      "title": "Menu",
+      "subtitle": "Pick what you feel like",
+      "count": "{{count}} kitchens",
+      "clear": "All categories",
+      "empty": "No kitchens in this category yet"
+    },
+    "orders": {
+      "title": "Order history",
+      "empty": "No orders yet",
+      "filterAll": "All",
+      "filterActive": "Active",
+      "filterPast": "Past",
+      "status": {
+        "created": "Waiting for restaurant",
+        "accepted": "Accepted",
+        "preparing": "Preparing",
+        "picked_up": "Picked up",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled"
+      },
+      "reorder": "Order again",
+      "reorderUnavailable": "Not available today: {{items}} — the rest is in your basket",
+      "reorderContinue": "Go to basket"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "markAllRead": "Mark all read",
+      "today": "Today",
+      "earlier": "Earlier",
+      "empty": "No notifications yet",
+      "emptyBody": "Once you place an order, its progress shows up here.",
+      "status": {
+        "created": {
+          "title": "Order placed",
+          "body": "Waiting for {{restaurant}} to accept"
+        },
+        "accepted": {
+          "title": "Kitchen accepted",
+          "body": "{{restaurant}} is about to start cooking"
+        },
+        "preparing": {
+          "title": "Cooking now",
+          "body": "{{restaurant}} is preparing your food"
+        },
+        "picked_up": {
+          "title": "Rider picked it up",
+          "body": "Your food from {{restaurant}} is on the way"
+        },
+        "delivered": {
+          "title": "Delivered",
+          "body": "Your order from {{restaurant}} arrived"
+        },
+        "cancelled": {
+          "title": "Order cancelled",
+          "body": "Your order from {{restaurant}} was cancelled"
+        }
+      }
+    },
+    "profile": {
+      "title": "Profile",
+      "phone": "Phone",
+      "logout": "Log out",
+      "statOrders": "Orders",
+      "statDelivered": "Delivered"
+    },
+    "cart": {
+      "title": "Cart",
+      "empty": "Your cart is empty",
+      "foodTotal": "Food total",
+      "deliveryFee": "Delivery fee",
+      "serviceFee": "Service fee",
+      "grandTotal": "Total",
+      "placeOrder": "Place order",
+      "emptyBody": "Find something delicious from kitchens near you — it only takes a couple of taps.",
+      "browse": "Browse kitchens",
+      "remove": "Remove",
+      "from": "From",
+      "leaveAtDoor": "Leave it at my door",
+      "leaveAtDoorHint": "The rider photographs the drop-off instead of asking you for the code",
+      "clear": "Clear"
+    },
+    "checkout": {
+      "title": "Checkout",
+      "deliverTo": "Deliver to",
+      "payWith": "Pay with",
+      "change": "Change"
+    },
+    "orderPlaced": {
+      "title": "Order placed",
+      "body": "The restaurant is preparing your food",
+      "orderNo": "Order number",
+      "backHome": "Back to home"
+    },
+    "tracking": {
+      "title": "Track order",
+      "orderNumber": "Order #{{id}}",
+      "restaurant": "Kitchen",
+      "foodTotal": "Food",
+      "deliveryFee": "Delivery",
+      "serviceFee": "Service",
+      "total": "Total",
+      "status": {
+        "created": "Waiting for the kitchen",
+        "accepted": "Kitchen accepted",
+        "preparing": "Cooking now",
+        "picked_up": "Rider on the way",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled"
+      },
+      "cashPending": "Not paid yet - pay the rider in cash on arrival",
+      "switchToPromptPayHint": "Short on cash? Pay by PromptPay instead and the rider will not collect anything.",
+      "switchToPromptPay": "Switch to PromptPay",
+      "cancel": "Cancel order",
+      "cancelConfirmTitle": "Cancel this order?",
+      "cancelRefundHint": "The {{amount}} you already paid will be refunded",
+      "cancelNoChargeHint": "You have not paid yet, so there is nothing to refund",
+      "cancelCookingWarning": "The kitchen has already started cooking — cancelling now wastes the food",
+      "cancelConfirm": "Yes, cancel it",
+      "cancelKeep": "Keep my order",
+      "pinLabel": "Delivery code",
+      "pinHint": "Give this code to the rider when you receive your order",
+      "cancelledBy": {
+        "customer": "You cancelled this order",
+        "restaurant": "The restaurant rejected this order",
+        "admin": "Our team cancelled this order"
+      },
+      "cancelReason": {
+        "out_of_stock": "Reason: out of ingredients",
+        "too_busy": "Reason: kitchen too busy",
+        "closing_soon": "Reason: closing soon",
+        "other": "The restaurant gave no further detail"
+      },
+      "refunded": "Refunded in full — arrives within 1–3 business days"
+    },
+    "payment": {
+      "title": "Payment method",
+      "note": "The method you pick here becomes the default for your next order.",
+      "method": {
+        "promptpay": {
+          "title": "PromptPay QR",
+          "subtitle": "Scan to pay · most popular"
+        },
+        "cash": {
+          "title": "Cash on delivery",
+          "subtitle": "Pay the rider in cash"
+        },
+        "card": {
+          "title": "Credit / debit card",
+          "subtitle": "Pay by card in the app"
+        }
+      }
+    },
+    "promptpay": {
+      "title": "PromptPay",
+      "amount": "Amount due",
+      "scanHint": "Scan with any banking app",
+      "expiresIn": "Expires in",
+      "expired": "QR expired",
+      "paid": "I've paid — check status",
+      "mockNote": "This QR is a mock — no real payment gateway is connected yet."
+    },
+    "card": {
+      "title": "Pay by card",
+      "amount": "Amount due",
+      "testCard": "Test card",
+      "expiry": "Expiry",
+      "cvc": "CVC",
+      "pay": "Pay with this card",
+      "mockNote": "This screen is a mock — no real payment gateway is connected, so there is no card number field."
+    },
+    "addresses": {
+      "title": "Delivery addresses",
+      "add": "Add address",
+      "addTitle": "Add delivery address",
+      "defaultTag": "Default",
+      "emptyTitle": "No delivery address yet",
+      "emptyHint": "You need at least one address before ordering, so the rider knows where to go.",
+      "label": "Name this address",
+      "labelPlaceholder": "Home / Work / Dorm",
+      "addressText": "Address",
+      "addressHint": "The rider reads this — the more detail, the easier to find",
+      "note": "Note for the rider",
+      "notePlaceholder": "Leave with reception / Call on arrival",
+      "pinTitle": "Pinned location",
+      "pinMissing": "Not set - used for distance and rider dispatch",
+      "pinSet": "Saved ({{lat}}, {{lng}})",
+      "useLocation": "Use current location",
+      "locating": "Finding location...",
+      "locationDenied": "Location permission is required so the rider can find your address",
+      "locationFailed": "Could not get your location, please try again",
+      "required": "Please fill in the name and address",
+      "needLocation": "Tap \"Use current location\" before saving",
+      "saveFailed": "Could not save the address, please try again"
+    },
+    "receipt": {
+      "title": "Receipt",
+      "orderNumber": "Order number",
+      "paymentStatus": {
+        "pending": "Not paid yet",
+        "paid": "Paid",
+        "failed": "Payment failed",
+        "refunded": "Refunded"
+      }
+    },
+    "report": {
+      "title": "Report a problem",
+      "reason": "What happened",
+      "detail": "Tell us more",
+      "detailPlaceholder": "e.g. got fried rice instead of basil pork",
+      "submit": "Send",
+      "sentTitle": "Sent",
+      "sentBody": "We will review and get back to you. Refunds are reviewed by a person, not approved automatically.",
+      "reasons": {
+        "wrong_item": "Wrong item",
+        "missing_item": "Missing item",
+        "food_quality": "Food problem",
+        "damaged": "Spilled or damaged",
+        "not_delivered": "Never arrived",
+        "late": "Very late",
+        "other": "Something else"
+      },
+      "entry": "Something wrong with this order"
+    },
+    "rate": {
+      "title": "Rate your order",
+      "entry": "Rate this order",
+      "restaurant": "Kitchen",
+      "restaurantHint": "How was the food?",
+      "rider": "Rider",
+      "riderHint": "Optional — skip if you like",
+      "comment": "Tell us more",
+      "commentPlaceholder": "Anything you want the kitchen or other diners to know",
+      "submit": "Submit rating",
+      "alreadyTitle": "You already rated this order",
+      "alreadyBody": "Reviews cannot be edited. If something is wrong, open a support ticket.",
+      "submitWithTip": "Submit rating and {{amount}} tip"
+    },
+    "tip": {
+      "title": "Tip your rider",
+      "allToRider": "Every satang goes to the rider — we take nothing",
+      "optional": "Entirely optional, and it doesn't affect your rating"
+    },
+    "editProfile": {
+      "title": "Edit profile",
+      "subtitle": "Your name and password-reset email",
+      "fullName": "Full name",
+      "email": "Email",
+      "emailHint": "Used only for password resets — can be left empty",
+      "emailInvalid": "That email is not valid",
+      "username": "Username",
+      "phone": "Phone",
+      "lockedNote": "Username and phone cannot be changed here — the username is your login, and the phone was verified by OTP",
+      "saved": "Saved"
+    },
+    "filters": {
+      "title": "Filters",
+      "reset": "Reset",
+      "sortBy": "Sort by",
+      "sort": {
+        "recommended": "Recommended",
+        "nearest": "Nearest",
+        "topRated": "Top rated",
+        "fastest": "Fastest"
+      },
+      "maxFee": "Max delivery fee",
+      "minRating": "Minimum rating",
+      "priceTier": "Price",
+      "openOnly": "Open now only",
+      "openOnlyHint": "Hide restaurants you can't order from right now",
+      "apply": "Show results"
+    }
+  },
+  "order": {
+    "error": {
+      "ownRestaurant": "You can't order from your own restaurant"
+    }
+  },
+  "merchant": {
+    "menu": {
+      "title": "Your menu",
+      "add": "Add item",
+      "empty": "No menu items yet. Tap Add item to start.",
+      "items": "items",
+      "optionGroups": "option groups",
+      "logout": "Log out",
+      "available": "Available"
+    },
+    "form": {
+      "title": "Add menu item",
+      "name": "Item name",
+      "desc": "Description (optional)",
+      "price": "Price (THB)",
+      "category": "Category",
+      "available": "Available",
+      "options": "Option groups for customers",
+      "addGroup": "Add option group",
+      "groupName": "Group name (e.g. Spice level)",
+      "min": "Min select",
+      "max": "Max select",
+      "addChoice": "Add choice",
+      "choiceName": "Choice name",
+      "choicePrice": "Extra price",
+      "removeGroup": "Remove group",
+      "save": "Save item"
+    },
+    "orders": {
+      "title": "Order queue",
+      "waiting": "{{count}} waiting to accept",
+      "open": "Accepting orders",
+      "closed": "Not accepting orders",
+      "toggleOpen": "Accept orders on or off",
+      "prepTime": "About {{minutes}} min to cook",
+      "items": "{{count}} items",
+      "payout": "You receive",
+      "secondsLeft": "{{count}}s left to accept",
+      "overdue": "Past the accept window",
+      "scope": {
+        "queue": "To do",
+        "history": "Done"
+      },
+      "empty": {
+        "queue": "No orders yet",
+        "history": "No finished orders yet"
+      },
+      "status": {
+        "created": "New order",
+        "accepted": "Accepted",
+        "preparing": "Cooking",
+        "picked_up": "Picked up",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled"
+      },
+      "itemNote": "Note"
+    },
+    "detail": {
+      "title": "Order detail",
+      "missing": "This order is no longer here",
+      "customer": "Customer",
+      "secondsToAccept": "seconds left (of {{total}})",
+      "overdue": "Past the accept window · you can still accept",
+      "foodTotal": "Food subtotal",
+      "commission": "Commission 15%",
+      "feesNote": "Delivery and service fees are charged to the customer, not deducted from you",
+      "action": {
+        "accepted": "Accept order",
+        "preparing": "Start cooking",
+        "reject": "Reject order"
+      }
+    },
+    "open": {
+      "title": "Open your restaurant",
+      "name": "Restaurant name",
+      "cuisine": "Cuisine",
+      "address": "Restaurant address",
+      "location": "Restaurant location",
+      "locationHint": "No coordinates yet — tap below while you are at the shop",
+      "locationSet": "Location saved ({{lat}}, {{lng}})",
+      "useLocation": "Use current location",
+      "locationDenied": "Location permission is required — we need to check the shop is inside a served zone",
+      "prepTime": "Average cooking time (minutes)",
+      "prepTimeError": "Enter 1–120 minutes",
+      "payout": "Payout account",
+      "bankName": "Bank",
+      "bankNumber": "Account number",
+      "bankHolder": "Account holder",
+      "bankNote": "The account holder should match the owner name — we check this at approval",
+      "submit": "Submit application",
+      "sentTitle": "Application sent",
+      "sentBody": "Your restaurant is in the {{zone}} zone. We will review and get back to you.",
+      "nextStep": "Meanwhile you can add at least 3 menu items. The shop stays closed until it is approved.",
+      "entry": "Open your restaurant",
+      "sentBodyNoZone": "We will review and get back to you. Customers within 5 km of your restaurant can order once approved"
+    },
+    "summary": {
+      "title": "Restaurant sales",
+      "openQueue": "Orders still to make",
+      "goQueue": "Go to order queue",
+      "today": "Today",
+      "last7Days": "Last 7 days",
+      "orders": "{{count}} orders",
+      "foodSales": "Food sales",
+      "commission": "Commission 15%",
+      "net": "You receive",
+      "payoutTitle": "Payout schedule",
+      "payoutBody": "Automated payouts are not in this phase yet — we will transfer the amount above manually"
+    },
+    "qr": {
+      "title": "Kitchen QR & link",
+      "hint": "Print it and put it on the counter — scanning opens this kitchen directly",
+      "linkLabel": "Kitchen link",
+      "linkHint": "Paste it in your Facebook or LINE bio"
+    },
+    "hours": {
+      "title": "Store hours",
+      "missing": "Restaurant not found",
+      "switchLabel": "Accepting orders",
+      "accepting": "Open · accepting orders",
+      "notAccepting": "Not accepting orders right now",
+      "todayRange": "Today {{open}} – {{close}}",
+      "todayUnset": "No schedule set — open whenever the switch is on",
+      "pauseTitle": "Pause new orders",
+      "pauseHint": "Kitchen too busy? Pause, and orders resume on their own.",
+      "pauseMinutes": "{{minutes}} min",
+      "pausedFor": "Paused · back in {{minutes}} min",
+      "resume": "Resume orders now",
+      "weeklyTitle": "Opening hours",
+      "closedAllDay": "Closed all day",
+      "save": "Save hours",
+      "day": {
+        "sun": "Sunday",
+        "mon": "Monday",
+        "tue": "Tuesday",
+        "wed": "Wednesday",
+        "thu": "Thursday",
+        "fri": "Friday",
+        "sat": "Saturday"
+      }
+    },
+    "reject": {
+      "title": "Reject order",
+      "why": "Why are you rejecting?",
+      "reason": {
+        "out_of_stock": "Out of ingredients",
+        "too_busy": "Kitchen too busy",
+        "closing_soon": "Closing soon",
+        "other": "Other reason"
+      },
+      "reasonHint": {
+        "out_of_stock": "Can't make this order right now",
+        "too_busy": "Queue is too long to take more",
+        "closing_soon": "Won't finish before closing",
+        "other": "None of the above"
+      },
+      "refundNote": "The customer is refunded in full automatically.",
+      "noPaymentNote": "This is a cash order — no money has moved, so there is nothing to refund.",
+      "confirm": "Reject & refund customer"
+    },
+    "editItem": {
+      "title": "Edit item",
+      "missing": "Item not found",
+      "name": "Name",
+      "description": "Description",
+      "price": "Price (THB)",
+      "available": "Available now",
+      "availableOn": "Showing on the menu",
+      "availableOff": "Hidden — customers can't order it",
+      "optionsNote": "This dish has {{count}} option group(s) — editing options isn't supported yet, because past orders still reference the current ones.",
+      "save": "Save changes"
+    }
+  },
+  "payment": {
+    "error": {
+      "cannotSwitch": "This order can no longer change payment method"
+    }
+  },
+  "rider": {
+    "tabs": {
+      "home": "Home",
+      "earnings": "Earnings",
+      "payout": "Payout",
+      "profile": "Profile"
+    },
+    "profile": {
+      "title": "Profile"
+    },
+    "documents": {
+      "title": "My documents",
+      "subtitle": "All six are required before an admin can approve you for jobs",
+      "progress": "{{done}}/{{total}} approved",
+      "uploading": "Uploading",
+      "status": {
+        "missing": "Not sent",
+        "reviewing": "In review",
+        "verified": "Approved",
+        "rejected": "Rejected"
+      },
+      "kind": {
+        "selfie": "Photo of your face",
+        "id_card_front": "ID card, front",
+        "id_card_back": "ID card, back",
+        "licence": "Driving licence",
+        "vehicle_book": "Vehicle registration book",
+        "insurance": "Compulsory insurance"
+      },
+      "hint": {
+        "selfie": "Face clearly visible — no helmet or sunglasses",
+        "id_card_front": "ID number and name fully readable, no glare",
+        "id_card_back": "Back number fully readable",
+        "licence": "Not expired, expiry date readable",
+        "vehicle_book": "The page with plate number and owner name",
+        "insurance": "Not expired, expiry date readable"
+      }
+    },
+    "home": {
+      "title": "My jobs",
+      "online": "Accepting jobs",
+      "offline": "Not accepting jobs",
+      "onlineHint": "Jobs are offered to you one at a time, nearest first",
+      "offlineHint": "Turn on to start receiving jobs (location required)",
+      "toggle": "Accept jobs on or off",
+      "activeJobs": "Current jobs",
+      "noJobs": "Nothing to do right now",
+      "summary": "My summary",
+      "deliveredCount": "Delivered",
+      "hoursOnline": "Hours online",
+      "cashHeld": "Cash in hand",
+      "cashLimitWarning": "Near your cash ceiling — settle up to keep taking cash orders",
+      "locationNeeded": "Location permission is required before you can accept jobs",
+      "seeEarnings": "Earnings & history"
+    },
+    "offer": {
+      "title": "New job",
+      "dropoff": "Drop off at",
+      "items": "{{count}} items",
+      "pay": "You earn",
+      "collectCash": "Collect {{amount}} cash from the customer",
+      "accept": "Accept",
+      "decline": "Pass"
+    },
+    "status": {
+      "accepted": "Waiting for kitchen",
+      "preparing": "Cooking",
+      "picked_up": "On the way"
+    },
+    "job": {
+      "title": "Current job",
+      "missing": "This job is no longer here",
+      "pickup": "Pick up at",
+      "dropoff": "Drop off at",
+      "items": "Items",
+      "pay": "You earn",
+      "collectCash": "Collect {{amount}} cash",
+      "alreadyPaid": "Already paid — collect nothing",
+      "waitingKitchen": "Waiting for the kitchen to start cooking",
+      "action": {
+        "picked_up": "Picked up",
+        "delivered": "Delivered"
+      }
+    },
+    "issue": {
+      "title": "Report a problem",
+      "subtitle": "Admin sees this immediately. The order is not cancelled until admin decides.",
+      "hotlineNumber": "02-000-0000",
+      "callHotline": "Call support {{number}}",
+      "kind": {
+        "cannot_reach_customer": "Can't reach the customer",
+        "bad_address": "Wrong or unfindable address",
+        "accident": "I had an accident"
+      },
+      "hint": {
+        "cannot_reach_customer": "No answer, or nobody came down at the drop-off",
+        "bad_address": "No such house number, or the lane is blocked",
+        "accident": "You or the bike can't continue the delivery"
+      },
+      "detailLabel": "More detail (optional)",
+      "detailPlaceholder": "Briefly, what happened?",
+      "send": "Send to admin",
+      "sent": "Sent — admin is looking. The order is still active; keep going if you can."
+    },
+    "pickup": {
+      "title": "Pickup",
+      "distance": "{{km}} km from you",
+      "kitchen": "Kitchen",
+      "readyIn": "Ready in {{minutes}} min",
+      "readyNow": "Should be ready now",
+      "noRush": "No rush — arriving early just means waiting unpaid",
+      "checklist": "Check the bag {{done}}/{{total}}",
+      "checkAllFirst": "Tick every item before you leave the restaurant",
+      "confirm": "Confirm pickup · Start delivery",
+      "alreadyTaken": "Picked up from the restaurant"
+    },
+    "earnings": {
+      "title": "My earnings",
+      "period": {
+        "today": "Today",
+        "week": "Week",
+        "month": "Month"
+      },
+      "periodLabel": {
+        "today": "Earned today",
+        "week": "Earned in the last 7 days",
+        "month": "Earned in the last 30 days"
+      },
+      "payNote": "From delivery fees only — food payments go to the restaurant",
+      "delivered": "Delivered",
+      "distance": "Total distance",
+      "hours": "Hours online",
+      "perHour": "Orders/hour",
+      "km": "{{km}} km",
+      "minutes": "{{minutes}} min",
+      "underMinute": "Under 1 min",
+      "history": "Completed deliveries",
+      "empty": "No completed deliveries in this period yet",
+      "paidCash": "Cash collected"
+    },
+    "apply": {
+      "title": "Rider application",
+      "sectionIdentity": "Identity",
+      "nationalId": "National ID number",
+      "dateOfBirth": "Date of birth",
+      "dateFormat": "Format YYYY-MM-DD, e.g. 2000-01-31",
+      "sectionVehicle": "Vehicle and licence",
+      "vehicleRegistration": "Vehicle registration",
+      "licenceExpiry": "Licence expiry",
+      "insuranceExpiry": "Compulsory insurance expiry",
+      "sectionPayout": "Payout account",
+      "bankName": "Bank",
+      "bankAccountNumber": "Account number",
+      "bankAccountName": "Account holder",
+      "bankNameNote": "Should match the name on your ID card",
+      "sectionSafety": "Emergency contact",
+      "emergencyName": "Contact name",
+      "emergencyPhone": "Contact phone",
+      "preferredZone": "Preferred zone",
+      "documentsTitle": "Original documents",
+      "documentsNote": "Bring your ID card, licence, vehicle book and insurance in person when you collect your equipment — photo upload is not available in the app yet",
+      "acceptContract": "I accept the independent contractor agreement",
+      "acceptPdpa": "I consent to my personal data being stored and used under PDPA",
+      "submit": "Submit application",
+      "incomplete": "Some fields are missing or invalid",
+      "sentTitle": "Application submitted",
+      "sentBody": "Our team will review it and call you on your verified number",
+      "error": {
+        "nationalId": "That national ID number is not valid",
+        "date": "Please use the date format shown",
+        "age": "You must be 18 or older",
+        "licenceExpired": "That licence has expired",
+        "insuranceExpired": "That insurance has expired",
+        "bankNumber": "That account number is not valid",
+        "phone": "That phone number is not valid",
+        "required": "This field is required"
+      }
+    },
+    "payout": {
+      "title": "Earnings & cash out",
+      "available": "Available now",
+      "earned": "Total earned",
+      "cashHeld": "Cash you hold",
+      "cashHeldHint": "Keep the cash you collected — it is deducted from what you can withdraw",
+      "withdraw": "Request cash out",
+      "needMore": "Earn {{amount}} more before you can withdraw",
+      "pending": "Requested {{amount}} — waiting for admin",
+      "open": "Earnings & cash out"
+    },
+    "proof": {
+      "title": "Confirm delivery",
+      "pinLabel": "PIN from the customer",
+      "pinHint": "Ask the customer for their 4-digit code — it is on their tracking screen",
+      "leftAtDoor": "Left at the door as requested",
+      "complete": "Complete delivery",
+      "slideToComplete": "Slide to confirm delivery",
+      "completing": "Completing",
+      "photoLabel": "Delivery photo",
+      "photoHint": "Taken after you set the food down — used only if there's a dispute",
+      "addPhoto": "Tap to take or choose a photo",
+      "retake": "Tap the photo to replace it"
+    },
+    "base": {
+      "title": "Work base",
+      "subtitle": "Pin where you want to work, then choose how far you will ride",
+      "pinnedAt": "Your pin",
+      "notSetYet": "Not saved yet — you can take jobs anywhere",
+      "needLocation": "Turn on location before you can drop a pin",
+      "radiusLabel": "Take jobs within",
+      "radiusOption": "{{km}} km",
+      "radiusHint": "You will not be offered jobs from restaurants farther than this from your pin",
+      "save": "Save work base",
+      "open": "Set work base"
+    }
+  },
+  "admin": {
+    "title": "Needs attention",
+    "subtitle": "Only what someone has to act on — not every order",
+    "exceptions": "{{count}} needing attention",
+    "allClear": "Nothing stuck right now",
+    "refunds": "{{count}} refunds awaiting a decision",
+    "noRefunds": "No refunds waiting",
+    "forceDispatch": "Dispatch now",
+    "resolveIssue": "Handled — close",
+    "suggestedRefund": "Suggested refund {{amount}}",
+    "needsReview": "No amount suggested — review before approving",
+    "approve": {
+      "title": "Approvals"
+    },
+    "reject": "Reject",
+    "kind": {
+      "unaccepted": "Not accepted",
+      "no_rider": "No rider",
+      "slow_delivery": "Slow delivery",
+      "open_dispute": "Open dispute",
+      "rider_issue": "Rider reported a problem"
+    },
+    "fault": {
+      "restaurant": "Restaurant",
+      "rider": "Rider",
+      "platform": "Platform"
+    },
+    "metric": {
+      "title": "Last {{days}} days",
+      "orders": "Orders",
+      "ordersPerRiderHour": "Orders per rider hour",
+      "acceptRate": "Restaurant accept rate",
+      "refundRate": "Refund rate",
+      "autoDispatchRate": "Auto-dispatch success",
+      "contributionPerOrder": "Contribution per order",
+      "medianDelivery": "Median delivery time",
+      "onTimeRate": "On-time delivery rate",
+      "promptPayRate": "Paid via PromptPay",
+      "repeatOrderRate": "30-day repeat order rate"
+    },
+    "pendingShops": "{{count}} restaurants awaiting approval",
+    "noPendingShops": "No restaurants awaiting approval",
+    "shopMenuCount": "{{count}} menu items (needs at least 3)",
+    "approveShop": "Approve restaurant",
+    "riders": {
+      "title": "Rider applications",
+      "empty": "No applications waiting",
+      "bankMismatch": "Account holder does not match legal name — check before approving",
+      "approve": "Approve",
+      "reject": "Reject",
+      "rejectReason": "Reason for rejection",
+      "licenceExpiry": "Licence until",
+      "insuranceExpiry": "Insurance until",
+      "viewDocuments": "View documents"
+    },
+    "cash": {
+      "title": "Cash held by riders",
+      "empty": "No rider is holding cash",
+      "atLimit": "At the {{limit}} ceiling — no more cash orders will be offered until this is settled",
+      "settleAll": "Record {{amount}} received"
+    },
+    "payouts": {
+      "title": "Rider withdrawal requests",
+      "empty": "No withdrawal requests waiting",
+      "requested": "Requested {{when}}",
+      "approve": "Confirm {{amount}} transfer",
+      "reject": "Reject request",
+      "rejectReason": "Reason for rejecting"
+    },
+    "tabs": {
+      "home": "Overview",
+      "orders": "Orders",
+      "money": "Money",
+      "approve": "Approvals",
+      "support": "Tickets"
+    },
+    "openMap": "Open live ops map",
+    "live": {
+      "title": "Right now",
+      "activeOrders": "Active orders",
+      "ridersOnline": "Riders online",
+      "unassigned": "No rider yet",
+      "gmvToday": "Sales today",
+      "medianDelivery": "Median delivery",
+      "minutes": "{{count}} min"
+    },
+    "orders": {
+      "title": "All orders",
+      "filter": {
+        "all": "All",
+        "delayed": "Delayed",
+        "unassigned": "No rider"
+      },
+      "empty": {
+        "all": "No orders in the system yet",
+        "delayed": "Nothing is running late right now",
+        "unassigned": "Every live order has a rider"
+      },
+      "noRider": "No rider yet",
+      "elapsed": "{{count}} min ago"
+    },
+    "money": {
+      "title": "Money"
+    },
+    "payables": {
+      "title": "Owed to restaurants",
+      "empty": "No restaurant is owed anything",
+      "orderCount": "from {{count}} orders",
+      "settle": "Pay {{amount}}"
+    },
+    "map": {
+      "title": "Live ops map",
+      "riders": "{{count}} riders",
+      "orders": "{{count}} orders",
+      "unassigned": "{{count}} unassigned"
+    },
+    "docs": {
+      "subtitle": "Review every image before approving — links expire in 5 minutes",
+      "notSubmitted": "Not submitted yet",
+      "imageFailed": "Could not load image — reopen this screen",
+      "verify": "Verify",
+      "reject": "Reject"
+    },
+    "support": {
+      "title": "Support tickets",
+      "subtitle": "What customers have raised — unresolved first",
+      "filter": {
+        "open": "Open",
+        "closed": "Closed",
+        "all": "All"
+      },
+      "empty": {
+        "open": "Nothing open right now",
+        "closed": "Nothing has been closed yet",
+        "all": "Nobody has raised anything yet"
+      },
+      "unanswered": "No reply yet",
+      "close": "Close this ticket",
+      "openRefundCase": "Go to the refund case for this order",
+      "refundStartsWithCustomer": "Refunds cannot start from a ticket — the customer reports the problem from their receipt, then the case appears in the Money tab"
+    }
+  },
+  "super": {
+    "tabs": {
+      "home": "Overview",
+      "zones": "Zones",
+      "config": "Settings",
+      "audit": "History"
+    },
+    "home": {
+      "title": "Platform overview",
+      "subtitle": "Is the model still profitable — not what is on fire right now",
+      "window": "{{count}} days",
+      "metricsUnavailable": "Numbers unavailable. Try again.",
+      "manageRoles": "Manage admin access"
+    },
+    "roles": {
+      "title": "Admin access",
+      "subtitle": "Super admins change pricing, switches and access. Admins only run day-to-day ops.",
+      "empty": "No admin accounts yet",
+      "self": "This is your account — you cannot change your own access. Ask another super admin.",
+      "role": {
+        "admin": "Admin",
+        "super_admin": "Super admin",
+        "user": "Customer",
+        "rider": "Rider"
+      },
+      "action": {
+        "admin": "Demote to admin",
+        "super_admin": "Promote to super admin",
+        "user": "Revoke all access"
+      },
+      "confirmTitle": "Confirm access change",
+      "confirmBody": "{{name}} becomes {{role}} as soon as you save, and the change is written to the history log."
+    },
+    "zones": {
+      "title": "Zones",
+      "subtitle": "For reporting and rider sign-up — zones do not decide which orders are allowed",
+      "empty": "No zones yet",
+      "add": "Add zone",
+      "addTitle": "New zone",
+      "editTitle": "Edit zone",
+      "edit": "Edit",
+      "name": "Zone name",
+      "namePlaceholder": "e.g. Ari",
+      "typeLabel": "Area type",
+      "type": {
+        "university": "University",
+        "condo_cluster": "Condo cluster",
+        "office_district": "Office district",
+        "mixed": "Mixed"
+      },
+      "lat": "Centre latitude",
+      "lng": "Centre longitude",
+      "badCoords": "Invalid coordinates — latitude -90 to 90, longitude -180 to 180",
+      "liveOrders": "Live orders",
+      "ridersOnline": "Riders online",
+      "gmv": "30-day sales"
+    },
+    "config": {
+      "title": "Platform rules",
+      "subtitle": "Fees and switches that really change server behaviour",
+      "pricingTitle": "Fees",
+      "commission": "Commission (%)",
+      "commissionHint": "Charged on food subtotal only, never on delivery or service fees. Default 15%.",
+      "deliveryBase": "Base delivery fee (THB)",
+      "deliveryPerKm": "Per kilometre (THB)",
+      "deliveryPerKmHint": "Added after the first kilometre, rounded up per km",
+      "serviceFee": "Service fee (THB)",
+      "badAmount": "Every field must be a whole number of satang",
+      "badRate": "Commission must be between 1% and 30%",
+      "confirmTitle": "Confirm fee change",
+      "confirmNote": "Applies to new orders only. Existing orders and posted ledger entries do not move. The change is written to the history log.",
+      "confirmSave": "Confirm and save",
+      "flagsTitle": "System switches",
+      "flag": {
+        "cash_payment": "Accept cash",
+        "card_payment": "Accept cards",
+        "auto_dispatch": "Auto-dispatch",
+        "registration_open": "Open registration"
+      },
+      "flagHint": {
+        "cash_payment": "Off: cash orders are rejected platform-wide",
+        "card_payment": "Off: cards disappear from the payment picker",
+        "auto_dispatch": "Off: every job goes back to manual assignment",
+        "registration_open": "Off: new sign-ups are paused"
+      }
+    },
+    "audit": {
+      "title": "History log",
+      "subtitle": "Everything that touched money or access. Append-only, never deleted.",
+      "empty": "Nothing in this filter yet",
+      "by": "{{name}} (@{{username}})",
+      "group": {
+        "all": "All",
+        "money": "Money",
+        "rules": "Rules",
+        "access": "Access",
+        "approval": "Approvals"
+      },
+      "action": {
+        "refund_approved": "Refund approved",
+        "refund_rejected": "Refund rejected",
+        "restaurant_settled": "Restaurant paid out",
+        "restaurant_approved": "Restaurant approved",
+        "rider_approved": "Rider approved",
+        "rider_rejected": "Rider rejected",
+        "rider_cash_settled": "Rider cash collected",
+        "rider_payout_paid": "Rider paid out",
+        "pricing_changed": "Fees changed",
+        "flag_changed": "System switch toggled",
+        "role_changed": "Admin access changed"
+      }
+    }
+  },
+  "support": {
+    "title": "Contact support",
+    "profileHint": "Start a conversation with the team",
+    "aboutThisOrder": "Message support about this order",
+    "aboutOrder": "This conversation will be linked to the order you came from",
+    "newTicket": "New conversation",
+    "myTickets": "My conversations",
+    "empty": "You have not opened anything yet",
+    "kind": "This is about",
+    "kindName": {
+      "order_problem": "An order",
+      "payment": "Payment",
+      "account": "My account",
+      "other": "Something else"
+    },
+    "subject": "Subject",
+    "subjectPlaceholder": "A short summary",
+    "detail": "Details",
+    "detailPlaceholder": "The more detail you give, the faster we can answer",
+    "send": "Send",
+    "replyPlaceholder": "Write a message",
+    "staff": "Support",
+    "closedNote": "This conversation is closed — open a new one if anything is still unresolved",
+    "status": {
+      "open": "In progress",
+      "closed": "Closed"
+    },
+    "autoReply": {
+      "kicker": "Automatic reply",
+      "body": "We're outside office hours (09:00–21:00). Someone will reply around {{time}}."
+    }
+  },
+  "reviews": {
+    "title": "Reviews",
+    "empty": "No reviews yet",
+    "noRatingYet": "No rating yet — nobody has reviewed this kitchen",
+    "count": "{{count}} reviews"
+  },
+  "chat": {
+    "title": "Chat",
+    "withRider": "Message rider",
+    "withMerchant": "Message kitchen",
+    "withCustomer": "Message customer",
+    "placeholder": "Type a message",
+    "send": "Send",
+    "empty": "No messages yet — say hello",
+    "closed": "This order is finished. You can read the thread but not send new messages.",
+    "quick": {
+      "onTheWay": "On my way",
+      "arrived": "I'm outside",
+      "cantFind": "Can't find the address, could you guide me?",
+      "comingDown": "Coming down now",
+      "leaveWithGuard": "Please leave it with the guard",
+      "callMe": "Feel free to call me",
+      "lessSpicy": "Less spicy please",
+      "noUtensils": "No cutlery needed",
+      "howLong": "Roughly how many more minutes?"
+    }
+  },
+  "demo": {
+    "badge": "Demo mode",
+    "hint": "Local sample data. Tap to fill a test account.",
+    "role": {
+      "user": "Customer",
+      "rider": "Rider",
+      "admin": "Admin",
+      "super_admin": "Super admin"
+    },
+    "badgeLive": "Test accounts",
+    "hintLive": "Connected to the live API. Tap to fill an account."
+  }
+}
