@@ -1,0 +1,5 @@
+describe('jest setup', () => {
+  it('รันเทสต์ได้', () => {
+    expect(1 + 1).toBe(2);
+  });
+});
