@@ -1,0 +1,65 @@
+{
+  "common": {
+    "appName": "Wingdai",
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "back": "Back",
+    "save": "Save",
+    "loading": "Loading",
+    "errorGeneric": "Something went wrong. Please try again."
+  },
+  "auth": {
+    "login": {
+      "title": "Log in",
+      "username": "Username",
+      "password": "Password",
+      "submit": "Log in",
+      "forgot": "Forgot password",
+      "toRegister": "No account yet? Sign up",
+      "invalidCredentials": "Incorrect username or password"
+    },
+    "register": {
+      "title": "Sign up",
+      "fullName": "Full name",
+      "phone": "Phone number",
+      "phoneInvalid": "Please enter a valid phone number",
+      "submit": "Sign up"
+    },
+    "otp": {
+      "title": "Verify your phone",
+      "description": "We sent a 6-digit code to your number",
+      "resend": "Send code again",
+      "invalid": "Incorrect code"
+    },
+    "chooseType": {
+      "title": "How will you use Wingdai?",
+      "user": "Order food",
+      "userDescription": "Order from nearby restaurants at in-store prices",
+      "rider": "Become a rider",
+      "riderDescription": "Take delivery jobs in your neighbourhood"
+    },
+    "forgot": {
+      "title": "Forgot password",
+      "description": "Enter the phone number you signed up with and we'll send you a code",
+      "submit": "Send code"
+    },
+    "pending": {
+      "title": "Awaiting approval",
+      "description": "We're reviewing your documents. You'll hear from us within 1-2 business days.",
+      "logout": "Log out"
+    }
+  },
+  "roleSwitcher": {
+    "title": "Switch mode",
+    "customer": "Customer mode",
+    "merchant": "Merchant mode",
+    "rider": "Rider mode",
+    "admin": "Admin mode"
+  },
+  "settings": {
+    "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark"
+  }
+}
