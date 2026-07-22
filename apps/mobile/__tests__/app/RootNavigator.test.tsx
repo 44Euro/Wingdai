@@ -1,0 +1,151 @@
+import React from 'react';
+import ReactTestRenderer, { act } from 'react-test-renderer';
+import { NavigationContainer } from '@react-navigation/native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RootNavigator } from '../../src/app/RootNavigator';
+import { ThemeProvider } from '../../src/theme/ThemeProvider';
+import { useAuthStore } from '../../src/features/auth/authStore';
+import { initI18n } from '../../src/i18n';
+
+// @testing-library/react-native ถูกถอดออกจากโปรเจกต์ (ใช้ไม่ได้กับ jest-expo 57 + React 19)
+
+// ตอนยังไม่ล็อกอิน RootNavigator คืน AuthNavigator (native-stack) ซึ่งต้องมี
+
+beforeAll(async () => {
+  await initI18n();
+});
+
+let currentRenderer: ReactTestRenderer.ReactTestRenderer | null = null;
+
+beforeEach(() => {
+  useAuthStore.setState({
+    account: null,
+    restaurants: [],
+    capabilities: [],
+    activeCapability: null,
+    isLoading: false,
+    // เทสต์ตั้ง state เองอยู่แล้ว จึงข้ามขั้นกู้เซสชัน ของจริง RootNavigator
+    isRestoring: false,
+    error: null,
+  });
+});
+
+// unmount หลังทุกเทสต์ RootNavigator subscribe กับ useAuthStore ซึ่งเป็น store
+afterEach(() => {
+  act(() => {
+    currentRenderer?.unmount();
+  });
+  currentRenderer = null;
+});
+
+/** เรนเดอร์ RootNavigator ห่อด้วย ThemeProvider เหมือนเทสต์อื่น ๆ ในโปรเจกต์นี้ */
+function renderApp(): ReactTestRenderer.ReactTestRenderer {
+  // ห่อ QueryClientProvider เหมือน App.tsx จริง CustomerStack ใช้ useQuery (useRestaurants)
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  act(() => {
+    currentRenderer = ReactTestRenderer.create(
+      <QueryClientProvider client={qc}>
+        <ThemeProvider forceScheme="light">
+          <NavigationContainer>
+            <RootNavigator />
+          </NavigationContainer>
+        </ThemeProvider>
+      </QueryClientProvider>,
+    );
+  });
+  return currentRenderer!;
+}
+
+/** หา node ทุกตัว (composite + host) ที่มี props.testID ตรงกับที่ระบุ */
+function findAllByTestId(
+  root: ReactTestRenderer.ReactTestInstance,
+  testID: string,
+): ReactTestRenderer.ReactTestInstance[] {
+  return root.findAll((node) => node.props?.testID === testID);
+}
+
+/** ยืนยันว่ามี node ที่มี testID นี้อยู่จริงอย่างน้อยหนึ่งตัว */
+function expectPresent(root: ReactTestRenderer.ReactTestInstance, testID: string) {
+  expect(findAllByTestId(root, testID).length).toBeGreaterThanOrEqual(1);
+}
+
+/** ยืนยันว่าไม่มี node ที่มี testID นี้อยู่เลย ใช้ยืนยันว่า "ไม่เห็น stack อื่น" */
+function expectAbsent(root: ReactTestRenderer.ReactTestInstance, testID: string) {
+  expect(findAllByTestId(root, testID).length).toBe(0);
+}
+
+describe('RootNavigator', () => {
+  it('ยังไม่ล็อกอินเห็นหน้าเข้าสู่ระบบ', () => {
+    const result = renderApp();
+    expectPresent(result.root, 'screen-login');
+  });
+
+  it('user ธรรมดาเข้า CustomerStack', async () => {
+    await useAuthStore.getState().login('somchai', '1234');
+    const result = renderApp();
+    expectPresent(result.root, 'screen-customer-home');
+  });
+
+  it('ไรเดอร์ที่อนุมัติแล้วเข้า RiderStack เป็นค่าเริ่มต้น', async () => {
+    await useAuthStore.getState().login('rider_ann', '1234');
+    const result = renderApp();
+    expectPresent(result.root, 'screen-rider-home');
+  });
+
+  it('ไรเดอร์ที่อนุมัติแล้วสลับไปโหมดลูกค้าได้', async () => {
+    await useAuthStore.getState().login('rider_ann', '1234');
+    useAuthStore.getState().setActiveCapability('customer');
+    const result = renderApp();
+    expectPresent(result.root, 'screen-customer-home');
+  });
+
+  it('ไรเดอร์ที่รออนุมัติเห็นหน้ารออนุมัติเท่านั้น ห้ามเห็น stack ใด ๆ เลย', async () => {
+    await useAuthStore.getState().login('rider_new', '1234');
+    const result = renderApp();
+    expectPresent(result.root, 'screen-pending');
+    // กฎความปลอดภัย: ไรเดอร์รออนุมัติต้องไม่เข้า stack ใดเลย รวมทั้งการสั่งอาหาร (stack-customer)
+    expectAbsent(result.root, 'screen-customer-home');
+    expectAbsent(result.root, 'screen-rider-home');
+    expectAbsent(result.root, 'screen-merchant-orders');
+    expectAbsent(result.root, 'stack-admin');
+  });
+
+  it('เจ้าของร้านเริ่มที่คิวออร์เดอร์ ไม่ใช่จอเมนู', async () => {
+    await useAuthStore.getState().login('malee', '1234');
+    const result = renderApp();
+    // ร้านเปิดแอปเพราะมีออร์เดอร์เข้า ไม่ใช่เพราะอยากแก้เมนู (§8 อัตราการรับออร์เดอร์ > 95%)
+    expectPresent(result.root, 'screen-merchant-orders');
+    expectAbsent(result.root, 'screen-merchant-menu');
+  });
+
+  it('แอดมินเข้า AdminStack', async () => {
+    await useAuthStore.getState().login('admin_root', '1234');
+    const result = renderApp();
+    expectPresent(result.root, 'stack-admin');
+  });
+
+  /** ซูเปอร์แอดมินตกที่ AdminStack ก่อนโดยตั้งใจ งานที่เปิดบ่อยกว่าคืองานประจำวัน */
+  it('ซูเปอร์แอดมินเริ่มที่ AdminStack', async () => {
+    await useAuthStore.getState().login('super_root', '1234');
+    const result = renderApp();
+    expectPresent(result.root, 'stack-admin');
+  });
+
+  /** ถ้าสลับไปไม่ได้ จอ SA1–SA6 จะไม่มีทางเข้าเลยแม้แต่ทางเดียว */
+  it('ซูเปอร์แอดมินสลับไป SuperAdminStack ได้', async () => {
+    await useAuthStore.getState().login('super_root', '1234');
+    useAuthStore.getState().setActiveCapability('superAdmin');
+    const result = renderApp();
+    expectPresent(result.root, 'screen-super-home');
+    expectAbsent(result.root, 'stack-admin');
+  });
+
+  /** แอดมินธรรมดาต้องไม่มี capability นั้น สลับไปก็ต้องไม่เกิดอะไร */
+  it('แอดมินธรรมดาสลับไปโหมดซูเปอร์แอดมินไม่ได้', async () => {
+    await useAuthStore.getState().login('admin_root', '1234');
+    useAuthStore.getState().setActiveCapability('superAdmin');
+    const result = renderApp();
+    expectPresent(result.root, 'stack-admin');
+    expectAbsent(result.root, 'screen-super-home');
+  });
+});
