@@ -1,0 +1,176 @@
+import React from 'react';
+import ReactTestRenderer, { act } from 'react-test-renderer';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RouteProp } from '@react-navigation/native';
+import { OtpVerifyScreen } from '../../src/app/navigators/OtpVerifyScreen';
+import { ChooseAccountTypeScreen } from '../../src/app/navigators/ChooseAccountTypeScreen';
+import { ThemeProvider } from '../../src/theme/ThemeProvider';
+import { initI18n, i18n } from '../../src/i18n';
+import { useAuthStore } from '../../src/features/auth/authStore';
+import type { AuthStackParamList } from '../../src/app/navigators/AuthNavigator';
+import type { RegisterFormValues } from '../../src/app/navigators/RegisterScreen';
+
+// @testing-library/react-native ถูกถอดออกจากโปรเจกต์ — ใช้ react-test-renderer ตรง ๆ
+// เทสต์นี้ render OtpVerifyScreen และ ChooseAccountTypeScreen ตรง ๆ (ไม่ผ่าน AuthNavigator เต็ม)
+// พร้อม mock navigation prop + route param เดียวกับ pattern ใน RegisterScreen.test.tsx
+
+// username ต้องไม่ชนกับ seed accounts (somchai, malee, rider_ann, rider_new, admin_root)
+// และห้ามซ้ำกันเองข้ามเทสต์ในไฟล์นี้ — repos เป็น singleton ระดับโมดูล บัญชีที่ register
+// สำเร็จในเทสต์หนึ่งจะค้างอยู่ในสถานะ mock ต่อให้ authStore ถูก reset ใน beforeEach ก็ตาม
+const sampleForm: RegisterFormValues = {
+  username: 'newuser_otp',
+  email: undefined,
+  password: 'secret123',
+  phone: '0812345678',
+  fullName: 'สมชาย ใจดี',
+};
+
+beforeAll(async () => {
+  await initI18n();
+  await i18n.changeLanguage('th');
+});
+
+beforeEach(() => {
+  useAuthStore.setState({
+    account: null,
+    restaurants: [],
+    capabilities: [],
+    activeCapability: null,
+    isLoading: false,
+    error: null,
+  });
+});
+
+let currentRenderer: ReactTestRenderer.ReactTestRenderer | null = null;
+
+afterEach(() => {
+  act(() => {
+    currentRenderer?.unmount();
+  });
+  currentRenderer = null;
+});
+
+/** หา node ทุกตัว (composite + host) ที่มี props.testID ตรงกับที่ระบุ */
+function findAllByTestId(
+  root: ReactTestRenderer.ReactTestInstance,
+  testID: string,
+): ReactTestRenderer.ReactTestInstance[] {
+  return root.findAll((node) => node.props?.testID === testID);
+}
+
+function getFirstByTestId(root: ReactTestRenderer.ReactTestInstance, testID: string) {
+  const nodes = findAllByTestId(root, testID);
+  if (nodes.length === 0) throw new Error(`ไม่พบ testID: ${testID}`);
+  return nodes[0];
+}
+
+function renderOtpVerify(navigation: { navigate: jest.Mock }) {
+  act(() => {
+    currentRenderer = ReactTestRenderer.create(
+      <ThemeProvider forceScheme="light">
+        <OtpVerifyScreen
+          navigation={
+            navigation as unknown as NativeStackNavigationProp<AuthStackParamList, 'OtpVerify'>
+          }
+          route={
+            { key: 'OtpVerify', name: 'OtpVerify', params: { form: sampleForm } } as unknown as RouteProp<
+              AuthStackParamList,
+              'OtpVerify'
+            >
+          }
+        />
+      </ThemeProvider>,
+    );
+  });
+  return currentRenderer!;
+}
+
+function renderChooseAccountType(form: RegisterFormValues = sampleForm) {
+  act(() => {
+    currentRenderer = ReactTestRenderer.create(
+      <ThemeProvider forceScheme="light">
+        <ChooseAccountTypeScreen
+          route={
+            {
+              key: 'ChooseAccountType',
+              name: 'ChooseAccountType',
+              params: { form },
+            } as unknown as RouteProp<AuthStackParamList, 'ChooseAccountType'>
+          }
+        />
+      </ThemeProvider>,
+    );
+  });
+  return currentRenderer!;
+}
+
+describe('OtpVerifyScreen', () => {
+  it('กรอกรหัสผิด (000000) → ขึ้น otp-error, ไม่ navigate', async () => {
+    const navigate = jest.fn();
+    const result = renderOtpVerify({ navigate });
+
+    act(() => {
+      getFirstByTestId(result.root, 'input-otp-code').props.onChangeText('000000');
+    });
+
+    await act(async () => {
+      await getFirstByTestId(result.root, 'btn-verify-otp').props.onPress();
+    });
+
+    expect(findAllByTestId(result.root, 'otp-error').length).toBeGreaterThanOrEqual(1);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('กรอกรหัสถูก (123456) → navigate ไป ChooseAccountType พร้อม form', async () => {
+    const navigate = jest.fn();
+    const result = renderOtpVerify({ navigate });
+
+    act(() => {
+      getFirstByTestId(result.root, 'input-otp-code').props.onChangeText('123456');
+    });
+
+    await act(async () => {
+      await getFirstByTestId(result.root, 'btn-verify-otp').props.onPress();
+    });
+
+    expect(navigate).toHaveBeenCalledWith('ChooseAccountType', { form: sampleForm });
+    expect(findAllByTestId(result.root, 'otp-error').length).toBe(0);
+  });
+});
+
+describe('ChooseAccountTypeScreen', () => {
+  it('เลือก user → register สำเร็จเป็น customer', async () => {
+    const result = renderChooseAccountType({ ...sampleForm, username: 'newuser_choose_user' });
+
+    await act(async () => {
+      await getFirstByTestId(result.root, 'choose-user').props.onPress();
+    });
+
+    const s = useAuthStore.getState();
+    expect(s.account).not.toBeNull();
+    expect(s.account?.accountType).toBe('user');
+    expect(s.activeCapability).toBe('customer');
+  });
+
+  it('เลือก rider → register สำเร็จเป็นไรเดอร์รออนุมัติ ไม่มี capability', async () => {
+    const result = renderChooseAccountType({ ...sampleForm, username: 'newuser_choose_rider' });
+
+    await act(async () => {
+      await getFirstByTestId(result.root, 'choose-rider').props.onPress();
+    });
+
+    const s = useAuthStore.getState();
+    expect(s.account).not.toBeNull();
+    expect(s.account?.accountType).toBe('rider');
+    expect(s.account?.riderApproval).toBe('pending');
+    expect(s.capabilities).toEqual([]);
+  });
+
+  it('ยืนยันไม่มี admin card ในหน้านี้', () => {
+    const result = renderChooseAccountType();
+
+    expect(
+      result.root.findAll((n) => n.props?.testID === 'choose-admin').length,
+    ).toBe(0);
+  });
+});
