@@ -28,7 +28,7 @@ export function Button({
       testID={testID}
       accessibilityRole="button"
       disabled={disabled}
-      onPress={disabled ? (() => {}) : onPress}
+      onPress={onPress}
       style={({ pressed }) => [
         {
           // brandSolid = brand-700 เท่านั้น — brand-500 ไม่ผ่าน contrast กับตัวหนังสือ

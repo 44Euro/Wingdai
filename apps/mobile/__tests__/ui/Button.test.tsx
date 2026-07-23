@@ -118,9 +118,12 @@ describe('Button', () => {
     expect(pressable).not.toBeNull();
     expect(pressable.props.disabled).toBe(true);
 
-    // When a button is disabled, onPress should effectively not call the original callback
-    // We verify this by checking that when disabled=true, the callback is not in the call chain
-    // The Button component should handle this by providing a noop function instead
+    // When disabled=true, Pressable's native behavior prevents calling onPress
+    // We verify this by checking:
+    // 1. disabled prop is true (Pressable's mechanism will handle this)
+    // 2. onPress is the actual callback (not wrapped in a noop)
+    // 3. The callback wasn't called (since Pressable respects its disabled prop)
+    expect(pressable.props.onPress).toBe(fn);
     expect(fn).not.toHaveBeenCalled();
   });
 });
