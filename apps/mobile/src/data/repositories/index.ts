@@ -6,6 +6,8 @@ export interface RegisterInput {
   fullName: string;
   phone: string;
   accountType: AccountType;
+  /** login alias เสริม — optional เสมอ ไม่ต้อง OTP-verify */
+  email?: string;
 }
 
 export interface CreateOrderInput {
@@ -17,7 +19,8 @@ export interface CreateOrderInput {
 }
 
 export interface AuthRepo {
-  login(username: string, password: string): Promise<Account>;
+  /** identifier รับได้ทั้ง username หรือ email — อีเมลเป็น login alias เสริม ไม่ใช่ verified channel ตาม claude.md §4.2 */
+  login(identifier: string, password: string): Promise<Account>;
   register(input: RegisterInput): Promise<Account>;
   verifyOtp(accountId: string, code: string): Promise<boolean>;
   logout(): Promise<void>;

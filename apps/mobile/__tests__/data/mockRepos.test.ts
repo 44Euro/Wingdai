@@ -19,6 +19,50 @@ describe('MockRepo — auth', () => {
     const acc = await repos.auth.login('rider_new', '1234');
     expect(acc.riderApproval).toBe('pending');
   });
+
+  it('ล็อกอินด้วยอีเมล seed แทน username ได้', async () => {
+    const repos = createMockRepos();
+    const acc = await repos.auth.login('somchai@wingdai.test', '1234');
+    expect(acc.username).toBe('somchai');
+  });
+
+  it('ล็อกอินด้วย username เดิมยังใช้ได้ (regression)', async () => {
+    const repos = createMockRepos();
+    const acc = await repos.auth.login('somchai', '1234');
+    expect(acc.username).toBe('somchai');
+  });
+
+  it('identifier มั่วต้อง reject', async () => {
+    const repos = createMockRepos();
+    await expect(repos.auth.login('not_a_real_identifier', '1234')).rejects.toThrow();
+  });
+
+  it('register พร้อมอีเมล แล้วล็อกอินด้วยอีเมลนั้นได้', async () => {
+    const repos = createMockRepos();
+    await repos.auth.register({
+      username: 'newuser1',
+      password: '1234',
+      fullName: 'ผู้ใช้ใหม่',
+      phone: '0899999999',
+      accountType: 'user',
+      email: 'newuser1@example.com',
+    });
+    const acc = await repos.auth.login('newuser1@example.com', '1234');
+    expect(acc.username).toBe('newuser1');
+  });
+
+  it('register ไม่ใส่อีเมล แล้วล็อกอินด้วย username ได้', async () => {
+    const repos = createMockRepos();
+    await repos.auth.register({
+      username: 'newuser2',
+      password: '1234',
+      fullName: 'ผู้ใช้ใหม่สอง',
+      phone: '0888888888',
+      accountType: 'user',
+    });
+    const acc = await repos.auth.login('newuser2', '1234');
+    expect(acc.username).toBe('newuser2');
+  });
 });
 
 describe('MockRepo — orders', () => {

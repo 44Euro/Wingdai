@@ -6,25 +6,28 @@ export const MOCK_PASSWORD = '1234';
 export const seedAccounts: Account[] = [
   {
     id: 'u-somchai', accountType: 'user', username: 'somchai',
-    fullName: 'สมชาย ใจดี', phone: '0812345678', ownedRestaurantIds: [],
+    fullName: 'สมชาย ใจดี', phone: '0812345678', email: 'somchai@wingdai.test',
+    ownedRestaurantIds: [],
   },
   {
     id: 'u-malee', accountType: 'user', username: 'malee',
-    fullName: 'มาลี ศรีสุข', phone: '0823456789', ownedRestaurantIds: ['r-malee'],
+    fullName: 'มาลี ศรีสุข', phone: '0823456789', email: 'malee@wingdai.test',
+    ownedRestaurantIds: ['r-malee'],
   },
   {
     id: 'u-ann', accountType: 'rider', username: 'rider_ann',
-    fullName: 'อรอนงค์ ว่องไว', phone: '0834567890',
+    fullName: 'อรอนงค์ ว่องไว', phone: '0834567890', email: 'rider_ann@wingdai.test',
     riderApproval: 'approved', ownedRestaurantIds: [],
   },
   {
     id: 'u-new', accountType: 'rider', username: 'rider_new',
-    fullName: 'ณัฐพล เพิ่งสมัคร', phone: '0845678901',
+    fullName: 'ณัฐพล เพิ่งสมัคร', phone: '0845678901', email: 'rider_new@wingdai.test',
     riderApproval: 'pending', ownedRestaurantIds: [],
   },
   {
     id: 'u-admin', accountType: 'admin', username: 'admin_root',
-    fullName: 'ผู้ดูแลระบบ', phone: '0856789012', ownedRestaurantIds: [],
+    fullName: 'ผู้ดูแลระบบ', phone: '0856789012', email: 'admin_root@wingdai.test',
+    ownedRestaurantIds: [],
   },
 ];
 

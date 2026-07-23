@@ -14,9 +14,9 @@ export function createMockRepos(): Repos {
 
   return {
     auth: {
-      async login(username, password) {
+      async login(identifier, password) {
         await delay();
-        const acc = accounts.find((a) => a.username === username);
+        const acc = accounts.find((a) => a.username === identifier || a.email === identifier);
         if (!acc || password !== MOCK_PASSWORD) {
           throw new Error('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
         }
@@ -33,6 +33,7 @@ export function createMockRepos(): Repos {
           username: input.username,
           fullName: input.fullName,
           phone: input.phone,
+          email: input.email,
           ownedRestaurantIds: [],
           ...(input.accountType === 'rider' ? { riderApproval: 'pending' as const } : {}),
         };

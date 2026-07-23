@@ -82,4 +82,51 @@ describe('authStore', () => {
     expect(s.account).toBeNull();
     expect(s.capabilities).toEqual([]);
   });
+
+  it('สมัครสมาชิก user ใหม่ → เข้าสู่ระบบทันทีด้วย capability customer', async () => {
+    await useAuthStore.getState().register({
+      username: 'freshuser',
+      password: '1234',
+      fullName: 'ผู้ใช้ใหม่',
+      phone: '0899999999',
+      accountType: 'user',
+    });
+    const s = useAuthStore.getState();
+    expect(s.account?.username).toBe('freshuser');
+    expect(s.activeCapability).toBe('customer');
+    expect(s.error).toBeNull();
+  });
+
+  it('สมัครสมาชิกไรเดอร์ใหม่ → riderApproval pending, ไม่มี capability', async () => {
+    await useAuthStore.getState().register({
+      username: 'freshrider',
+      password: '1234',
+      fullName: 'ไรเดอร์ใหม่',
+      phone: '0888888888',
+      accountType: 'rider',
+    });
+    const s = useAuthStore.getState();
+    expect(s.account?.username).toBe('freshrider');
+    expect(s.account?.riderApproval).toBe('pending');
+    expect(s.capabilities).toEqual([]);
+    expect(s.activeCapability).toBeNull();
+  });
+
+  it('สมัครด้วย username ซ้ำ → error เป็น key usernameTaken และไม่ตั้ง account', async () => {
+    await useAuthStore.getState().register({
+      username: 'somchai',
+      password: '1234',
+      fullName: 'สมชายปลอม',
+      phone: '0811111111',
+      accountType: 'user',
+    });
+    const s = useAuthStore.getState();
+    expect(s.error).toBe('auth.register.usernameTaken');
+    expect(s.account).toBeNull();
+  });
+
+  it('verifyOtp รหัสถูกต้องคืน true, รหัสผิดคืน false', async () => {
+    await expect(useAuthStore.getState().verifyOtp('123456')).resolves.toBe(true);
+    await expect(useAuthStore.getState().verifyOtp('000000')).resolves.toBe(false);
+  });
 });

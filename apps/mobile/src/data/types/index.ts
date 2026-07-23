@@ -8,6 +8,8 @@ export interface Account {
   username: string;
   fullName: string;
   phone: string;
+  /** login alias เสริม — ไม่ผ่าน OTP verify, phone ยังเป็น verified channel เดียว ตาม claude.md §4.2 */
+  email?: string;
   /** มีค่าเฉพาะเมื่อ accountType === 'rider' */
   riderApproval?: RiderApprovalStatus;
   ownedRestaurantIds: string[];
