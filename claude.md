@@ -70,8 +70,8 @@ There is **one React Native app**, not separate apps per user type. But the acco
 
 ### 4.2 Auth flow
 
-- **Login:** username + password.
-- **Register:** username, password, phone number, name — phone number gets a **one-time OTP verification at registration** (not at every login). This matters even though login itself doesn't use OTP: riders, restaurants, and customers need working contact numbers for delivery coordination, and skipping verification opens the door to fake-number signups.
+- **Login:** identifier + password, where identifier is **either the username or the email** (decided 2026-07-23). Email is an optional convenience login alias — phone remains the verified contact channel, email is not OTP-verified. A login attempt matches an account whose username OR email equals the identifier.
+- **Register:** username, password, phone number, name, **and an optional email** — phone number still gets a **one-time OTP verification at registration** (not at every login), and email does NOT replace it. This matters even though login itself doesn't use OTP: riders, restaurants, and customers need working contact numbers for delivery coordination, and skipping verification opens the door to fake-number signups. Email is stored only as a login alias / password-reset channel, never as the verified identity.
 - **Forgot password:** a real flow is needed now (wasn't required under the old OTP-only login) — reset via SMS to the verified number or via email.
 - At the end of registration, the user picks **`user` or `rider`** — nothing else is offered here.
 
@@ -296,6 +296,7 @@ The plan's North Star Metric is **Orders per Rider Hour**, not order count or us
 - **Map tiles: Protomaps** (decided 2026-07-21) — self-hosted `.pmtiles`, no per-load billing, which is the cost trap §5 already warns about. MapLibre remains the renderer.
 - **Font scaling: disabled** (`allowFontScaling={false}`, decided 2026-07-21). Accepted tradeoff: users who enlarge system text will not see larger text in this app. Revisit if accessibility feedback demands it.
 - **Dark mode: yes, from the first commit** (decided 2026-07-21). Riders work at night; a bright screen while driving is a safety issue, not a preference. This requires a semantic token layer (`bg-surface`, `text-primary`, …) rather than components referencing raw palette values — retrofitting dark mode later means editing every file.
+- **Email as optional login alias** (decided 2026-07-23) — see §4.2. Login accepts username OR email as identifier; email is captured at registration as optional, is NOT OTP-verified, and does not replace phone as the verified contact channel. `Account` carries an optional `email` field.
 - **Glass/blur is restricted to low-stakes screens** (decided 2026-07-21). React Native has no `backdrop-filter`; `expo-blur` looks good on iOS but is emulated and frame-expensive on Android. Blur is allowed on onboarding, profile, and receipt screens. It is **banned** on the merchant order queue (⭐ 60s countdown), the rider job offer (⭐ 15s countdown), and any live map screen — those use opaque surfaces. Do not trade frames on the two screens §2 marks as most failure-critical.
 
 ## 11. Open decisions — resolve before scaffolding further
