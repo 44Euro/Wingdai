@@ -49,7 +49,8 @@
     "forgot": {
       "title": "Forgot password",
       "description": "Enter the phone number you signed up with and we'll send you a code",
-      "submit": "Send code"
+      "submit": "Send code",
+      "sent": "If that number has an account, we've sent a code"
     },
     "pending": {
       "title": "Awaiting approval",

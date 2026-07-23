@@ -7,6 +7,7 @@ import { RegisterScreen } from './RegisterScreen';
 import type { RegisterFormValues } from './RegisterScreen';
 import { OtpVerifyScreen } from './OtpVerifyScreen';
 import { ChooseAccountTypeScreen } from './ChooseAccountTypeScreen';
+import { ForgotPasswordScreen } from './ForgotPasswordScreen';
 
 /**
  * Param list เต็มของ auth flow (5 หน้าตามแผน) — Login/Register/OtpVerify/ChooseAccountType
@@ -57,6 +58,11 @@ export function AuthNavigator() {
         name="ChooseAccountType"
         component={ChooseAccountTypeScreen}
         options={{ title: t('auth.chooseType.title') }}
+      />
+      <Stack.Screen
+        name="ForgotPassword"
+        component={ForgotPasswordScreen}
+        options={{ title: t('auth.forgot.title') }}
       />
     </Stack.Navigator>
   );
