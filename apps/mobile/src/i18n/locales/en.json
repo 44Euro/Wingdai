@@ -11,6 +11,7 @@
   "auth": {
     "login": {
       "title": "Log in",
+      "identifier": "Username or email",
       "username": "Username",
       "password": "Password",
       "submit": "Log in",
@@ -20,9 +21,16 @@
     },
     "register": {
       "title": "Sign up",
+      "username": "Username",
+      "email": "Email (optional)",
+      "emailInvalid": "Invalid email format",
+      "password": "Password",
       "fullName": "Full name",
       "phone": "Phone number",
       "phoneInvalid": "Please enter a valid phone number",
+      "usernameTaken": "That username is taken",
+      "toLogin": "Already have an account? Log in",
+      "required": "Please fill in all required fields",
       "submit": "Sign up"
     },
     "otp": {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuthStore } from '../features/auth/authStore';
-import { LoginScreen, PendingApprovalScreen } from './navigators/AuthStack';
+import { PendingApprovalScreen } from './navigators/AuthStack';
+import { AuthNavigator } from './navigators/AuthNavigator';
 import { PlaceholderStack } from './navigators/PlaceholderStack';
 
 /**
@@ -12,7 +13,7 @@ export function RootNavigator() {
   const capabilities = useAuthStore((s) => s.capabilities);
   const active = useAuthStore((s) => s.activeCapability);
 
-  if (!account) return <LoginScreen />;
+  if (!account) return <AuthNavigator />;
 
   // ไรเดอร์ที่ยังไม่อนุมัติ: ไม่มี capability ใดเลย เข้าได้แค่หน้ารออนุมัติ
   if (capabilities.length === 0) return <PendingApprovalScreen />;

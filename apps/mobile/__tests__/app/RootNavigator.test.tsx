@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
+import { NavigationContainer } from '@react-navigation/native';
 import { RootNavigator } from '../../src/app/RootNavigator';
 import { ThemeProvider } from '../../src/theme/ThemeProvider';
 import { useAuthStore } from '../../src/features/auth/authStore';
@@ -7,6 +8,10 @@ import { initI18n } from '../../src/i18n';
 
 // @testing-library/react-native ถูกถอดออกจากโปรเจกต์ (ใช้ไม่ได้กับ jest-expo 57 + React 19)
 // ใช้ react-test-renderer ตรง ๆ ตามรูปแบบใน __tests__/ui/Text.test.tsx และ __tests__/ui/Button.test.tsx แทน
+
+// ตอนยังไม่ล็อกอิน RootNavigator คืน AuthNavigator (native-stack) ซึ่งต้องมี
+// NavigationContainer เป็นบรรพบุรุษ ไม่งั้น react-navigation จะ throw ตอน render —
+// ห่อไว้ตรงนี้เหมือนที่ App.tsx ห่อจริงตอน runtime (ดู App.tsx)
 
 beforeAll(async () => {
   await initI18n();
@@ -40,7 +45,9 @@ function renderApp(): ReactTestRenderer.ReactTestRenderer {
   act(() => {
     currentRenderer = ReactTestRenderer.create(
       <ThemeProvider forceScheme="light">
-        <RootNavigator />
+        <NavigationContainer>
+          <RootNavigator />
+        </NavigationContainer>
       </ThemeProvider>,
     );
   });

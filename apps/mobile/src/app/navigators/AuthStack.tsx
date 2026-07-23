@@ -1,17 +1,23 @@
 import React, { useState } from 'react';
 import { View, TextInput } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../../theme/ThemeProvider';
 import { Text } from '../../ui/Text';
 import { Button } from '../../ui/Button';
 import { useAuthStore } from '../../features/auth/authStore';
+import type { AuthStackParamList } from './AuthNavigator';
 
-export function LoginScreen() {
+type Props = {
+  navigation: NativeStackNavigationProp<AuthStackParamList, 'Login'>;
+};
+
+export function LoginScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { tokens, primitives } = useTheme();
   const login = useAuthStore((s) => s.login);
   const error = useAuthStore((s) => s.error);
-  const [username, setUsername] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
 
   return (
@@ -28,14 +34,14 @@ export function LoginScreen() {
       <Text variant="h1">{t('auth.login.title')}</Text>
 
       <TextInput
-        testID="input-username"
-        accessibilityLabel={t('auth.login.username')}
-        placeholder={t('auth.login.username')}
+        testID="input-identifier"
+        accessibilityLabel={t('auth.login.identifier')}
+        placeholder={t('auth.login.identifier')}
         placeholderTextColor={tokens.textMuted}
         autoCapitalize="none"
         allowFontScaling={false}
-        value={username}
-        onChangeText={setUsername}
+        value={identifier}
+        onChangeText={setIdentifier}
         style={{
           borderWidth: 1,
           borderColor: tokens.borderSubtle,
@@ -74,7 +80,21 @@ export function LoginScreen() {
       <Button
         testID="btn-login"
         label={t('auth.login.submit')}
-        onPress={() => login(username, password)}
+        onPress={() => login(identifier, password)}
+      />
+
+      <Button
+        testID="link-register"
+        label={t('auth.login.toRegister')}
+        variant="secondary"
+        onPress={() => navigation.navigate('Register')}
+      />
+
+      <Button
+        testID="link-forgot"
+        label={t('auth.login.forgot')}
+        variant="secondary"
+        onPress={() => navigation.navigate('ForgotPassword')}
       />
     </View>
   );
