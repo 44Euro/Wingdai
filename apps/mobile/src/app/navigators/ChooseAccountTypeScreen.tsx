@@ -1,0 +1,104 @@
+import React, { useState } from 'react';
+import { View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
+import type { RouteProp } from '@react-navigation/native';
+import { useTheme } from '../../theme/ThemeProvider';
+import { Text } from '../../ui/Text';
+import { Button } from '../../ui/Button';
+import { ChoiceCard } from '../../ui/ChoiceCard';
+import { useAuthStore } from '../../features/auth/authStore';
+import type { AuthStackParamList } from './AuthNavigator';
+import type { AccountType } from '../../data/types';
+
+type Props = {
+  route: RouteProp<AuthStackParamList, 'ChooseAccountType'>;
+};
+
+export function ChooseAccountTypeScreen({ route }: Props) {
+  const { t } = useTranslation();
+  const { tokens, primitives: p } = useTheme();
+  const register = useAuthStore((s) => s.register);
+  const registerWithGoogle = useAuthStore((s) => s.registerWithGoogle);
+  const error = useAuthStore((s) => s.error);
+  const [choice, setChoice] = useState<AccountType | null>(null);
+
+  const { form, verificationToken, google } = route.params;
+
+  // A5 แยกสองจังหวะ: กดการ์ด = เลือก กดปุ่มล่าง = ยืนยัน
+  async function handleContinue() {
+    if (!choice) return;
+    // มาจาก Google = ไม่มีรหัสผ่าน จึงต้องใช้เส้นทางสมัครอีกแบบ
+    await (google
+      ? registerWithGoogle({
+          googleToken: google.googleToken,
+          username: form.username,
+          fullName: form.fullName,
+          phone: form.phone,
+          accountType: choice,
+          verificationToken,
+        })
+      : register({ ...form, accountType: choice, verificationToken }));
+    // ไม่ต้อง navigate เอง พอ authStore ตั้ง account สำเร็จ RootNavigator
+  }
+
+  return (
+    <SafeAreaView
+      testID="screen-choose-account-type"
+      edges={['top', 'bottom']}
+      style={{ flex: 1, backgroundColor: tokens.bgSurface }}
+    >
+      <View style={{ flex: 1, paddingHorizontal: p.space.screen, paddingTop: p.space.xl }}>
+        <Text variant="h1">{t('auth.chooseType.title')}</Text>
+        <Text variant="small" color="muted" style={{ marginTop: 9 }}>
+          {t('auth.chooseType.subtitle')}
+        </Text>
+
+        <View style={{ gap: p.space.md, marginTop: p.space.xl }}>
+          <ChoiceCard
+            testID="choose-user"
+            title={t('auth.chooseType.user')}
+            description={t('auth.chooseType.userDescription')}
+            icon="menu"
+            tone="brand"
+            selected={choice === 'user'}
+            onPress={() => setChoice('user')}
+          />
+
+          <ChoiceCard
+            testID="choose-rider"
+            title={t('auth.chooseType.rider')}
+            description={t('auth.chooseType.riderDescription')}
+            icon="bike"
+            tone="teal"
+            selected={choice === 'rider'}
+            onPress={() => setChoice('rider')}
+          />
+        </View>
+
+        {error ? (
+          <Text
+            testID="choose-account-type-error"
+            variant="small"
+            color="danger"
+            bold
+            style={{ marginTop: p.space.md }}
+          >
+            {t(error)}
+          </Text>
+        ) : null}
+
+        {/* A5 มีปุ่มยืนยันท้ายจอ ดันลงล่างสุดให้เต็มจอ */}
+        <View style={{ flex: 1, minHeight: p.space.lg }} />
+
+        <Button
+          testID="btn-choose-continue"
+          label={t('common.continue')}
+          disabled={!choice}
+          onPress={handleContinue}
+          style={{ marginBottom: p.space.lg }}
+        />
+      </View>
+    </SafeAreaView>
+  );
+}
