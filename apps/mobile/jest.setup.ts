@@ -13,4 +13,24 @@ jest.mock('react-native-safe-area-context', () => {
   return mock.default ?? mock;
 });
 
+// @expo-google-fonts/* เป็นแพ็กเกจ ESM (ขึ้นต้นไฟล์ด้วย "export * from './useFonts'")
+// ที่ transformIgnorePatterns ของโปรเจกต์ไม่ได้เปิดให้แปลง (มีแค่ react-native/expo core/
+// react-navigation/react-native-svg) ทำให้ jest parse ไฟล์จริงไม่ผ่าน — mock เป็นค่า dummy
+// เพราะเทสต์ไม่ได้ตรวจว่าฟอนต์ถูก render จริงบนหน้าจอ แค่ต้องไม่ crash ตอน import/require
+jest.mock('@expo-google-fonts/prompt', () => ({
+  Prompt_600SemiBold: 'Prompt_600SemiBold-mock-asset',
+}));
+
+jest.mock('@expo-google-fonts/ibm-plex-sans-thai', () => ({
+  IBMPlexSansThai_400Regular: 'IBMPlexSansThai_400Regular-mock-asset',
+  IBMPlexSansThai_600SemiBold: 'IBMPlexSansThai_600SemiBold-mock-asset',
+}));
+
+// useFonts ของจริงโหลดไฟล์ .ttf ผ่าน native module (expo-font + expo-asset) ซึ่งไม่มีให้ใช้
+// ใน react-test-renderer (ไม่มี native bridge) — mock ให้คืน [loaded=true] ทันทีเหมือนโหลด
+// เสร็จแล้ว ไม่งั้น App.tsx จะค้างที่ fontsLoaded === false และไม่มีทาง render หน้า login ได้
+jest.mock('expo-font', () => ({
+  useFonts: () => [true, null],
+}));
+
 export {};
