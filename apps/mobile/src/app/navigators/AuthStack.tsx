@@ -33,6 +33,7 @@ export function LoginScreen() {
         placeholder={t('auth.login.username')}
         placeholderTextColor={tokens.textMuted}
         autoCapitalize="none"
+        allowFontScaling={false}
         value={username}
         onChangeText={setUsername}
         style={{
@@ -51,6 +52,7 @@ export function LoginScreen() {
         placeholder={t('auth.login.password')}
         placeholderTextColor={tokens.textMuted}
         secureTextEntry
+        allowFontScaling={false}
         value={password}
         onChangeText={setPassword}
         style={{
