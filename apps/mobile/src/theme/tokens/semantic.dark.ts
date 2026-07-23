@@ -13,6 +13,7 @@ export const semanticDark = {
   borderSubtle: '#0F5354',
   brandSolid: p.brand[700],
   brandAccent: p.brand[500],
+  brandLink: p.brand[400], // ลิงก์ตัวอักษรบนพื้น teal เข้ม — brand-400 ผ่าน AA (5.01:1); brand-700 มืดเกินไปบนพื้นนี้
   danger: '#F97066',
   success: '#75C48B',
 } as const;

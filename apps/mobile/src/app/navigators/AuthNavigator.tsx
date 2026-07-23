@@ -42,7 +42,7 @@ export function AuthNavigator() {
       <Stack.Screen
         name="Login"
         component={LoginScreen}
-        options={{ title: t('auth.login.title') }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="Register"

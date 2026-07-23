@@ -11,10 +11,16 @@
   "auth": {
     "login": {
       "title": "เข้าสู่ระบบ",
+      "tagline": "ราคาเท่าหน้าร้าน ส่งไวในโซนคุณ",
       "identifier": "ชื่อผู้ใช้หรืออีเมล",
       "username": "ชื่อผู้ใช้",
       "password": "รหัสผ่าน",
+      "showPassword": "แสดง",
+      "hidePassword": "ซ่อน",
       "submit": "เข้าสู่ระบบ",
+      "or": "หรือ",
+      "google": "เข้าสู่ระบบด้วย Google",
+      "googleSoon": "การเข้าสู่ระบบด้วย Google กำลังจะมาเร็ว ๆ นี้",
       "forgot": "ลืมรหัสผ่าน",
       "toRegister": "ยังไม่มีบัญชี สมัครเลย",
       "invalidCredentials": "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"

@@ -13,6 +13,7 @@ export type SemanticTokens = {
   borderSubtle: string;
   brandSolid: string;
   brandAccent: string;
+  brandLink: string;
   danger: string;
   success: string;
 };

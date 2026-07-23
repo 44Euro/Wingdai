@@ -11,10 +11,16 @@
   "auth": {
     "login": {
       "title": "Log in",
+      "tagline": "In-store prices. Fast delivery in your zone.",
       "identifier": "Username or email",
       "username": "Username",
       "password": "Password",
+      "showPassword": "Show",
+      "hidePassword": "Hide",
       "submit": "Log in",
+      "or": "or",
+      "google": "Continue with Google",
+      "googleSoon": "Google sign-in is coming soon",
       "forgot": "Forgot password",
       "toRegister": "No account yet? Sign up",
       "invalidCredentials": "Incorrect username or password"
