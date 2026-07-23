@@ -9,6 +9,7 @@ type AuthState = {
   capabilities: Capability[];
   activeCapability: Capability | null;
   isLoading: boolean;
+  /** i18n key (เช่น 'auth.login.invalidCredentials') ไม่ใช่ข้อความดิบ — ฝั่ง UI ต้องแปลผ่าน t() ก่อนแสดง */
   error: string | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -43,11 +44,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
         error: null,
       });
-    } catch (e) {
+    } catch {
+      // ไม่เอาข้อความดิบจาก error object มาเก็บ — repos.auth.login ล้มเหลวได้สาเหตุเดียวคือ
+      // ข้อมูลเข้าสู่ระบบผิด จึง map ตรงเป็น i18n key เดียวเสมอ ให้ฝั่ง UI แปลก่อนแสดง
       set({
         account: null, restaurants: [], capabilities: [], activeCapability: null,
         isLoading: false,
-        error: e instanceof Error ? e.message : 'เกิดข้อผิดพลาด',
+        error: 'auth.login.invalidCredentials',
       });
     }
   },

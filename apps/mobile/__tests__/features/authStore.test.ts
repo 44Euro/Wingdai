@@ -1,4 +1,9 @@
 import { useAuthStore } from '../../src/features/auth/authStore';
+import { initI18n, i18n } from '../../src/i18n';
+
+beforeAll(async () => {
+  await initI18n();
+});
 
 beforeEach(() => {
   useAuthStore.setState({
@@ -36,11 +41,26 @@ describe('authStore', () => {
     expect(s.activeCapability).toBeNull();
   });
 
-  it('รหัสผิดเก็บ error และไม่ล็อกอิน', async () => {
+  it('รหัสผิดเก็บ error เป็น i18n key และไม่ล็อกอิน', async () => {
     await useAuthStore.getState().login('somchai', 'wrong');
     const s = useAuthStore.getState();
     expect(s.account).toBeNull();
-    expect(s.error).toBeTruthy();
+    expect(s.error).toBe('auth.login.invalidCredentials');
+  });
+
+  it('error key ที่เก็บแปลได้จริงทั้งไทยและอังกฤษ (ไม่ใช่สตริงดิบ)', async () => {
+    await useAuthStore.getState().login('somchai', 'wrong');
+    const errorKey = useAuthStore.getState().error;
+    expect(errorKey).toBeTruthy();
+
+    await i18n.changeLanguage('th');
+    const th = i18n.t(errorKey as string);
+    expect(th).not.toBe(errorKey);
+
+    await i18n.changeLanguage('en');
+    const en = i18n.t(errorKey as string);
+    expect(en).not.toBe(errorKey);
+    expect(en).not.toBe(th);
   });
 
   it('สลับ capability ที่มีสิทธิ์ได้', async () => {

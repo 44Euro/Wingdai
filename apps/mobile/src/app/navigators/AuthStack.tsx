@@ -65,7 +65,7 @@ export function LoginScreen() {
 
       {error ? (
         <Text testID="login-error" variant="small" style={{ color: tokens.danger }}>
-          {error}
+          {t(error)}
         </Text>
       ) : null}
 
