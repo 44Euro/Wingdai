@@ -76,5 +76,64 @@
     "theme": "Theme",
     "themeLight": "Light",
     "themeDark": "Dark"
+  },
+  "customer": {
+    "home": {
+      "title": "Restaurants near you",
+      "nearby": "Near you",
+      "categoryAll": "All",
+      "open": "Open",
+      "closed": "Closed",
+      "minutes": "min",
+      "km": "km",
+      "announcement": "Now serving a new neighbourhood — order today",
+      "empty": "No restaurants in this zone yet"
+    },
+    "cuisine": {
+      "rice": "Rice",
+      "noodle": "Noodles",
+      "somtam": "Somtam",
+      "drink": "Drinks",
+      "dessert": "Dessert"
+    },
+    "restaurant": {
+      "closed": "Closed now",
+      "menu": "Menu",
+      "add": "Add",
+      "viewCart": "View cart",
+      "items": "items",
+      "differentTitle": "Start a new cart?",
+      "differentBody": "Your cart has items from another restaurant. Clear it to order from here.",
+      "clearAndAdd": "Clear & add",
+      "cancel": "Cancel"
+    },
+    "cart": {
+      "title": "Cart",
+      "empty": "Your cart is empty",
+      "foodTotal": "Food total",
+      "deliveryFee": "Delivery fee",
+      "serviceFee": "Service fee",
+      "grandTotal": "Total",
+      "placeOrder": "Place order",
+      "remove": "Remove"
+    },
+    "checkout": {
+      "title": "Checkout",
+      "payWithPromptPay": "Pay with PromptPay",
+      "scanToPay": "Scan the QR to pay (mock)",
+      "amount": "Amount due",
+      "confirmPay": "Confirm payment"
+    },
+    "orderPlaced": {
+      "title": "Order placed",
+      "body": "The restaurant is preparing your food",
+      "orderNo": "Order number",
+      "backHome": "Back to home"
+    }
+  },
+  "order": {
+    "error": {
+      "ownRestaurant": "You can't order from your own restaurant"
+    }
   }
 }

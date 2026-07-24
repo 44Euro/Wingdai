@@ -76,5 +76,64 @@
     "theme": "ธีม",
     "themeLight": "สว่าง",
     "themeDark": "มืด"
+  },
+  "customer": {
+    "home": {
+      "title": "ร้านใกล้คุณ",
+      "nearby": "ร้านใกล้คุณ",
+      "categoryAll": "ทั้งหมด",
+      "open": "เปิด",
+      "closed": "ปิด",
+      "minutes": "นาที",
+      "km": "กม.",
+      "announcement": "เปิดให้บริการย่านใหม่แล้ว สั่งได้เลยวันนี้",
+      "empty": "ยังไม่มีร้านในโซนนี้"
+    },
+    "cuisine": {
+      "rice": "ข้าว",
+      "noodle": "ก๋วยเตี๋ยว",
+      "somtam": "ส้มตำ",
+      "drink": "เครื่องดื่ม",
+      "dessert": "ของหวาน"
+    },
+    "restaurant": {
+      "closed": "ร้านปิดอยู่",
+      "menu": "เมนู",
+      "add": "เพิ่ม",
+      "viewCart": "ดูตะกร้า",
+      "items": "รายการ",
+      "differentTitle": "เริ่มตะกร้าใหม่?",
+      "differentBody": "ตะกร้ามีของจากร้านอื่นอยู่ ต้องล้างก่อนสั่งร้านนี้",
+      "clearAndAdd": "ล้างแล้วเพิ่ม",
+      "cancel": "ยกเลิก"
+    },
+    "cart": {
+      "title": "ตะกร้า",
+      "empty": "ตะกร้าว่าง",
+      "foodTotal": "ค่าอาหาร",
+      "deliveryFee": "ค่าจัดส่ง",
+      "serviceFee": "ค่าบริการ",
+      "grandTotal": "รวมทั้งหมด",
+      "placeOrder": "สั่งเลย",
+      "remove": "ลบ"
+    },
+    "checkout": {
+      "title": "ชำระเงิน",
+      "payWithPromptPay": "ชำระด้วยพร้อมเพย์",
+      "scanToPay": "สแกน QR เพื่อชำระเงิน (ตัวอย่าง)",
+      "amount": "ยอดชำระ",
+      "confirmPay": "ยืนยันชำระเงิน"
+    },
+    "orderPlaced": {
+      "title": "สั่งอาหารสำเร็จ",
+      "body": "ร้านกำลังเตรียมอาหารของคุณ",
+      "orderNo": "เลขที่ออร์เดอร์",
+      "backHome": "กลับหน้าแรก"
+    }
+  },
+  "order": {
+    "error": {
+      "ownRestaurant": "สั่งอาหารจากร้านของตัวเองไม่ได้"
+    }
   }
 }
