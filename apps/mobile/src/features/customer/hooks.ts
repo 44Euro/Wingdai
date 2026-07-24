@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { repos } from '../../data';
+import { useAuthStore } from '../auth/authStore';
 import type { Restaurant } from '../../data/types';
 import type { CreateOrderInput } from '../../data/repositories';
 
@@ -25,4 +26,13 @@ export function useMenu(restaurantId: string) {
 
 export function useCreateOrder() {
   return useMutation({ mutationFn: (input: CreateOrderInput) => repos.orders.create(input) });
+}
+
+export function useCustomerOrders() {
+  const accountId = useAuthStore((s) => s.account?.id);
+  return useQuery({
+    queryKey: ['orders', accountId],
+    queryFn: () => (accountId ? repos.orders.listForCustomer(accountId) : Promise.resolve([])),
+    enabled: !!accountId,
+  });
 }
