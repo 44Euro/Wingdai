@@ -168,5 +168,31 @@
     "error": {
       "ownRestaurant": "You can't order from your own restaurant"
     }
+  },
+  "merchant": {
+    "menu": {
+      "title": "Your menu",
+      "add": "Add item",
+      "empty": "No menu items yet. Tap Add item to start.",
+      "logout": "Log out"
+    },
+    "form": {
+      "title": "Add menu item",
+      "name": "Item name",
+      "desc": "Description (optional)",
+      "price": "Price (THB)",
+      "category": "Category",
+      "available": "Available",
+      "options": "Option groups for customers",
+      "addGroup": "Add option group",
+      "groupName": "Group name (e.g. Spice level)",
+      "min": "Min select",
+      "max": "Max select",
+      "addChoice": "Add choice",
+      "choiceName": "Choice name",
+      "choicePrice": "Extra price (THB)",
+      "removeGroup": "Remove group",
+      "save": "Save item"
+    }
   }
 }

@@ -109,14 +109,14 @@ describe('RootNavigator', () => {
     // กฎความปลอดภัย: ไรเดอร์รออนุมัติต้องไม่เข้า stack ใดเลย รวมทั้งการสั่งอาหาร (stack-customer)
     expectAbsent(result.root, 'screen-customer-home');
     expectAbsent(result.root, 'stack-rider');
-    expectAbsent(result.root, 'stack-merchant');
+    expectAbsent(result.root, 'screen-merchant-menu');
     expectAbsent(result.root, 'stack-admin');
   });
 
   it('เจ้าของร้านเริ่มที่ MerchantStack', async () => {
     await useAuthStore.getState().login('malee', '1234');
     const result = renderApp();
-    expectPresent(result.root, 'stack-merchant');
+    expectPresent(result.root, 'screen-merchant-menu');
   });
 
   it('แอดมินเข้า AdminStack', async () => {

@@ -4,6 +4,7 @@ import { PendingApprovalScreen } from './navigators/AuthStack';
 import { AuthNavigator } from './navigators/AuthNavigator';
 import { PlaceholderStack } from './navigators/PlaceholderStack';
 import { CustomerStack } from './navigators/CustomerStack';
+import { MerchantStack } from './navigators/MerchantStack';
 
 /**
  * เลือก stack จาก capability ไม่ใช่จาก accountType ตรง ๆ ตาม claude.md §4
@@ -25,7 +26,7 @@ export function RootNavigator() {
     case 'rider':
       return <PlaceholderStack name="Rider" testID="stack-rider" />;
     case 'merchant':
-      return <PlaceholderStack name="Merchant" testID="stack-merchant" />;
+      return <MerchantStack />;
     case 'customer':
       return <CustomerStack />;
     default:
