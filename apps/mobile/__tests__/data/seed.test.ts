@@ -29,11 +29,19 @@ describe('seed data', () => {
     expect(item?.optionGroups?.length).toBeGreaterThanOrEqual(1);
     const required = item!.optionGroups!.filter((g) => g.minSelect >= 1);
     expect(required.length).toBeGreaterThanOrEqual(1);
-    item!.optionGroups!.forEach((g) => {
-      expect(g.maxSelect).toBeGreaterThanOrEqual(g.minSelect);
-      g.choices.forEach((c) => {
-        expect(Number.isInteger(c.priceDelta)).toBe(true);
-        expect(c.priceDelta).toBeGreaterThanOrEqual(0);
+  });
+
+  it('เมนูจานหลักหลายรายการมี option groups และทุกกลุ่มถูกต้อง (max>=min, priceDelta integer>=0)', () => {
+    const withOptions = seedMenuItems.filter((m) => m.optionGroups && m.optionGroups.length > 0);
+    expect(withOptions.length).toBeGreaterThanOrEqual(5);
+    withOptions.forEach((m) => {
+      m.optionGroups!.forEach((g) => {
+        expect(g.maxSelect).toBeGreaterThanOrEqual(g.minSelect);
+        expect(g.choices.length).toBeGreaterThanOrEqual(1);
+        g.choices.forEach((c) => {
+          expect(Number.isInteger(c.priceDelta)).toBe(true);
+          expect(c.priceDelta).toBeGreaterThanOrEqual(0);
+        });
       });
     });
   });

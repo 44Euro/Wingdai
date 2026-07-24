@@ -54,12 +54,12 @@ function render(restaurantId: string, nav: { navigate: jest.Mock }) {
 }
 
 describe('RestaurantDetailScreen', () => {
-  it('เมนูไม่มีตัวเลือก (m-malee-2) กดเพิ่ม → เข้าตะกร้าตรงๆ แถบตะกร้าโผล่', async () => {
+  it('เมนูไม่มีตัวเลือก (m-malee-4) กดเพิ่ม → เข้าตะกร้าตรงๆ แถบตะกร้าโผล่', async () => {
     const result = render('r-malee', { navigate: jest.fn() });
     await flush();
     expect(findAll(result.root, 'cart-bar').length).toBe(0);
     act(() => {
-      findAll(result.root, 'add-m-malee-2')[0].props.onPress();
+      findAll(result.root, 'add-m-malee-4')[0].props.onPress();
     });
     expect(useCartStore.getState().lines).toHaveLength(1);
     expect(findAll(result.root, 'cart-bar').length).toBeGreaterThanOrEqual(1);
@@ -81,7 +81,7 @@ describe('RestaurantDetailScreen', () => {
     const result = render('r-malee', { navigate });
     await flush();
     act(() => {
-      findAll(result.root, 'add-m-malee-2')[0].props.onPress();
+      findAll(result.root, 'add-m-malee-4')[0].props.onPress();
     });
     act(() => {
       findAll(result.root, 'cart-bar')[0].props.onPress();
