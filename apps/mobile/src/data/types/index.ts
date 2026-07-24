@@ -15,12 +15,30 @@ export interface Account {
   ownedRestaurantIds: string[];
 }
 
+export type CuisineCategory = 'rice' | 'noodle' | 'somtam' | 'drink' | 'dessert';
+
 export interface Restaurant {
   id: string;
   ownerUserId: string;
   name: string;
   isApproved: boolean;
   isOpen: boolean;
+  cuisine: CuisineCategory;
+  /** mock ระยะทางจากผู้ใช้ (กม.) — density ตาม claude.md §1 */
+  distanceKm: number;
+  /** ค่าคงที่ที่ร้านตั้งเอง — seed cold-start ให้ dispatch (§6.3) */
+  prepTimeMinutes: number;
+}
+
+export interface MenuItem {
+  id: string;
+  restaurantId: string;
+  name: string;
+  description?: string;
+  /** สตางค์ (claude.md §7) */
+  price: number;
+  category: CuisineCategory;
+  isAvailable: boolean;
 }
 
 export type OrderStatus =

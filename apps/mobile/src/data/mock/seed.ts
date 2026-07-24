@@ -1,4 +1,4 @@
-import type { Account, Restaurant } from '../types';
+import type { Account, Restaurant, MenuItem } from '../types';
 
 /** รหัสผ่านของทุกบัญชีทดสอบคือ 1234 */
 export const MOCK_PASSWORD = '1234';
@@ -32,8 +32,25 @@ export const seedAccounts: Account[] = [
 ];
 
 export const seedRestaurants: Restaurant[] = [
-  { id: 'r-malee', ownerUserId: 'u-malee', name: 'ครัวมาลี', isApproved: true, isOpen: true },
-  { id: 'r-somtam', ownerUserId: 'u-other', name: 'ส้มตำแซ่บนัว', isApproved: true, isOpen: true },
-  { id: 'r-closed', ownerUserId: 'u-other', name: 'ก๋วยเตี๋ยวเรือ', isApproved: true, isOpen: false },
-  { id: 'r-pending', ownerUserId: 'u-somchai', name: 'ร้านรออนุมัติ', isApproved: false, isOpen: false },
+  { id: 'r-malee', ownerUserId: 'u-malee', name: 'ครัวมาลี', isApproved: true, isOpen: true, cuisine: 'rice', distanceKm: 0.6, prepTimeMinutes: 12 },
+  { id: 'r-somtam', ownerUserId: 'u-other', name: 'ส้มตำแซ่บนัว', isApproved: true, isOpen: true, cuisine: 'somtam', distanceKm: 1.1, prepTimeMinutes: 10 },
+  { id: 'r-closed', ownerUserId: 'u-other', name: 'ก๋วยเตี๋ยวเรือ', isApproved: true, isOpen: false, cuisine: 'noodle', distanceKm: 0.9, prepTimeMinutes: 8 },
+  { id: 'r-pending', ownerUserId: 'u-somchai', name: 'ร้านรออนุมัติ', isApproved: false, isOpen: false, cuisine: 'rice', distanceKm: 1.4, prepTimeMinutes: 15 },
+];
+
+export const seedMenuItems: MenuItem[] = [
+  // ครัวมาลี (rice)
+  { id: 'm-malee-1', restaurantId: 'r-malee', name: 'ข้าวกะเพราหมูสับ', description: 'ไข่ดาวกรอบ', price: 5000, category: 'rice', isAvailable: true },
+  { id: 'm-malee-2', restaurantId: 'r-malee', name: 'ข้าวผัดกุ้ง', price: 6000, category: 'rice', isAvailable: true },
+  { id: 'm-malee-3', restaurantId: 'r-malee', name: 'ข้าวมันไก่', price: 4500, category: 'rice', isAvailable: true },
+  { id: 'm-malee-4', restaurantId: 'r-malee', name: 'ชาไทยเย็น', price: 2500, category: 'drink', isAvailable: true },
+  { id: 'm-malee-5', restaurantId: 'r-malee', name: 'ข้าวหมูทอด (หมด)', price: 5000, category: 'rice', isAvailable: false },
+  // ส้มตำแซ่บนัว (somtam)
+  { id: 'm-somtam-1', restaurantId: 'r-somtam', name: 'ส้มตำไทย', price: 4000, category: 'somtam', isAvailable: true },
+  { id: 'm-somtam-2', restaurantId: 'r-somtam', name: 'ไก่ย่าง', price: 6500, category: 'somtam', isAvailable: true },
+  { id: 'm-somtam-3', restaurantId: 'r-somtam', name: 'ข้าวเหนียว', price: 1000, category: 'rice', isAvailable: true },
+  { id: 'm-somtam-4', restaurantId: 'r-somtam', name: 'น้ำมะพร้าว', price: 3000, category: 'drink', isAvailable: true },
+  // ก๋วยเตี๋ยวเรือ (noodle, ร้านปิด — มีเมนูไว้ทดสอบสถานะปิด)
+  { id: 'm-closed-1', restaurantId: 'r-closed', name: 'ก๋วยเตี๋ยวเรือหมู', price: 5000, category: 'noodle', isAvailable: true },
+  { id: 'm-closed-2', restaurantId: 'r-closed', name: 'เกาเหลา', price: 5500, category: 'noodle', isAvailable: true },
 ];
