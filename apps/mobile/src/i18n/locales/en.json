@@ -113,6 +113,33 @@
       "required": "Required",
       "optional": "Optional"
     },
+    "tabs": {
+      "home": "Home",
+      "orders": "Orders",
+      "inbox": "Inbox",
+      "profile": "Profile"
+    },
+    "orders": {
+      "title": "Order history",
+      "empty": "No orders yet",
+      "status": {
+        "created": "Waiting for restaurant",
+        "accepted": "Accepted",
+        "preparing": "Preparing",
+        "picked_up": "Picked up",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled"
+      }
+    },
+    "inbox": {
+      "title": "Inbox",
+      "empty": "No messages yet"
+    },
+    "profile": {
+      "title": "Profile",
+      "phone": "Phone",
+      "logout": "Log out"
+    },
     "cart": {
       "title": "Cart",
       "empty": "Your cart is empty",

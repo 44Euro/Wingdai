@@ -2,14 +2,20 @@ import React, { useState } from 'react';
 import { View, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { useRestaurants } from '../hooks';
-import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
+import type { CustomerStackParamList, CustomerTabParamList } from '../../../app/navigators/CustomerStack';
 import type { CuisineCategory, Restaurant } from '../../../data/types';
 
-type Props = NativeStackScreenProps<CustomerStackParamList, 'CustomerHome'>;
+// Home อยู่ในแท็บ แต่ navigate ไป RestaurantDetail ซึ่งอยู่ใน stack แม่ → composite
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<CustomerTabParamList, 'CustomerHome'>,
+  NativeStackScreenProps<CustomerStackParamList>
+>;
 const CATEGORIES: (CuisineCategory | 'all')[] = ['all', 'rice', 'noodle', 'somtam', 'drink', 'dessert'];
 
 export function CustomerHomeScreen({ navigation }: Props) {

@@ -38,10 +38,7 @@ function render(nav: { navigate: jest.Mock }) {
       <QueryClientProvider client={qc}>
         <ThemeProvider forceScheme="light">
           <NavigationContainer>
-            <CustomerHomeScreen
-              navigation={nav as unknown as NativeStackScreenProps<CustomerStackParamList, 'CustomerHome'>['navigation']}
-              route={{ key: 'k', name: 'CustomerHome' } as never}
-            />
+            <CustomerHomeScreen navigation={nav as never} route={{ key: 'k', name: 'CustomerHome' } as never} />
           </NavigationContainer>
         </ThemeProvider>
       </QueryClientProvider>,
