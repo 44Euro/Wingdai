@@ -107,6 +107,12 @@
       "clearAndAdd": "Clear & add",
       "cancel": "Cancel"
     },
+    "item": {
+      "customize": "Customize",
+      "addToBasket": "Add to basket",
+      "required": "Required",
+      "optional": "Optional"
+    },
     "cart": {
       "title": "Cart",
       "empty": "Your cart is empty",

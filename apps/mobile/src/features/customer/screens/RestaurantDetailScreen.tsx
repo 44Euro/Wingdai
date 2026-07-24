@@ -26,18 +26,27 @@ export function RestaurantDetailScreen({ navigation, route }: Props) {
   const canOrder = restaurant?.isOpen ?? false;
   const lineCount = cart.restaurantId === restaurantId ? cart.lines.reduce((s, l) => s + l.quantity, 0) : 0;
 
+  function addOrCustomize(item: MenuItem) {
+    // เมนูที่มีตัวเลือก → ไปหน้า customize; ไม่มี → เพิ่มลงตะกร้าตรงๆ
+    if (item.optionGroups?.length) {
+      navigation.navigate('MenuItem', { restaurantId, menuItemId: item.id });
+    } else {
+      cart.addItem(restaurantId, item);
+    }
+  }
   function tryAdd(item: MenuItem) {
     if (cart.restaurantId && cart.restaurantId !== restaurantId) {
       setPendingItem(item);
       return;
     }
-    cart.addItem(restaurantId, item);
+    addOrCustomize(item);
   }
   function confirmDifferent() {
     if (!pendingItem) return;
     cart.clear();
-    cart.addItem(restaurantId, pendingItem);
+    const item = pendingItem;
     setPendingItem(null);
+    addOrCustomize(item);
   }
 
   return (

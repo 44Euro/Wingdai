@@ -107,6 +107,12 @@
       "clearAndAdd": "ล้างแล้วเพิ่ม",
       "cancel": "ยกเลิก"
     },
+    "item": {
+      "customize": "เลือกตัวเลือก",
+      "addToBasket": "เพิ่มลงตะกร้า",
+      "required": "ต้องเลือก",
+      "optional": "ไม่บังคับ"
+    },
     "cart": {
       "title": "ตะกร้า",
       "empty": "ตะกร้าว่าง",
