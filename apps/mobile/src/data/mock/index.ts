@@ -67,6 +67,12 @@ export function createMockRepos(): Repos {
           .filter((m) => m.restaurantId === restaurantId && m.isAvailable)
           .map((m) => ({ ...m }));
       },
+      async createMenuItem(input) {
+        await delay();
+        const menuItem: MenuItem = { id: `mi-${++seq}`, ...input };
+        menuItems.push(menuItem);
+        return { ...menuItem };
+      },
     },
 
     orders: {

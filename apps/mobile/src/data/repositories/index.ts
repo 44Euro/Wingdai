@@ -26,10 +26,14 @@ export interface AuthRepo {
   logout(): Promise<void>;
 }
 
+/** ข้อมูลเมนูใหม่จากหน้าเพิ่มเมนูของร้าน (ยังไม่มี id — repo เป็นคนตั้ง) */
+export type NewMenuItemInput = Omit<MenuItem, 'id'>;
+
 export interface CatalogRepo {
   listRestaurants(): Promise<Restaurant[]>;
   getRestaurant(id: string): Promise<Restaurant | null>;
   getMenu(restaurantId: string): Promise<MenuItem[]>;
+  createMenuItem(input: NewMenuItemInput): Promise<MenuItem>;
 }
 
 export interface OrderRepo {

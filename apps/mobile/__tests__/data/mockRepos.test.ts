@@ -157,3 +157,18 @@ describe('catalog.getMenu + orders guard', () => {
     })).rejects.toThrow();
   });
 });
+
+describe('catalog.createMenuItem', () => {
+  it('เพิ่มเมนูใหม่แล้ว getMenu เห็น พร้อม optionGroups', async () => {
+    const repos = createMockRepos();
+    const created = await repos.catalog.createMenuItem({
+      restaurantId: 'r-malee', name: 'ผัดซีอิ๊ว', price: 5500, category: 'noodle', isAvailable: true,
+      optionGroups: [{ id: 'g1', name: 'ไข่', minSelect: 0, maxSelect: 1, choices: [{ id: 'c1', name: 'ไข่ดาว', priceDelta: 1000 }] }],
+    });
+    expect(created.id).toBeTruthy();
+    const menu = await repos.catalog.getMenu('r-malee');
+    const found = menu.find((m) => m.id === created.id);
+    expect(found).toBeTruthy();
+    expect(found?.optionGroups?.[0].choices[0].name).toBe('ไข่ดาว');
+  });
+});
