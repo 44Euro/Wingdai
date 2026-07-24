@@ -7,7 +7,7 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Button } from '../../../ui/Button';
 import { useCartStore } from '../../cart/cartStore';
-import { orderTotals } from '../../cart/pricing';
+import { orderTotals, orderItemName } from '../../cart/pricing';
 import { formatBaht } from '../../../lib/format';
 import { useCreateOrder } from '../hooks';
 import { useAuthStore } from '../../auth/authStore';
@@ -31,7 +31,12 @@ export function CheckoutScreen({ navigation }: Props) {
       {
         customerId: account.id,
         restaurantId: cart.restaurantId,
-        items: cart.lines.map((l) => ({ menuItemId: l.menuItemId, name: l.name, unitPrice: l.unitPrice, quantity: l.quantity })),
+        items: cart.lines.map((l) => ({
+          menuItemId: l.menuItemId,
+          name: orderItemName(l.name, l.selectedChoices),
+          unitPrice: l.unitPrice,
+          quantity: l.quantity,
+        })),
         deliveryFee: totals.deliveryFee,
         serviceFee: totals.serviceFee,
       },

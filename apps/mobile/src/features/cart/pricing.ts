@@ -9,3 +9,8 @@ export function orderTotals(foodTotal: number) {
     grandTotal: foodTotal + DELIVERY_FEE + SERVICE_FEE,
   };
 }
+
+/** ชื่อรายการสำหรับออร์เดอร์ — ต่อท้ายตัวเลือกที่เลือกในวงเล็บ ให้ร้านเห็น */
+export function orderItemName(name: string, selectedChoices: { name: string }[]): string {
+  return selectedChoices.length ? `${name} (${selectedChoices.map((c) => c.name).join(', ')})` : name;
+}
