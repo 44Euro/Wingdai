@@ -43,7 +43,7 @@ export function CartScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={{ padding: p.space.xl, gap: p.space.lg }}>
         {cart.lines.map((l) => (
           <View
-            key={l.menuItemId}
+            key={l.lineId}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -57,11 +57,14 @@ export function CartScreen({ navigation }: Props) {
           >
             <View style={{ flex: 1 }}>
               <Text variant="body">{l.name}</Text>
+              {l.selectedChoices.length > 0 ? (
+                <Text variant="caption" color="muted">{l.selectedChoices.map((c) => c.name).join(', ')}</Text>
+              ) : null}
               <Text variant="small" color="muted">{formatBaht(l.unitPrice)}</Text>
             </View>
             <Pressable
-              testID={`qty-dec-${l.menuItemId}`}
-              onPress={() => cart.setQuantity(l.menuItemId, l.quantity - 1)}
+              testID={`qty-dec-${l.lineId}`}
+              onPress={() => cart.setQuantity(l.lineId, l.quantity - 1)}
               hitSlop={8}
               style={{ width: 44, height: 44, borderRadius: p.radius.md, borderWidth: 1, borderColor: tokens.borderSubtle, alignItems: 'center', justifyContent: 'center' }}
             >
@@ -69,8 +72,8 @@ export function CartScreen({ navigation }: Props) {
             </Pressable>
             <Text variant="body" style={{ minWidth: 24, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{l.quantity}</Text>
             <Pressable
-              testID={`qty-inc-${l.menuItemId}`}
-              onPress={() => cart.setQuantity(l.menuItemId, l.quantity + 1)}
+              testID={`qty-inc-${l.lineId}`}
+              onPress={() => cart.setQuantity(l.lineId, l.quantity + 1)}
               hitSlop={8}
               style={{ width: 44, height: 44, borderRadius: p.radius.md, backgroundColor: tokens.brandSolid, alignItems: 'center', justifyContent: 'center' }}
             >

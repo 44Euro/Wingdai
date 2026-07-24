@@ -47,3 +47,31 @@ describe('cartStore', () => {
     expect(useCartStore.getState().restaurantId).toBe('r-somtam');
   });
 });
+
+describe('cartStore — option-aware lines', () => {
+  const egg = { groupId: 'g-topping', choiceId: 'c-egg', name: 'ไข่ดาว', priceDelta: 1500 };
+  const spicyHigh = { groupId: 'g-spicy', choiceId: 'c-spicy-high', name: 'เผ็ดมาก', priceDelta: 0 };
+
+  it('addLine คิด unitPrice รวม priceDelta ของ option', () => {
+    useCartStore.getState().addLine('r-malee', { menuItem: item('m1', 5000), selectedChoices: [egg, spicyHigh] });
+    const line = useCartStore.getState().lines[0];
+    expect(line.unitPrice).toBe(6500);
+    expect(line.selectedChoices).toHaveLength(2);
+  });
+
+  it('เมนูเดียวกัน option ต่างกัน = คนละบรรทัด', () => {
+    const s = useCartStore.getState();
+    s.addLine('r-malee', { menuItem: item('m1', 5000), selectedChoices: [egg] });
+    s.addLine('r-malee', { menuItem: item('m1', 5000), selectedChoices: [] });
+    expect(useCartStore.getState().lines).toHaveLength(2);
+  });
+
+  it('เมนูเดียวกัน option เดียวกัน = เพิ่ม quantity', () => {
+    const s = useCartStore.getState();
+    s.addLine('r-malee', { menuItem: item('m1', 5000), selectedChoices: [egg] });
+    s.addLine('r-malee', { menuItem: item('m1', 5000), selectedChoices: [egg] });
+    const lines = useCartStore.getState().lines;
+    expect(lines).toHaveLength(1);
+    expect(lines[0].quantity).toBe(2);
+  });
+});
