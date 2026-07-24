@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 import { NavigationContainer } from '@react-navigation/native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RootNavigator } from '../../src/app/RootNavigator';
 import { ThemeProvider } from '../../src/theme/ThemeProvider';
 import { useAuthStore } from '../../src/features/auth/authStore';
@@ -42,13 +43,17 @@ afterEach(() => {
 
 /** เรนเดอร์ RootNavigator ห่อด้วย ThemeProvider เหมือนเทสต์อื่น ๆ ในโปรเจกต์นี้ */
 function renderApp(): ReactTestRenderer.ReactTestRenderer {
+  // ห่อ QueryClientProvider เหมือน App.tsx จริง — CustomerStack ใช้ useQuery (useRestaurants)
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   act(() => {
     currentRenderer = ReactTestRenderer.create(
-      <ThemeProvider forceScheme="light">
-        <NavigationContainer>
-          <RootNavigator />
-        </NavigationContainer>
-      </ThemeProvider>,
+      <QueryClientProvider client={qc}>
+        <ThemeProvider forceScheme="light">
+          <NavigationContainer>
+            <RootNavigator />
+          </NavigationContainer>
+        </ThemeProvider>
+      </QueryClientProvider>,
     );
   });
   return currentRenderer!;
