@@ -1,4 +1,4 @@
-import type { Account, AccountType, Order, OrderItem, OrderStatus, Restaurant } from '../types';
+import type { Account, AccountType, MenuItem, Order, OrderItem, OrderStatus, Restaurant } from '../types';
 
 export interface RegisterInput {
   username: string;
@@ -29,6 +29,7 @@ export interface AuthRepo {
 export interface CatalogRepo {
   listRestaurants(): Promise<Restaurant[]>;
   getRestaurant(id: string): Promise<Restaurant | null>;
+  getMenu(restaurantId: string): Promise<MenuItem[]>;
 }
 
 export interface OrderRepo {

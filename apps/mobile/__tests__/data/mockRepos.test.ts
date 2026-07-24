@@ -126,3 +126,34 @@ describe('MockRepo — catalog', () => {
     expect(list.filter((r) => r.isApproved).length).toBeGreaterThan(0);
   });
 });
+
+describe('catalog.getMenu + orders guard', () => {
+  it('getMenu คืนเฉพาะเมนูที่ available ของร้านนั้น', async () => {
+    const repos = createMockRepos();
+    const menu = await repos.catalog.getMenu('r-malee');
+    expect(menu.length).toBeGreaterThanOrEqual(1);
+    expect(menu.every((m) => m.restaurantId === 'r-malee')).toBe(true);
+    expect(menu.every((m) => m.isAvailable)).toBe(true);
+    expect(menu.some((m) => m.id === 'm-malee-5')).toBe(false); // หมด
+  });
+
+  it('createOrder ของลูกค้าที่ไม่ใช่เจ้าของร้าน → สำเร็จ สถานะ created', async () => {
+    const repos = createMockRepos();
+    const order = await repos.orders.create({
+      customerId: 'u-somchai', restaurantId: 'r-malee',
+      items: [{ menuItemId: 'm-malee-1', name: 'ข้าวกะเพรา', unitPrice: 5000, quantity: 2 }],
+      deliveryFee: 1500, serviceFee: 500,
+    });
+    expect(order.status).toBe('created');
+    expect(order.foodTotal).toBe(10000);
+  });
+
+  it('เจ้าของร้านสั่งร้านตัวเอง → ถูกบล็อกที่ชั้น repo (throw)', async () => {
+    const repos = createMockRepos();
+    await expect(repos.orders.create({
+      customerId: 'u-malee', restaurantId: 'r-malee',
+      items: [{ menuItemId: 'm-malee-1', name: 'ข้าวกะเพรา', unitPrice: 5000, quantity: 1 }],
+      deliveryFee: 1500, serviceFee: 500,
+    })).rejects.toThrow();
+  });
+});

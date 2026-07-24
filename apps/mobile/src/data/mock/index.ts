@@ -1,12 +1,14 @@
 import type { Repos, RegisterInput, CreateOrderInput } from '../repositories';
-import type { Account, Order, Restaurant } from '../types';
+import type { Account, MenuItem, Order, Restaurant } from '../types';
 import { assertTransition } from '../orderStateMachine';
-import { seedAccounts, seedRestaurants, MOCK_PASSWORD } from './seed';
+import { canOrderFromRestaurant } from '../../lib/rules';
+import { seedAccounts, seedRestaurants, seedMenuItems, MOCK_PASSWORD } from './seed';
 
 export function createMockRepos(): Repos {
   // state แยกต่อ instance เพื่อให้เทสต์ไม่รบกวนกัน
   const accounts: Account[] = seedAccounts.map((a) => ({ ...a }));
   const restaurants: Restaurant[] = seedRestaurants.map((r) => ({ ...r }));
+  const menuItems: MenuItem[] = seedMenuItems.map((m) => ({ ...m }));
   const orders: Order[] = [];
   let seq = 0;
 
@@ -59,11 +61,22 @@ export function createMockRepos(): Repos {
         const r = restaurants.find((x) => x.id === id);
         return r ? { ...r } : null;
       },
+      async getMenu(restaurantId) {
+        await delay();
+        return menuItems
+          .filter((m) => m.restaurantId === restaurantId && m.isAvailable)
+          .map((m) => ({ ...m }));
+      },
     },
 
     orders: {
       async create(input: CreateOrderInput) {
         await delay();
+        // guard กันโกงบังคับที่ชั้น repo (เทียบ server-side) — เจ้าของ/ร้านปิด/ไม่อนุมัติ สั่งไม่ได้
+        const restaurant = restaurants.find((r) => r.id === input.restaurantId);
+        if (!restaurant || !canOrderFromRestaurant(input.customerId, restaurant)) {
+          throw new Error('order.error.ownRestaurant');
+        }
         const foodTotal = input.items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
         const order: Order = {
           id: `o-${++seq}`,

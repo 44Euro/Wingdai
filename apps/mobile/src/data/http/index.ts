@@ -26,6 +26,7 @@ export function createHttpRepos(_baseUrl: string): Repos {
     catalog: {
       listRestaurants: nope('catalog.listRestaurants'),
       getRestaurant: nope('catalog.getRestaurant'),
+      getMenu: nope('catalog.getMenu'),
     },
     orders: {
       create: nope('orders.create'),
