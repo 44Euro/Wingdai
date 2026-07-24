@@ -30,6 +30,23 @@ export interface Restaurant {
   prepTimeMinutes: number;
 }
 
+export interface OptionChoice {
+  id: string;
+  name: string;
+  /** ส่วนต่างราคาเป็นสตางค์ (0 = ฟรี) */
+  priceDelta: number;
+}
+
+export interface OptionGroup {
+  id: string;
+  name: string;
+  /** จำนวนที่ต้องเลือกอย่างน้อย (0 = ไม่บังคับ) */
+  minSelect: number;
+  /** จำนวนที่เลือกได้มากสุด (min=max=1 = radio) */
+  maxSelect: number;
+  choices: OptionChoice[];
+}
+
 export interface MenuItem {
   id: string;
   restaurantId: string;
@@ -39,6 +56,7 @@ export interface MenuItem {
   price: number;
   category: CuisineCategory;
   isAvailable: boolean;
+  optionGroups?: OptionGroup[];
 }
 
 export type OrderStatus =

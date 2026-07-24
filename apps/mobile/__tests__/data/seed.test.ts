@@ -23,4 +23,18 @@ describe('seed data', () => {
         });
       });
   });
+
+  it('ข้าวกะเพรา (m-malee-1) มี option groups และมีกลุ่มบังคับเลือกอย่างน้อยหนึ่ง', () => {
+    const item = seedMenuItems.find((m) => m.id === 'm-malee-1');
+    expect(item?.optionGroups?.length).toBeGreaterThanOrEqual(1);
+    const required = item!.optionGroups!.filter((g) => g.minSelect >= 1);
+    expect(required.length).toBeGreaterThanOrEqual(1);
+    item!.optionGroups!.forEach((g) => {
+      expect(g.maxSelect).toBeGreaterThanOrEqual(g.minSelect);
+      g.choices.forEach((c) => {
+        expect(Number.isInteger(c.priceDelta)).toBe(true);
+        expect(c.priceDelta).toBeGreaterThanOrEqual(0);
+      });
+    });
+  });
 });

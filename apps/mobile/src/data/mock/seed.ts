@@ -40,7 +40,26 @@ export const seedRestaurants: Restaurant[] = [
 
 export const seedMenuItems: MenuItem[] = [
   // ครัวมาลี (rice)
-  { id: 'm-malee-1', restaurantId: 'r-malee', name: 'ข้าวกะเพราหมูสับ', description: 'ไข่ดาวกรอบ', price: 5000, category: 'rice', isAvailable: true },
+  {
+    id: 'm-malee-1', restaurantId: 'r-malee', name: 'ข้าวกะเพราหมูสับ', description: 'ไข่ดาวกรอบ', price: 5000, category: 'rice', isAvailable: true,
+    optionGroups: [
+      {
+        id: 'g-spicy', name: 'ระดับเผ็ด', minSelect: 1, maxSelect: 1,
+        choices: [
+          { id: 'c-spicy-low', name: 'เผ็ดน้อย', priceDelta: 0 },
+          { id: 'c-spicy-mid', name: 'เผ็ดกลาง', priceDelta: 0 },
+          { id: 'c-spicy-high', name: 'เผ็ดมาก', priceDelta: 0 },
+        ],
+      },
+      {
+        id: 'g-topping', name: 'ท็อปปิ้ง', minSelect: 0, maxSelect: 2,
+        choices: [
+          { id: 'c-egg', name: 'ไข่ดาว', priceDelta: 1500 },
+          { id: 'c-sausage', name: 'กุนเชียง', priceDelta: 1500 },
+        ],
+      },
+    ],
+  },
   { id: 'm-malee-2', restaurantId: 'r-malee', name: 'ข้าวผัดกุ้ง', price: 6000, category: 'rice', isAvailable: true },
   { id: 'm-malee-3', restaurantId: 'r-malee', name: 'ข้าวมันไก่', price: 4500, category: 'rice', isAvailable: true },
   { id: 'm-malee-4', restaurantId: 'r-malee', name: 'ชาไทยเย็น', price: 2500, category: 'drink', isAvailable: true },
