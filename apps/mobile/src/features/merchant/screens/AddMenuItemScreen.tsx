@@ -83,13 +83,12 @@ export function AddMenuItemScreen({ navigation, route }: Props) {
         showsVerticalScrollIndicator={false}
       >
         <Field label={t('merchant.form.name')}>
-          <Input testID="input-name" placeholder={t('merchant.form.name')} value={name} onChangeText={setName} />
+          <Input testID="input-name" value={name} onChangeText={setName} />
         </Field>
 
         <Field label={t('merchant.form.desc')}>
           <Input
             testID="input-desc"
-            placeholder={t('merchant.form.desc')}
             value={desc}
             onChangeText={setDesc}
             multiline
@@ -100,7 +99,6 @@ export function AddMenuItemScreen({ navigation, route }: Props) {
         <Field label={t('merchant.form.price')}>
           <Input
             testID="input-price"
-            placeholder={t('merchant.form.price')}
             keyboardType="numeric"
             value={price}
             onChangeText={setPrice}
@@ -167,7 +165,7 @@ export function AddMenuItemScreen({ navigation, route }: Props) {
                   keyboardType="numeric"
                   value={c.price}
                   onChangeText={(v) => updateChoice(gi, ci, { price: v })}
-                  containerStyle={{ flex: 1 }}
+                  containerStyle={{ flex: 1.2 }}
                 />
               </View>
             ))}

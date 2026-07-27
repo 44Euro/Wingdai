@@ -166,9 +166,8 @@ function RestaurantCard({ r, onPress }: { r: Restaurant; onPress: () => void }) 
       onPress={onPress}
       style={({ pressed }) => [
         {
-          // สองคอลัมน์: กว้างครึ่งหนึ่งลบครึ่งของ gap
+          // สองคอลัมน์เสมอ — ห้ามใส่ flexGrow ไม่งั้นการ์ดใบสุดท้ายที่เป็นเลขคี่จะยืดเต็มแถว
           width: '48%',
-          flexGrow: 1,
           backgroundColor: tokens.bgRaised,
           borderRadius: p.radius.xl,
           overflow: 'hidden',

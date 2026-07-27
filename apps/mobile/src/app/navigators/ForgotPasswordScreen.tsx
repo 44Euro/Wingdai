@@ -58,7 +58,6 @@ export function ForgotPasswordScreen({ navigation }: Props) {
           <Input
             testID="input-phone"
             accessibilityLabel={t('auth.forgot.title')}
-            placeholder={t('auth.register.phone')}
             keyboardType="phone-pad"
             value={phone}
             onChangeText={setPhone}

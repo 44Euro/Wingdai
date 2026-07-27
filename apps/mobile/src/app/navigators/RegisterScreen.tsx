@@ -78,7 +78,6 @@ export function RegisterScreen({ navigation }: Props) {
             <Input
               testID="input-fullName"
               accessibilityLabel={t('auth.register.fullName')}
-              placeholder={t('auth.register.fullName')}
               value={fullName}
               onChangeText={setFullName}
             />
@@ -88,7 +87,6 @@ export function RegisterScreen({ navigation }: Props) {
             <Input
               testID="input-username"
               accessibilityLabel={t('auth.register.username')}
-              placeholder={t('auth.register.username')}
               autoCapitalize="none"
               value={username}
               onChangeText={setUsername}
@@ -99,7 +97,6 @@ export function RegisterScreen({ navigation }: Props) {
             <Input
               testID="input-phone"
               accessibilityLabel={t('auth.register.phone')}
-              placeholder={t('auth.register.phone')}
               keyboardType="phone-pad"
               value={phone}
               onChangeText={setPhone}
@@ -110,7 +107,6 @@ export function RegisterScreen({ navigation }: Props) {
             <Input
               testID="input-email"
               accessibilityLabel={t('auth.register.email')}
-              placeholder={t('auth.register.email')}
               autoCapitalize="none"
               keyboardType="email-address"
               value={email}
@@ -122,7 +118,6 @@ export function RegisterScreen({ navigation }: Props) {
             <Input
               testID="input-password"
               accessibilityLabel={t('auth.register.password')}
-              placeholder={t('auth.register.password')}
               secureTextEntry
               value={password}
               onChangeText={setPassword}

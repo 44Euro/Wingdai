@@ -126,7 +126,8 @@ export function RestaurantDetailScreen({ navigation, route }: Props) {
                       alignItems: 'center',
                       justifyContent: 'center',
                     },
-                    canOrder ? p.shadow.brand : null,
+                    // เงาต้องเล็กตามปุ่ม — shadow.brand ทำมาสำหรับ CTA เต็มความกว้าง ใส่ตรงนี้จะฟุ้งเป็นวงส้ม
+                    canOrder ? p.shadow.card : null,
                   ]}
                 >
                   <Icon name="plus" color={canOrder ? '#FFFFFF' : tokens.textFaint} size={18} strokeWidth={2.8} />
