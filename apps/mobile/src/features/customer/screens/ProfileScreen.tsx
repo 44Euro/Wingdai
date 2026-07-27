@@ -1,10 +1,12 @@
 import React from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
-import { Button } from '../../../ui/Button';
+import { Icon } from '../../../ui/Icon';
+import { Card, IconChip } from '../../../ui/Surface';
+import { TAB_BAR_CLEARANCE } from '../../../app/navigators/WingdaiTabBar';
 import { RoleSwitcher } from '../../../app/RoleSwitcher';
 import { useAuthStore } from '../../auth/authStore';
 
@@ -14,20 +16,71 @@ export function ProfileScreen() {
   const account = useAuthStore((s) => s.account);
   const logout = useAuthStore((s) => s.logout);
 
+  const initial = (account?.fullName ?? account?.username ?? '?').trim().charAt(0).toUpperCase();
+
   return (
     <SafeAreaView testID="screen-profile" edges={['top']} style={{ flex: 1, backgroundColor: tokens.bgSurface }}>
-      <ScrollView contentContainerStyle={{ padding: p.space.xl, gap: p.space.lg }}>
-        <Text variant="h1">{t('customer.profile.title')}</Text>
-
-        <View style={{ backgroundColor: tokens.bgRaised, borderRadius: p.radius.md, borderWidth: 1, borderColor: tokens.borderSubtle, padding: p.space.lg, gap: p.space.xs }}>
-          <Text variant="h3">{account?.fullName ?? ''}</Text>
-          <Text variant="small" color="muted">@{account?.username ?? ''}</Text>
-          <Text variant="small" color="muted">{t('customer.profile.phone')}: {account?.phone ?? ''}</Text>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: TAB_BAR_CLEARANCE, gap: p.space.lg }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* หัวโปรไฟล์: อวาตาร์สี่เหลี่ยมมน + ชื่อ + เบอร์ ตาม design */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: p.space.lg,
+            paddingHorizontal: p.space.screen,
+            paddingTop: p.space.lg,
+          }}
+        >
+          <View
+            style={{
+              width: 66,
+              height: 66,
+              borderRadius: p.radius.xl,
+              backgroundColor: tokens.tealSolid,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text variant="h2" color="onTeal">{initial}</Text>
+          </View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text variant="h2" numberOfLines={1}>{account?.fullName ?? ''}</Text>
+            <Text variant="caption" color="muted" numberOfLines={1}>@{account?.username ?? ''}</Text>
+            <Text variant="caption" color="muted" numberOfLines={1}>
+              {t('customer.profile.phone')} · {account?.phone ?? ''}
+            </Text>
+          </View>
         </View>
 
-        <RoleSwitcher />
+        <View style={{ paddingHorizontal: p.space.screen, gap: p.space.lg }}>
+          <RoleSwitcher />
 
-        <Button testID="btn-logout" label={t('customer.profile.logout')} variant="secondary" onPress={() => logout()} />
+          {/* รายการตั้งค่าในการ์ดขาวใบเดียว มีเส้นคั่นบาง ๆ ตาม design */}
+          <Card padded={false} style={{ overflow: 'hidden' }}>
+            <Pressable
+              testID="btn-logout"
+              accessibilityRole="button"
+              onPress={() => logout()}
+              style={({ pressed }) => ({
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: p.space.lg,
+                paddingHorizontal: p.space.card,
+                paddingVertical: 15,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <IconChip name="logout" tone="neutral" size={36} />
+              <Text variant="small" color="danger" bold style={{ flex: 1 }}>
+                {t('customer.profile.logout')}
+              </Text>
+              <Icon name="chevronRight" color={tokens.textFaint} size={18} strokeWidth={2.4} />
+            </Pressable>
+          </Card>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

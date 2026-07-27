@@ -16,30 +16,44 @@ describe('contrastRatio', () => {
 });
 
 describe('กฎสีของแบรนด์ Wingdai', () => {
-  const { brand, teal900, cream, white } = primitives;
+  const { brand, teal, ink, cream, white } = primitives;
 
   it('teal บนครีมผ่าน AA สำหรับข้อความปกติ', () => {
-    expect(contrastRatio(teal900, cream)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(teal[500], cream)).toBeGreaterThanOrEqual(4.5);
   });
 
   it('ครีมบน teal ผ่าน AA (โหมดมืด)', () => {
-    expect(contrastRatio(cream, teal900)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(cream, teal[500])).toBeGreaterThanOrEqual(4.5);
   });
 
-  it('ขาวบน brand-700 ผ่าน AA — นี่คือสีปุ่มที่ใช้ได้', () => {
+  it('ink บนครีมผ่าน AA — สีข้อความหลัก', () => {
+    expect(contrastRatio(ink[100], cream)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('ขาวบน brand-700 ผ่าน AA — นี่คือสีพื้นปุ่มที่ใช้ได้', () => {
     expect(contrastRatio(white, brand[700])).toBeGreaterThanOrEqual(4.5);
   });
 
-  it('brand-700 บนครีมผ่าน AA — สีข้อความแบรนด์', () => {
-    expect(contrastRatio(brand[700], cream)).toBeGreaterThanOrEqual(4.5);
+  it('brand-800 บนครีมผ่าน AA — สีตัวอักษร/ลิงก์แบรนด์', () => {
+    expect(contrastRatio(brand[800], cream)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it('ขาวบน brand-500 ไม่ผ่าน AA — กันคนเผลอเอาไปทำปุ่ม', () => {
+  it('brand-800 บน brand tint ผ่าน AA — ตัวอักษรในแบดจ์ส้ม', () => {
+    expect(contrastRatio(brand[800], brand[50])).toBeGreaterThanOrEqual(4.5);
+  });
+
+  // #F15A22 คือสีส้มจริงของ design แต่ contrast ไม่พอสำหรับตัวหนังสือ
+  // จึงถูกจำกัดให้ใช้เป็นกราฟิกเท่านั้น (brandAccent) — เทสต์สองข้อนี้กันคนเผลอ
+  it('ขาวบน brand-500 ไม่ผ่าน AA — กันคนเผลอเอาไปทำพื้นปุ่ม', () => {
     expect(contrastRatio(white, brand[500])).toBeLessThan(4.5);
   });
 
   it('brand-500 บนครีมไม่ผ่าน AA — กันคนเผลอเอาไปทำข้อความ', () => {
     expect(contrastRatio(brand[500], cream)).toBeLessThan(4.5);
+  });
+
+  it('brand-500 ยังผ่านเกณฑ์ non-text 3:1 — ใช้เป็นพื้นไอคอน/เส้นได้', () => {
+    expect(contrastRatio(white, brand[500])).toBeGreaterThanOrEqual(3);
   });
 });
 

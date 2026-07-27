@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { View, TextInput } from 'react-native';
+import { View, ScrollView, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../../theme/ThemeProvider';
 import { Text } from '../../ui/Text';
 import { Button } from '../../ui/Button';
+import { Field, Input } from '../../ui/Field';
+import { ScreenHeader } from '../../ui/ScreenHeader';
 import type { AuthStackParamList } from './AuthNavigator';
 
 /** ค่าที่กรอกในหน้าสมัครสมาชิก ส่งต่อไปหน้า OtpVerify เป็น route param (task ถัดไปค่อยเรียก register จริง) */
@@ -26,7 +29,7 @@ type Props = {
 
 export function RegisterScreen({ navigation }: Props) {
   const { t } = useTranslation();
-  const { tokens, primitives } = useTheme();
+  const { tokens, primitives: p } = useTheme();
 
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -62,127 +65,89 @@ export function RegisterScreen({ navigation }: Props) {
   }
 
   return (
-    <View
-      testID="screen-register"
-      style={{
-        flex: 1,
-        backgroundColor: tokens.bgSurface,
-        justifyContent: 'center',
-        padding: primitives.space.xl,
-        gap: primitives.space.lg,
-      }}
-    >
-      <Text variant="h1">{t('auth.register.title')}</Text>
+    <SafeAreaView testID="screen-register" edges={['top', 'bottom']} style={{ flex: 1, backgroundColor: tokens.bgSurface }}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScreenHeader title={t('auth.register.title')} onBack={() => navigation.goBack()} />
 
-      <TextInput
-        testID="input-username"
-        accessibilityLabel={t('auth.register.username')}
-        placeholder={t('auth.register.username')}
-        placeholderTextColor={tokens.textMuted}
-        autoCapitalize="none"
-        allowFontScaling={false}
-        value={username}
-        onChangeText={setUsername}
-        style={{
-          borderWidth: 1,
-          borderColor: tokens.borderSubtle,
-          borderRadius: primitives.radius.md,
-          padding: primitives.space.lg,
-          color: tokens.textPrimary,
-          minHeight: 48,
-        }}
-      />
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: p.space.screen, paddingBottom: p.space.xl, gap: p.space.lg }}
+        >
+          <Field label={t('auth.register.fullName')}>
+            <Input
+              testID="input-fullName"
+              accessibilityLabel={t('auth.register.fullName')}
+              placeholder={t('auth.register.fullName')}
+              value={fullName}
+              onChangeText={setFullName}
+            />
+          </Field>
 
-      <TextInput
-        testID="input-email"
-        accessibilityLabel={t('auth.register.email')}
-        placeholder={t('auth.register.email')}
-        placeholderTextColor={tokens.textMuted}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        allowFontScaling={false}
-        value={email}
-        onChangeText={setEmail}
-        style={{
-          borderWidth: 1,
-          borderColor: tokens.borderSubtle,
-          borderRadius: primitives.radius.md,
-          padding: primitives.space.lg,
-          color: tokens.textPrimary,
-          minHeight: 48,
-        }}
-      />
+          <Field label={t('auth.register.username')}>
+            <Input
+              testID="input-username"
+              accessibilityLabel={t('auth.register.username')}
+              placeholder={t('auth.register.username')}
+              autoCapitalize="none"
+              value={username}
+              onChangeText={setUsername}
+            />
+          </Field>
 
-      <TextInput
-        testID="input-password"
-        accessibilityLabel={t('auth.register.password')}
-        placeholder={t('auth.register.password')}
-        placeholderTextColor={tokens.textMuted}
-        secureTextEntry
-        allowFontScaling={false}
-        value={password}
-        onChangeText={setPassword}
-        style={{
-          borderWidth: 1,
-          borderColor: tokens.borderSubtle,
-          borderRadius: primitives.radius.md,
-          padding: primitives.space.lg,
-          color: tokens.textPrimary,
-          minHeight: 48,
-        }}
-      />
+          <Field label={t('auth.register.phone')}>
+            <Input
+              testID="input-phone"
+              accessibilityLabel={t('auth.register.phone')}
+              placeholder={t('auth.register.phone')}
+              keyboardType="phone-pad"
+              value={phone}
+              onChangeText={setPhone}
+            />
+          </Field>
 
-      <TextInput
-        testID="input-phone"
-        accessibilityLabel={t('auth.register.phone')}
-        placeholder={t('auth.register.phone')}
-        placeholderTextColor={tokens.textMuted}
-        keyboardType="phone-pad"
-        allowFontScaling={false}
-        value={phone}
-        onChangeText={setPhone}
-        style={{
-          borderWidth: 1,
-          borderColor: tokens.borderSubtle,
-          borderRadius: primitives.radius.md,
-          padding: primitives.space.lg,
-          color: tokens.textPrimary,
-          minHeight: 48,
-        }}
-      />
+          <Field label={t('auth.register.email')}>
+            <Input
+              testID="input-email"
+              accessibilityLabel={t('auth.register.email')}
+              placeholder={t('auth.register.email')}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+            />
+          </Field>
 
-      <TextInput
-        testID="input-fullName"
-        accessibilityLabel={t('auth.register.fullName')}
-        placeholder={t('auth.register.fullName')}
-        placeholderTextColor={tokens.textMuted}
-        allowFontScaling={false}
-        value={fullName}
-        onChangeText={setFullName}
-        style={{
-          borderWidth: 1,
-          borderColor: tokens.borderSubtle,
-          borderRadius: primitives.radius.md,
-          padding: primitives.space.lg,
-          color: tokens.textPrimary,
-          minHeight: 48,
-        }}
-      />
+          <Field label={t('auth.register.password')}>
+            <Input
+              testID="input-password"
+              accessibilityLabel={t('auth.register.password')}
+              placeholder={t('auth.register.password')}
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
+          </Field>
 
-      {error ? (
-        <Text testID="register-error" variant="small" style={{ color: tokens.danger }}>
-          {t(error)}
-        </Text>
-      ) : null}
+          {error ? (
+            <Text testID="register-error" variant="small" color="danger" bold>
+              {t(error)}
+            </Text>
+          ) : null}
 
-      <Button testID="btn-register" label={t('auth.register.submit')} onPress={handleSubmit} />
+          <Button testID="btn-register" label={t('auth.register.submit')} onPress={handleSubmit} />
 
-      <Button
-        testID="link-login"
-        label={t('auth.register.toLogin')}
-        variant="secondary"
-        onPress={() => navigation.goBack()}
-      />
-    </View>
+          <Pressable
+            testID="link-login"
+            accessibilityRole="link"
+            onPress={() => navigation.goBack()}
+            hitSlop={10}
+            style={({ pressed }) => ({ alignItems: 'center', paddingVertical: p.space.sm, opacity: pressed ? 0.7 : 1 })}
+          >
+            <Text variant="small" color="link" bold>{t('auth.register.toLogin')}</Text>
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

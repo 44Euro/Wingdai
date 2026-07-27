@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
-import { Prompt_600SemiBold } from '@expo-google-fonts/prompt';
+import { Prompt_700Bold, Prompt_600SemiBold } from '@expo-google-fonts/prompt';
 import {
   IBMPlexSansThai_400Regular,
   IBMPlexSansThai_600SemiBold,
@@ -19,6 +19,7 @@ export default function App() {
   // ชื่อ key ต้องตรงเป๊ะกับ primitives.fontFamily (src/theme/tokens/primitives.ts)
   // เพราะนั่นคือชื่อ family ที่ RN ใช้ค้นหาฟอนต์ที่โหลดไว้ตอน runtime
   const [fontsLoaded] = useFonts({
+    Prompt_700Bold,
     Prompt_600SemiBold,
     IBMPlexSansThai_400Regular,
     IBMPlexSansThai_600SemiBold,

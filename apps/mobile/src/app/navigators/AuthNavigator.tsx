@@ -1,6 +1,5 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/ThemeProvider';
 import { LoginScreen } from './AuthStack';
 import { RegisterScreen } from './RegisterScreen';
@@ -27,43 +26,22 @@ export type AuthStackParamList = {
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 export function AuthNavigator() {
-  const { t } = useTranslation();
   const { tokens } = useTheme();
 
   return (
+    // design วาดหัวจอเองในแต่ละหน้า — ปิด header ของ navigator
     <Stack.Navigator
       initialRouteName="Login"
       screenOptions={{
-        headerStyle: { backgroundColor: tokens.bgSurface },
-        headerTintColor: tokens.textPrimary,
-        headerTitleStyle: { color: tokens.textPrimary },
+        headerShown: false,
+        contentStyle: { backgroundColor: tokens.bgSurface },
       }}
     >
-      <Stack.Screen
-        name="Login"
-        component={LoginScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="Register"
-        component={RegisterScreen}
-        options={{ title: t('auth.register.title') }}
-      />
-      <Stack.Screen
-        name="OtpVerify"
-        component={OtpVerifyScreen}
-        options={{ title: t('auth.otp.title') }}
-      />
-      <Stack.Screen
-        name="ChooseAccountType"
-        component={ChooseAccountTypeScreen}
-        options={{ title: t('auth.chooseType.title') }}
-      />
-      <Stack.Screen
-        name="ForgotPassword"
-        component={ForgotPasswordScreen}
-        options={{ title: t('auth.forgot.title') }}
-      />
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="OtpVerify" component={OtpVerifyScreen} />
+      <Stack.Screen name="ChooseAccountType" component={ChooseAccountTypeScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     </Stack.Navigator>
   );
 }

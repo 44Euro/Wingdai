@@ -45,7 +45,7 @@ describe('Button', () => {
     const button = findByTestID(tree, 'b');
     expect(button).not.toBeNull();
     const style = flatStyle(button);
-    expect(style.backgroundColor).toBe('#D23A01');
+    expect(style.backgroundColor).toBe('#CC4310');
   });
 
   it('พื้นปุ่มกับตัวหนังสือผ่าน AA', () => {

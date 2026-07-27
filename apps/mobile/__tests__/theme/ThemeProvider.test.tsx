@@ -20,7 +20,7 @@ describe('ThemeProvider', () => {
     });
     const tree = result!.toJSON();
     if (tree && !Array.isArray(tree) && tree.type === 'Text') {
-      expect(tree.children).toEqual(['light:#FEFBF7']);
+      expect(tree.children).toEqual(['light:#F6F1EA']);
     }
   });
 
@@ -35,7 +35,7 @@ describe('ThemeProvider', () => {
     });
     const tree = result!.toJSON();
     if (tree && !Array.isArray(tree) && tree.type === 'Text') {
-      expect(tree.children).toEqual(['dark:#023839']);
+      expect(tree.children).toEqual(['dark:#0A2C2B']);
     }
   });
 

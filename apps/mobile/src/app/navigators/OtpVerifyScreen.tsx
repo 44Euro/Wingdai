@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { View, TextInput } from 'react-native';
+import { View, TextInput, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { Text } from '../../ui/Text';
 import { Button } from '../../ui/Button';
+import { ScreenHeader } from '../../ui/ScreenHeader';
 import { useAuthStore } from '../../features/auth/authStore';
 import type { AuthStackParamList } from './AuthNavigator';
 
@@ -14,9 +16,11 @@ type Props = {
   route: RouteProp<AuthStackParamList, 'OtpVerify'>;
 };
 
+const OTP_LENGTH = 6;
+
 export function OtpVerifyScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
-  const { tokens, primitives } = useTheme();
+  const { tokens, primitives: p } = useTheme();
   const verifyOtp = useAuthStore((s) => s.verifyOtp);
 
   const { form } = route.params;
@@ -34,57 +38,83 @@ export function OtpVerifyScreen({ navigation, route }: Props) {
   }
 
   return (
-    <View
-      testID="screen-otp-verify"
-      style={{
-        flex: 1,
-        backgroundColor: tokens.bgSurface,
-        justifyContent: 'center',
-        padding: primitives.space.xl,
-        gap: primitives.space.lg,
-      }}
-    >
-      <Text variant="h1">{t('auth.otp.title')}</Text>
-      <Text variant="body" color="muted">
-        {t('auth.otp.description')}
-      </Text>
+    <SafeAreaView testID="screen-otp-verify" edges={['top', 'bottom']} style={{ flex: 1, backgroundColor: tokens.bgSurface }}>
+      <ScreenHeader title={t('auth.otp.title')} onBack={() => navigation.goBack()} />
 
-      <TextInput
-        testID="input-otp-code"
-        accessibilityLabel={t('auth.otp.title')}
-        placeholder="000000"
-        placeholderTextColor={tokens.textMuted}
-        keyboardType="numeric"
-        maxLength={6}
-        allowFontScaling={false}
-        value={code}
-        onChangeText={setCode}
-        style={{
-          borderWidth: 1,
-          borderColor: tokens.borderSubtle,
-          borderRadius: primitives.radius.md,
-          padding: primitives.space.lg,
-          color: tokens.textPrimary,
-          minHeight: 48,
-        }}
-      />
+      <View style={{ flex: 1, paddingHorizontal: p.space.screen, gap: p.space.lg }}>
+        <Text variant="body" color="muted">{t('auth.otp.description')}</Text>
 
-      {error ? (
-        <Text testID="otp-error" variant="small" style={{ color: tokens.danger }}>
-          {t(error)}
-        </Text>
-      ) : null}
+        {/* ช่องรหัส 6 ตัวตาม design — ช่องจริงเป็น TextInput โปร่งใสวางทับทั้งแถว */}
+        <View>
+          <View style={{ flexDirection: 'row', gap: p.space.sm }}>
+            {Array.from({ length: OTP_LENGTH }).map((_, i) => {
+              const char = code[i] ?? '';
+              const isCursor = i === code.length;
+              return (
+                <View
+                  key={i}
+                  style={[
+                    {
+                      flex: 1,
+                      height: 64,
+                      borderRadius: p.radius.md,
+                      backgroundColor: tokens.bgRaised,
+                      borderWidth: 2,
+                      borderColor: isCursor ? tokens.brandAccent : 'transparent',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    },
+                    p.shadow.card,
+                  ]}
+                >
+                  <Text variant="h2">{char}</Text>
+                </View>
+              );
+            })}
+          </View>
 
-      <Button testID="btn-verify-otp" label={t('common.continue')} onPress={handleVerify} />
+          <TextInput
+            testID="input-otp-code"
+            accessibilityLabel={t('auth.otp.title')}
+            keyboardType="numeric"
+            maxLength={OTP_LENGTH}
+            allowFontScaling={false}
+            value={code}
+            onChangeText={setCode}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 64,
+              opacity: 0,
+              color: tokens.textPrimary,
+            }}
+          />
+        </View>
 
-      <Button
-        testID="btn-resend"
-        label={t('auth.otp.resend')}
-        variant="secondary"
-        onPress={() => {
-          // mock: ยังไม่มี backend ส่ง OTP จริง — ปุ่มนี้กดได้แต่ไม่ทำอะไรตอนนี้
-        }}
-      />
-    </View>
+        {error ? (
+          <Text testID="otp-error" variant="small" color="danger" bold>
+            {t(error)}
+          </Text>
+        ) : null}
+
+        <Pressable
+          testID="btn-resend"
+          accessibilityRole="button"
+          hitSlop={10}
+          onPress={() => {
+            // mock: ยังไม่มี backend ส่ง OTP จริง — ปุ่มนี้กดได้แต่ไม่ทำอะไรตอนนี้
+          }}
+          style={({ pressed }) => ({ alignSelf: 'flex-start', opacity: pressed ? 0.7 : 1 })}
+        >
+          <Text variant="small" color="link" bold>{t('auth.otp.resend')}</Text>
+        </Pressable>
+      </View>
+
+      <View style={{ paddingHorizontal: p.space.screen, paddingBottom: p.space.lg }}>
+        <Button testID="btn-verify-otp" label={t('common.continue')} onPress={handleVerify} />
+      </View>
+    </SafeAreaView>
   );
 }

@@ -6,6 +6,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Button } from '../../../ui/Button';
+import { Icon } from '../../../ui/Icon';
+import { Badge, PhotoBlock, RoundButton } from '../../../ui/Surface';
 import { useMenu } from '../hooks';
 import { useCartStore, type SelectedChoice } from '../../cart/cartStore';
 import { formatBaht } from '../../../lib/format';
@@ -62,56 +64,127 @@ export function MenuItemScreen({ navigation, route }: Props) {
 
   return (
     <SafeAreaView testID="screen-menu-item" edges={['bottom']} style={{ flex: 1, backgroundColor: tokens.bgSurface }}>
-      <ScrollView contentContainerStyle={{ padding: p.space.xl, gap: p.space.lg, paddingBottom: 120 }}>
-        <View style={{ height: 160, borderRadius: p.radius.lg, backgroundColor: tokens.brandAccent, opacity: 0.18 }} />
-        <View style={{ gap: p.space.xs }}>
-          <Text variant="h1">{item?.name ?? ''}</Text>
-          {item?.description ? <Text variant="small" color="muted">{item.description}</Text> : null}
-          <Text variant="h3">{formatBaht(item?.price ?? 0)}</Text>
+      <ScrollView contentContainerStyle={{ paddingBottom: 130 }} showsVerticalScrollIndicator={false}>
+        <View>
+          <PhotoBlock height={200} radius={0} />
+          <View style={{ position: 'absolute', top: p.space.lg, left: p.space.lg }}>
+            <RoundButton icon="chevronLeft" onPress={() => navigation.goBack()} accessibilityLabel={t('common.back')} />
+          </View>
         </View>
 
-        {groups.map((g) => (
-          <View key={g.id} style={{ gap: p.space.sm }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text variant="h3">{g.name}</Text>
-              <View style={{ backgroundColor: tokens.bgRaised, borderWidth: 1, borderColor: tokens.borderSubtle, borderRadius: p.radius.full, paddingHorizontal: p.space.md, paddingVertical: 2 }}>
-                <Text variant="caption" color="muted">{g.minSelect >= 1 ? t('customer.item.required') : t('customer.item.optional')}</Text>
-              </View>
-            </View>
-            {g.choices.map((c) => {
-              const isSel = (selected[g.id] ?? []).includes(c.id);
-              return (
-                <Pressable
-                  key={c.id}
-                  testID={`choice-${c.id}`}
-                  onPress={() => toggle(g, c.id)}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: p.space.md, backgroundColor: tokens.bgRaised, borderRadius: p.radius.md, borderWidth: 1.5, borderColor: isSel ? tokens.brandSolid : tokens.borderSubtle, padding: p.space.lg, minHeight: 48 }}
-                >
-                  <View style={{ width: 22, height: 22, borderRadius: g.maxSelect === 1 ? 11 : 6, borderWidth: 2, borderColor: isSel ? tokens.brandSolid : tokens.borderSubtle, backgroundColor: isSel ? tokens.brandSolid : 'transparent' }} />
-                  <Text variant="body" style={{ flex: 1 }}>{c.name}</Text>
-                  {c.priceDelta > 0 ? <Text variant="small" color="muted">+{formatBaht(c.priceDelta)}</Text> : null}
-                </Pressable>
-              );
-            })}
-          </View>
-        ))}
+        <View style={{ paddingHorizontal: p.space.screen, paddingTop: p.space.lg, gap: p.space.xs }}>
+          <Text variant="h1">{item?.name ?? ''}</Text>
+          {item?.description ? <Text variant="small" color="muted">{item.description}</Text> : null}
+          <Text variant="h3" color="brand" style={{ marginTop: p.space.xs }}>{formatBaht(item?.price ?? 0)}</Text>
+        </View>
 
-        {/* จำนวน */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: p.space.lg }}>
-          <Pressable testID="mi-qty-dec" onPress={() => setQuantity((q) => Math.max(1, q - 1))} hitSlop={8} style={{ width: 44, height: 44, borderRadius: p.radius.md, borderWidth: 1, borderColor: tokens.borderSubtle, alignItems: 'center', justifyContent: 'center' }}>
-            <Text variant="h3">−</Text>
-          </Pressable>
-          <Text variant="body" style={{ minWidth: 24, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{quantity}</Text>
-          <Pressable testID="mi-qty-inc" onPress={() => setQuantity((q) => q + 1)} hitSlop={8} style={{ width: 44, height: 44, borderRadius: p.radius.md, backgroundColor: tokens.brandSolid, alignItems: 'center', justifyContent: 'center' }}>
-            <Text variant="h3" color="onBrand">+</Text>
-          </Pressable>
+        <View style={{ paddingHorizontal: p.space.screen, paddingTop: p.space.lg, gap: p.space.lg }}>
+          {groups.map((g) => (
+            <View key={g.id} style={{ gap: p.space.sm }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Text variant="bodyLg" bold>{g.name}</Text>
+                <Badge
+                  label={g.minSelect >= 1 ? t('customer.item.required') : t('customer.item.optional')}
+                  tone={g.minSelect >= 1 ? 'brand' : 'neutral'}
+                />
+              </View>
+
+              {g.choices.map((c) => {
+                const isSel = (selected[g.id] ?? []).includes(c.id);
+                const isRadio = g.maxSelect === 1;
+                return (
+                  <Pressable
+                    key={c.id}
+                    testID={`choice-${c.id}`}
+                    accessibilityRole={isRadio ? 'radio' : 'checkbox'}
+                    accessibilityState={{ checked: isSel }}
+                    onPress={() => toggle(g, c.id)}
+                    style={({ pressed }) => [
+                      {
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: p.space.md,
+                        backgroundColor: tokens.bgRaised,
+                        borderRadius: p.radius.lg,
+                        borderWidth: 2,
+                        borderColor: isSel ? tokens.brandAccent : 'transparent',
+                        paddingHorizontal: p.space.lg,
+                        paddingVertical: 14,
+                        minHeight: 56,
+                        opacity: pressed ? 0.9 : 1,
+                      },
+                      p.shadow.card,
+                    ]}
+                  >
+                    <View
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: isRadio ? 12 : 8,
+                        borderWidth: isSel ? 0 : 2,
+                        borderColor: tokens.borderSubtle,
+                        backgroundColor: isSel ? tokens.brandAccent : 'transparent',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {isSel ? <Icon name="check" color="#FFFFFF" size={14} strokeWidth={3.4} /> : null}
+                    </View>
+                    <Text variant="body" style={{ flex: 1 }} numberOfLines={2}>{c.name}</Text>
+                    {c.priceDelta > 0 ? (
+                      <Text variant="small" color="onTealTint" bold>+{formatBaht(c.priceDelta)}</Text>
+                    ) : null}
+                  </Pressable>
+                );
+              })}
+            </View>
+          ))}
+
+          {/* จำนวน */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              alignSelf: 'flex-start',
+              gap: p.space.md,
+              backgroundColor: tokens.bgRaised,
+              borderRadius: p.radius.full,
+              padding: 6,
+              marginTop: p.space.xs,
+            }}
+          >
+            <Pressable
+              testID="mi-qty-dec"
+              accessibilityRole="button"
+              accessibilityLabel="ลดจำนวน"
+              onPress={() => setQuantity((q) => Math.max(1, q - 1))}
+              hitSlop={10}
+              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: tokens.bgSunken, alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Icon name="minus" color={tokens.textPrimary} size={18} strokeWidth={2.8} />
+            </Pressable>
+            <Text variant="body" bold style={{ minWidth: 22, textAlign: 'center', fontVariant: ['tabular-nums'] }}>
+              {quantity}
+            </Text>
+            <Pressable
+              testID="mi-qty-inc"
+              accessibilityRole="button"
+              accessibilityLabel="เพิ่มจำนวน"
+              onPress={() => setQuantity((q) => q + 1)}
+              hitSlop={10}
+              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: tokens.brandAccent, alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Icon name="plus" color="#FFFFFF" size={18} strokeWidth={2.8} />
+            </Pressable>
+          </View>
         </View>
       </ScrollView>
 
-      <View style={{ padding: p.space.xl, borderTopWidth: 1, borderTopColor: tokens.borderSubtle, backgroundColor: tokens.bgSurface }}>
+      <View style={{ paddingHorizontal: p.space.screen, paddingBottom: p.space.lg, paddingTop: p.space.sm }}>
         <Button
           testID="btn-add-to-basket"
-          label={`${t('customer.item.addToBasket')} · ${formatBaht(total)}`}
+          label={t('customer.item.addToBasket')}
+          trailingLabel={formatBaht(total)}
           disabled={!item || !requiredSatisfied}
           onPress={add}
         />

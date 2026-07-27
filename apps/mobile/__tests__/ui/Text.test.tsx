@@ -65,7 +65,7 @@ describe('Text', () => {
       );
     });
     const tree = result!.toJSON();
-    expect(flatStyle(tree).color).toBe('#023839');
+    expect(flatStyle(tree).color).toBe('#1B1917');
 
     act(() => {
       result = ReactTestRenderer.create(
@@ -75,10 +75,10 @@ describe('Text', () => {
       );
     });
     const tree2 = result!.toJSON();
-    expect(flatStyle(tree2).color).toBe('#FEFBF7');
+    expect(flatStyle(tree2).color).toBe('#F6F1EA');
   });
 
-  it('color="brand" ใช้ brand-700 ไม่ใช่ brand-500', () => {
+  it('color="brand" ใช้ brand-800 (ผ่าน AA) ไม่ใช่ brand-500', () => {
     let result;
     act(() => {
       result = ReactTestRenderer.create(
@@ -88,6 +88,6 @@ describe('Text', () => {
       );
     });
     const tree = result!.toJSON();
-    expect(flatStyle(tree).color).toBe('#D23A01');
+    expect(flatStyle(tree).color).toBe('#B23A0C');
   });
 });
