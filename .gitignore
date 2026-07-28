@@ -5,3 +5,8 @@ web-build/
 *.log
 .DS_Store
 .superpowers/
+
+# โฟลเดอร์ native ที่ expo prebuild สร้างจาก app.config.ts (CNG)
+# เป็นผลลัพธ์ที่ generate ใหม่ได้เสมอ ไม่ควรเข้า repo — แก้ config ที่ app.config.ts แทน
+apps/mobile/ios/
+apps/mobile/android/
