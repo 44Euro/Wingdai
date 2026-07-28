@@ -118,9 +118,16 @@
     },
     "tabs": {
       "home": "Home",
-      "orders": "Orders",
-      "inbox": "Inbox",
-      "profile": "Profile"
+      "menu": "Menu",
+      "orders": "History",
+      "profile": "Me"
+    },
+    "categories": {
+      "title": "Menu",
+      "subtitle": "Pick what you feel like",
+      "count": "{{count}} kitchens",
+      "clear": "All categories",
+      "empty": "No kitchens in this category yet"
     },
     "orders": {
       "title": "Order history",

@@ -10,7 +10,7 @@ export type IconName =
   | 'search' | 'chevronLeft' | 'chevronRight' | 'chevronDown'
   | 'plus' | 'minus' | 'check' | 'close'
   | 'heart' | 'star' | 'clock' | 'mapPin' | 'bike'
-  | 'card' | 'qr' | 'cart' | 'store' | 'help' | 'logout' | 'edit' | 'send'
+  | 'card' | 'qr' | 'cart' | 'store' | 'help' | 'logout' | 'edit' | 'send' | 'burger'
   | 'rice' | 'noodle' | 'somtam' | 'drink' | 'dessert';
 
 type Shape = {
@@ -46,6 +46,8 @@ const SHAPES: Record<IconName, Shape> = {
   logout: { p: ['M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4', 'm16 17 5-5-5-5M21 12H9'] },
   edit: { p: ['M12 20h9', 'M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'] },
   send: { p: ['m22 2-7 20-4-9-9-4Z', 'M22 2 11 13'] },
+  // ปุ่มออร์เดอร์กลาง navbar — path ตรงกับที่ design ใช้ในจอ C1/C32
+  burger: { p: ['M4 9.8a8 8 0 0 1 16 0Z', 'M3.3 13.2h17.4', 'M5 16.6h14a2.5 2.5 0 0 1-2.5 2.4H7.5A2.5 2.5 0 0 1 5 16.6Z'] },
   rice: { p: ['M4 3v6a2 2 0 0 0 4 0V3M6 3v18M16 3c-1.5 0-2.5 2-2.5 5s1 4 2.5 4V3zM16 12v9'] },
   noodle: { p: ['M3.5 12.5h17a8.5 8.5 0 0 1-17 0Z', 'M7 12.5a5 3.4 0 0 1 10 0'] },
   somtam: { p: ['M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z', 'M2 21c0-3 1.85-5.36 5.08-6'] },

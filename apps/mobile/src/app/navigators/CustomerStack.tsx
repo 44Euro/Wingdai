@@ -8,6 +8,7 @@ import { WingdaiTabBar } from './WingdaiTabBar';
 import { CustomerHomeScreen } from '../../features/customer/screens/CustomerHomeScreen';
 import { OrderHistoryScreen } from '../../features/customer/screens/OrderHistoryScreen';
 import { InboxScreen } from '../../features/customer/screens/InboxScreen';
+import { CategoriesScreen } from '../../features/customer/screens/CategoriesScreen';
 import { ProfileScreen } from '../../features/customer/screens/ProfileScreen';
 import { RestaurantDetailScreen } from '../../features/customer/screens/RestaurantDetailScreen';
 import { MenuItemScreen } from '../../features/customer/screens/MenuItemScreen';
@@ -17,8 +18,8 @@ import { OrderPlacedScreen } from '../../features/customer/screens/OrderPlacedSc
 
 export type CustomerTabParamList = {
   CustomerHome: undefined;
+  Categories: undefined;
   Orders: undefined;
-  Inbox: undefined;
   Profile: undefined;
 };
 
@@ -29,6 +30,9 @@ export type CustomerStackParamList = {
   Cart: undefined;
   Checkout: undefined;
   OrderPlaced: { orderId: string };
+  /** design ไม่มีแท็บกล่องข้อความ — เข้าจากกระดิ่งบนหัวจอ Home แทน */
+  Inbox: undefined;
+  OrderTracking: { orderId: string };
 };
 
 const Tab = createBottomTabNavigator<CustomerTabParamList>();
@@ -42,8 +46,8 @@ function CustomerTabs() {
       screenOptions={{ headerShown: false }}
     >
       <Tab.Screen name="CustomerHome" component={CustomerHomeScreen} options={{ title: t('customer.tabs.home') }} />
+      <Tab.Screen name="Categories" component={CategoriesScreen} options={{ title: t('customer.tabs.menu') }} />
       <Tab.Screen name="Orders" component={OrderHistoryScreen} options={{ title: t('customer.tabs.orders') }} />
-      <Tab.Screen name="Inbox" component={InboxScreen} options={{ title: t('customer.tabs.inbox') }} />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: t('customer.tabs.profile') }} />
     </Tab.Navigator>
   );
@@ -68,6 +72,7 @@ export function CustomerStack() {
       <Stack.Screen name="Cart" component={CartScreen} />
       <Stack.Screen name="Checkout" component={CheckoutScreen} />
       <Stack.Screen name="OrderPlaced" component={OrderPlacedScreen} options={{ gestureEnabled: false }} />
+      <Stack.Screen name="Inbox" component={InboxScreen} />
     </Stack.Navigator>
   );
 }

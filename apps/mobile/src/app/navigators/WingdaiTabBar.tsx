@@ -9,8 +9,8 @@ import { useCartStore } from '../../features/cart/cartStore';
 
 const ICONS: Record<string, IconName> = {
   CustomerHome: 'home',
+  Categories: 'menu',
   Orders: 'history',
-  Inbox: 'inbox',
   Profile: 'user',
 };
 
