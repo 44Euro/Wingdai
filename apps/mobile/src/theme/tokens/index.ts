@@ -22,6 +22,10 @@ export type SemanticTokens = {
   tealSolid: string;
   tealTint: string;
   textOnTealTint: string;
+  /** พื้นแถบนำทางลอย — teal ในโหมดสว่าง ดำในโหมดมืด (C32) */
+  navSurface: string;
+  navActive: string;
+  navIdle: string;
   danger: string;
   success: string;
 };

@@ -18,6 +18,9 @@ export const semanticLight = {
   tealSolid: p.teal[500],      // การ์ด/จอเด่นสีเข้ม
   tealTint: p.teal[100],
   textOnTealTint: p.teal[500],
+  navSurface: p.teal[500],     // แถบนำทางลอยเป็น teal ในโหมดสว่าง
+  navActive: '#FCFBFA',        // ป้าย/ไอคอนแท็บที่เลือก — วางบนพื้น teal ไม่ใช่บนแผ่นส้ม
+  navIdle: '#A3B5B4',          // = ขาว 62% ทับ teal ทำเป็นค่าทึบเพื่อให้เทสต์ contrast ตรวจได้
   danger: p.danger,
   success: p.success,
 } as const;

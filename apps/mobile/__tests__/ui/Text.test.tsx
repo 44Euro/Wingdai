@@ -75,7 +75,7 @@ describe('Text', () => {
       );
     });
     const tree2 = result!.toJSON();
-    expect(flatStyle(tree2).color).toBe('#F6F1EA');
+    expect(flatStyle(tree2).color).toBe('#F4F1EC');
   });
 
   it('color="brand" ใช้ brand-800 (ผ่าน AA) ไม่ใช่ brand-500', () => {

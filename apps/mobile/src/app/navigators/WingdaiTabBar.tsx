@@ -22,7 +22,8 @@ export const TAB_BAR_CLEARANCE = 104;
  * พื้น teal มุม 24 เงานุ่ม · ตัวที่เลือกมีแผ่นส้มมนรองไอคอน · ปุ่มตะกร้าวงกลมกลางแถบ
  */
 export function WingdaiTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-  const { tokens, primitives: p } = useTheme();
+  const { tokens, primitives: p, scheme } = useTheme();
+  const isDark = scheme === 'dark';
   const insets = useSafeAreaInsets();
   const lines = useCartStore((s) => s.lines);
   const cartCount = lines.reduce((n, l) => n + l.quantity, 0);
@@ -60,13 +61,14 @@ export function WingdaiTabBar({ state, descriptors, navigation }: BottomTabBarPr
             borderRadius: 13,
             alignItems: 'center',
             justifyContent: 'center',
-            // แผ่นรองไอคอนไม่มีตัวหนังสือทับ จึงใช้สีส้มแบรนด์จริงได้
-            backgroundColor: focused ? tokens.brandAccent : 'transparent',
+            // โหมดสว่าง: แผ่นส้มรองไอคอน (ไม่มีตัวหนังสือทับ จึงใช้ brandAccent ได้)
+            // โหมดมืด (C32): ไม่มีแผ่นรอง ไอคอนเป็นสีส้มเอง
+            backgroundColor: focused && !isDark ? tokens.brandAccent : 'transparent',
           }}
         >
           <Icon
             name={ICONS[route.name] ?? 'home'}
-            color={focused ? '#FFFFFF' : 'rgba(255,255,255,0.62)'}
+            color={focused ? tokens.navActive : tokens.navIdle}
             size={21}
           />
         </View>
@@ -75,7 +77,7 @@ export function WingdaiTabBar({ state, descriptors, navigation }: BottomTabBarPr
           numberOfLines={1}
           style={{
             letterSpacing: 0,
-            color: focused ? '#FFFFFF' : 'rgba(255,255,255,0.62)',
+            color: focused ? tokens.navActive : tokens.navIdle,
           }}
         >
           {label}
@@ -93,14 +95,15 @@ export function WingdaiTabBar({ state, descriptors, navigation }: BottomTabBarPr
           right: p.space.lg,
           bottom: Math.max(insets.bottom, p.space.lg),
           height: 70,
-          backgroundColor: tokens.tealSolid,
+          backgroundColor: tokens.navSurface,
           borderRadius: p.radius.xl,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-around',
           paddingHorizontal: p.space.sm,
         },
-        p.shadow.teal,
+        // เงา teal ใต้แถบดำในโหมดมืดจะเห็นเป็นคราบเขียว — C32 ใช้เงาดำล้วน
+        isDark ? { ...p.shadow.teal, shadowColor: '#000000', shadowOpacity: 0.5 } : p.shadow.teal,
       ]}
     >
       {routes.slice(0, mid).map((r, i) => renderTab(r, i))}
