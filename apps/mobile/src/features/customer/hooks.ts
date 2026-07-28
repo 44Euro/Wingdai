@@ -52,3 +52,7 @@ export function useActiveOrder(): Order | undefined {
   const { data } = useCustomerOrders();
   return pickActiveOrder(data ?? []);
 }
+
+export function useOrder(orderId: string) {
+  return useQuery({ queryKey: ['order', orderId], queryFn: () => repos.orders.get(orderId) });
+}

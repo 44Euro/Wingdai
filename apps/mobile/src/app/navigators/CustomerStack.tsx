@@ -9,6 +9,7 @@ import { CustomerHomeScreen } from '../../features/customer/screens/CustomerHome
 import { OrderHistoryScreen } from '../../features/customer/screens/OrderHistoryScreen';
 import { InboxScreen } from '../../features/customer/screens/InboxScreen';
 import { CategoriesScreen } from '../../features/customer/screens/CategoriesScreen';
+import { OrderTrackingScreen } from '../../features/customer/screens/OrderTrackingScreen';
 import { ProfileScreen } from '../../features/customer/screens/ProfileScreen';
 import { RestaurantDetailScreen } from '../../features/customer/screens/RestaurantDetailScreen';
 import { MenuItemScreen } from '../../features/customer/screens/MenuItemScreen';
@@ -73,6 +74,7 @@ export function CustomerStack() {
       <Stack.Screen name="Checkout" component={CheckoutScreen} />
       <Stack.Screen name="OrderPlaced" component={OrderPlacedScreen} options={{ gestureEnabled: false }} />
       <Stack.Screen name="Inbox" component={InboxScreen} />
+      <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
     </Stack.Navigator>
   );
 }

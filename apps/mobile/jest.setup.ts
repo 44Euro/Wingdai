@@ -26,6 +26,20 @@ jest.mock('@expo-google-fonts/ibm-plex-sans-thai', () => ({
   IBMPlexSansThai_600SemiBold: 'IBMPlexSansThai_600SemiBold-mock-asset',
 }));
 
+// @maplibre/maplibre-react-native เป็น native module ล้วน — แค่ import ก็ throw
+// "TurboModuleRegistry.getEnforcing(...): 'MLRNCameraModule' could not be found"
+// เพราะไม่มี native binary ใน react-test-renderer ทำให้จอไหนที่ import แผนที่พังทั้งไฟล์
+// mock ให้เป็น View ธรรมดา — เทสต์ตรวจ layout กับข้อมูลรอบแผนที่ ไม่ได้ตรวจตัวแผนที่เอง
+jest.mock('@maplibre/maplibre-react-native', () => {
+  const { View } = require('react-native');
+  return {
+    Map: View,
+    Camera: View,
+    Marker: View,
+    UserLocation: View,
+  };
+});
+
 // useFonts ของจริงโหลดไฟล์ .ttf ผ่าน native module (expo-font + expo-asset) ซึ่งไม่มีให้ใช้
 // ใน react-test-renderer (ไม่มี native bridge) — mock ให้คืน [loaded=true] ทันทีเหมือนโหลด
 // เสร็จแล้ว ไม่งั้น App.tsx จะค้างที่ fontsLoaded === false และไม่มีทาง render หน้า login ได้
