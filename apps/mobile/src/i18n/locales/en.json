@@ -12,7 +12,7 @@
     "login": {
       "title": "Log in",
       "tagline": "In-store prices. Fast delivery in your zone.",
-      "identifier": "Username or email",
+      "identifier": "Username or phone",
       "username": "Username",
       "password": "Password",
       "showPassword": "Show",
@@ -23,7 +23,10 @@
       "googleSoon": "Google sign-in is coming soon",
       "forgot": "Forgot password",
       "toRegister": "No account yet? Sign up",
-      "invalidCredentials": "Incorrect username or password"
+      "invalidCredentials": "Incorrect username or password",
+      "welcome": "Welcome back",
+      "subtitle": "Log in with your username or phone number.",
+      "newHere": "New to Wingdai?"
     },
     "register": {
       "title": "Sign up",

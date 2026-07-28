@@ -9,14 +9,13 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../../theme/ThemeProvider';
 import { Text } from '../../ui/Text';
 import { Button } from '../../ui/Button';
 import { Icon } from '../../ui/Icon';
-import { Input } from '../../ui/Field';
+import { Input, Field } from '../../ui/Field';
 import { GoogleGIcon } from '../../ui/GoogleGIcon';
 import { useAuthStore } from '../../features/auth/authStore';
 import type { AuthStackParamList } from './AuthNavigator';
@@ -62,7 +61,7 @@ function GoogleButton({ label, onPress, testID }: { label: string; onPress: () =
 
 export function LoginScreen({ navigation }: Props) {
   const { t } = useTranslation();
-  const { tokens, primitives: p, scheme } = useTheme();
+  const { tokens, primitives: p } = useTheme();
   const login = useAuthStore((s) => s.login);
   const error = useAuthStore((s) => s.error);
   const [identifier, setIdentifier] = useState('');
@@ -86,129 +85,107 @@ export function LoginScreen({ navigation }: Props) {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             flexGrow: 1,
-            justifyContent: 'center',
             paddingHorizontal: p.space.xl,
-            paddingVertical: p.space.xl,
-            gap: p.space.xl,
+            paddingTop: p.space.xl,
+            paddingBottom: p.space.lg,
+            gap: p.space.lg,
           }}
         >
-          {/* ── Hero: โลโก้ + เฉดแสงอุ่น + ชื่อแบรนด์ + สโลแกน ── */}
-          <View style={{ alignItems: 'center', gap: p.space.sm }}>
-            <View style={{ width: 176, height: 176, alignItems: 'center', justifyContent: 'center' }}>
-              <LinearGradient
-                colors={[p.brand[400], p.brand[500]]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  borderRadius: 88,
-                  opacity: scheme === 'dark' ? 0.28 : 0.16,
-                }}
-              />
-              <Image
-                source={LOGO_MARK}
-                accessibilityLabel={t('common.appName')}
-                resizeMode="contain"
-                style={{ width: 104, height: 104 }}
-              />
-            </View>
-            <Text variant="display">{t('common.appName')}</Text>
-            <Text variant="small" color="muted" style={{ textAlign: 'center' }}>
-              {t('auth.login.tagline')}
+          {/* A2 — โลโก้เล็กชิดซ้าย ไม่ใช่ hero กลางจอ */}
+          <Image
+            source={LOGO_MARK}
+            accessibilityLabel={t('common.appName')}
+            resizeMode="contain"
+            style={{ width: 52, height: 52 }}
+          />
+
+          <View style={{ gap: p.space.xs }}>
+            <Text variant="h1">{t('auth.login.welcome')}</Text>
+            <Text variant="small" color="muted">
+              {t('auth.login.subtitle')}
             </Text>
           </View>
 
-          {/* ── ฟอร์มเข้าสู่ระบบ ── */}
           <View style={{ gap: p.space.md }}>
-            <Input
-              testID="input-identifier"
-              accessibilityLabel={t('auth.login.identifier')}
-              placeholder={t('auth.login.identifier')}
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoComplete="username"
-              value={identifier}
-              onChangeText={setIdentifier}
-            />
-
-            {/* ช่องรหัสผ่าน + ปุ่มแสดง/ซ่อน — ประกอบเองเพราะต้องมีปุ่มอยู่ในกรอบเดียวกัน */}
-            <View
-              style={[
-                {
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: tokens.bgRaised,
-                  borderWidth: 1.6,
-                  borderColor: pwFocused ? tokens.brandAccent : 'transparent',
-                  borderRadius: p.radius.md,
-                  paddingRight: p.space.lg,
-                },
-                p.shadow.card,
-              ]}
-            >
-              <TextInput
-                testID="input-password"
-                accessibilityLabel={t('auth.login.password')}
-                placeholder={t('auth.login.password')}
-                placeholderTextColor={tokens.textFaint}
-                secureTextEntry={!showPassword}
+            <Field label={t('auth.login.identifier')}>
+              <Input
+                testID="input-identifier"
+                accessibilityLabel={t('auth.login.identifier')}
                 autoCapitalize="none"
-                autoComplete="password"
-                allowFontScaling={false}
-                value={password}
-                onChangeText={setPassword}
-                onFocus={() => setPwFocused(true)}
-                onBlur={() => setPwFocused(false)}
-                style={{
-                  flex: 1,
-                  paddingHorizontal: p.space.lg,
-                  paddingVertical: 14,
-                  minHeight: 52,
-                  color: tokens.textPrimary,
-                  fontFamily: p.fontFamily.bodyBold,
-                  fontSize: p.fontSize.body,
-                }}
+                autoCorrect={false}
+                autoComplete="username"
+                value={identifier}
+                onChangeText={setIdentifier}
               />
-              <Pressable
-                testID="toggle-password"
-                accessibilityRole="button"
-                accessibilityLabel={showPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')}
-                onPress={() => setShowPassword((v) => !v)}
-                hitSlop={10}
-              >
-                <Text variant="small" color="link" bold>
-                  {showPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')}
-                </Text>
-              </Pressable>
-            </View>
+            </Field>
 
-            {/* ลิงก์ตัวอักษรเล็กใต้ช่องรหัสผ่าน: สมัครสมาชิก (ซ้าย) · ลืมรหัสผ่าน (ขวา) */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Pressable
-                testID="link-register"
-                accessibilityRole="link"
-                onPress={() => navigation.navigate('Register')}
-                hitSlop={10}
+            {/* ช่องรหัสผ่าน + ปุ่มตาสลับแสดง/ซ่อน — ประกอบเองเพราะปุ่มต้องอยู่ในกรอบเดียวกัน */}
+            <Field label={t('auth.login.password')}>
+              <View
+                style={[
+                  {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: tokens.bgRaised,
+                    borderWidth: 1.6,
+                    borderColor: pwFocused ? tokens.brandAccent : 'transparent',
+                    borderRadius: p.radius.md,
+                    paddingRight: p.space.lg,
+                  },
+                  p.shadow.card,
+                ]}
               >
-                <Text variant="small" color="link" bold>
-                  {t('auth.register.title')}
-                </Text>
-              </Pressable>
-              <Pressable
-                testID="link-forgot"
-                accessibilityRole="link"
-                onPress={() => navigation.navigate('ForgotPassword')}
-                hitSlop={10}
-              >
-                <Text variant="small" color="link">
-                  {t('auth.login.forgot')}
-                </Text>
-              </Pressable>
-            </View>
+                <TextInput
+                  testID="input-password"
+                  accessibilityLabel={t('auth.login.password')}
+                  placeholderTextColor={tokens.textFaint}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoComplete="password"
+                  allowFontScaling={false}
+                  value={password}
+                  onChangeText={setPassword}
+                  onFocus={() => setPwFocused(true)}
+                  onBlur={() => setPwFocused(false)}
+                  style={{
+                    flex: 1,
+                    paddingHorizontal: p.space.lg,
+                    paddingVertical: 14,
+                    minHeight: 52,
+                    color: tokens.textPrimary,
+                    fontFamily: p.fontFamily.bodyBold,
+                    fontSize: p.fontSize.body,
+                  }}
+                />
+                <Pressable
+                  testID="toggle-password"
+                  accessibilityRole="button"
+                  accessibilityLabel={showPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')}
+                  onPress={() => setShowPassword((v) => !v)}
+                  hitSlop={12}
+                >
+                  <Icon
+                    name={showPassword ? 'eyeOff' : 'eye'}
+                    color={tokens.textFaint}
+                    size={20}
+                    strokeWidth={1.8}
+                  />
+                </Pressable>
+              </View>
+            </Field>
+
+            {/* A2 วาง "ลืมรหัสผ่าน" ชิดขวาลำพัง — สมัครสมาชิกย้ายลงท้ายจอ */}
+            <Pressable
+              testID="link-forgot"
+              accessibilityRole="link"
+              onPress={() => navigation.navigate('ForgotPassword')}
+              hitSlop={10}
+              style={{ alignSelf: 'flex-end', minHeight: 44, justifyContent: 'center' }}
+            >
+              <Text variant="small" color="link" bold>
+                {t('auth.login.forgot')}
+              </Text>
+            </Pressable>
 
             {error ? (
               <Text testID="login-error" variant="small" color="danger" bold>
@@ -247,6 +224,33 @@ export function LoginScreen({ navigation }: Props) {
                 {t('auth.login.googleSoon')}
               </Text>
             ) : null}
+          </View>
+
+          {/* A2 — บรรทัดท้ายจอกลางจอ: ยังไม่มีบัญชี? สมัครสมาชิก */}
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: p.space.xs,
+              marginTop: 'auto',
+              paddingTop: p.space.lg,
+            }}
+          >
+            <Text variant="small" color="muted">
+              {t('auth.login.newHere')}
+            </Text>
+            <Pressable
+              testID="link-register"
+              accessibilityRole="link"
+              onPress={() => navigation.navigate('Register')}
+              hitSlop={10}
+              style={{ minHeight: 44, justifyContent: 'center' }}
+            >
+              <Text variant="small" color="link" bold>
+                {t('auth.register.title')}
+              </Text>
+            </Pressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
