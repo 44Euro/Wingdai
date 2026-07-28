@@ -7,6 +7,8 @@ const config: ExpoConfig = {
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic', // รองรับโหมดมืดตามระบบ
+  // deep link กลับเข้าแอปหลัง OAuth — ต้อง build ติดไปกับแอป อัปเดตผ่าน OTA ไม่ได้
+  scheme: 'wingdai',
   ios: { supportsTablet: false, bundleIdentifier: 'com.wingdai.app' },
   android: {
     package: 'com.wingdai.app',
@@ -22,6 +24,7 @@ const config: ExpoConfig = {
   // และ app.json เดิมประกาศปลั๊กอินนี้ไว้สำหรับ src/i18n ที่ใช้ expo-localization
   plugins: [
     'expo-localization',
+    '@maplibre/maplibre-react-native',
     [
       'expo-splash-screen',
       {
