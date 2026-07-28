@@ -23,3 +23,11 @@ export function canTransition(from: OrderStatus, to: OrderStatus): boolean {
 export function assertTransition(from: OrderStatus, to: OrderStatus): void {
   if (!canTransition(from, to)) throw new InvalidTransitionError(from, to);
 }
+
+/**
+ * ออร์เดอร์ยัง "มีชีวิต" ถ้ายังเปลี่ยนสถานะต่อได้ — delivered/cancelled เป็นปลายทาง
+ * ดึงคำตอบจาก ALLOWED โดยตรง ไม่พิมพ์รายชื่อสถานะซ้ำ เพิ่มสถานะใหม่แล้วจะไม่หลุด
+ */
+export function isActiveStatus(status: OrderStatus): boolean {
+  return ALLOWED[status].length > 0;
+}

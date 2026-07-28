@@ -1,4 +1,5 @@
 import {
+  isActiveStatus,
   canTransition,
   assertTransition,
   InvalidTransitionError,
@@ -44,5 +45,19 @@ describe('order state machine', () => {
 
   it('assertTransition เงียบเมื่อถูกต้อง', () => {
     expect(() => assertTransition('created', 'accepted')).not.toThrow();
+  });
+});
+
+describe('isActiveStatus', () => {
+  it('สถานะที่ยังเปลี่ยนต่อได้ = ออร์เดอร์ยังไม่จบ', () => {
+    expect(isActiveStatus('created')).toBe(true);
+    expect(isActiveStatus('accepted')).toBe(true);
+    expect(isActiveStatus('preparing')).toBe(true);
+    expect(isActiveStatus('picked_up')).toBe(true);
+  });
+
+  it('ปลายทางของ state machine = จบแล้ว', () => {
+    expect(isActiveStatus('delivered')).toBe(false);
+    expect(isActiveStatus('cancelled')).toBe(false);
   });
 });

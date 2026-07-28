@@ -1,7 +1,8 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { repos } from '../../data';
 import { useAuthStore } from '../auth/authStore';
-import type { Restaurant } from '../../data/types';
+import { isActiveStatus } from '../../data/orderStateMachine';
+import type { Order, Restaurant } from '../../data/types';
 import type { CreateOrderInput } from '../../data/repositories';
 
 /** กรองเฉพาะร้านที่อนุมัติแล้ว — ลูกค้าไม่ควรเห็นร้านที่ยังรออนุมัติ (แยกเป็น pure fn เพื่อทดสอบ) */
@@ -35,4 +36,19 @@ export function useCustomerOrders() {
     queryFn: () => (accountId ? repos.orders.listForCustomer(accountId) : Promise.resolve([])),
     enabled: !!accountId,
   });
+}
+
+/**
+ * ออร์เดอร์ที่ยังไม่จบใบล่าสุด — ใช้ตัดสินว่าจะโชว์ปุ่มแฮมเบอร์เกอร์กลาง navbar ไหม
+ * แยกเป็น pure fn เพื่อทดสอบได้โดยไม่ต้อง mount react-query (แบบเดียวกับ filterApproved)
+ */
+export function pickActiveOrder(orders: Order[]): Order | undefined {
+  const active = orders.filter((o) => isActiveStatus(o.status));
+  if (active.length === 0) return undefined;
+  return active.reduce((newest, o) => (o.createdAt > newest.createdAt ? o : newest));
+}
+
+export function useActiveOrder(): Order | undefined {
+  const { data } = useCustomerOrders();
+  return pickActiveOrder(data ?? []);
 }
