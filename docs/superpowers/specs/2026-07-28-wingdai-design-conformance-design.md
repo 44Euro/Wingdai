@@ -329,9 +329,26 @@ hook อ่านจาก `useCustomerOrders` เดิม คืนออเ�
   เลือกบทบาท · คนที่ผูกไว้แล้วเข้าตรง
 - เบอร์ยังเป็น verified channel เดียวตาม `claude.md §4.2` — Google ไม่ทดแทน OTP
 
-**⛔ ติดของนอก:** ต้องมี **Google OAuth client ID ของ iOS และ Android** จาก Google Cloud Console
-เดาหรือหาเองไม่ได้ ต้องให้เจ้าของโปรเจกต์สร้างและส่งมา — งานส่วน Google หยุดรอตรงนี้
-ส่วนอื่นของ W1-9 ทำต่อได้โดยไม่ต้องรอ
+**ไลบรารี:** `@react-native-google-signin/google-signin` — เอกสาร Expo v57 ระบุชัดว่า **ห้ามใช้
+`expo-auth-session` สำหรับ Google** ให้ใช้ไลบรารีเฉพาะทางแทน · ต้องมี dev build อยู่แล้วตาม D8 จึงไม่มีต้นทุนเพิ่ม
+
+**สถานะ Google Cloud (2026-07-28):**
+
+| ของ | สถานะ |
+|---|---|
+| โปรเจกต์ `Wingdai` (`wingdai-503804`, org `euro21-2004-org`) | ✅ สร้างแล้ว |
+| OAuth consent screen — External, testing mode | ✅ ตั้งแล้ว |
+| **Web client ID** `604454119763-53piv5sil6qe42p69pjcpmntou3s86q5.apps.googleusercontent.com` | ✅ ใช้เป็น `webClientId` ตอน `GoogleSignin.configure()` |
+| iOS client ID | ⛔ รอ — ต้องตั้ง `ios.bundleIdentifier` ใน app.json ก่อน |
+| Android client ID | ⛔ รอ — ต้องมี `android.package` + SHA-1 จาก build ก่อน |
+
+client ID เป็นค่าสาธารณะ เก็บใน `app.json` ได้ ไม่ต้องใช้ `.env` ·
+**client secret ของ Web client ห้ามเข้า repo และแอปมือถือไม่ต้องใช้**
+
+**งานที่ต้องทำก่อนขอ client ID อีก 2 ตัว:** ตั้ง identity ใน `app.json` —
+`name: Wingdai` · `slug: wingdai` · `ios.bundleIdentifier: com.wingdai.app` ·
+`android.package: com.wingdai.app` · `scheme: wingdai` (ตอนนี้ยังเป็น `mobile` ทั้งหมด
+ทั้งที่ `claude.md §10` สั่งให้ใช้ Wingdai ทุกที่) → แล้ว build ดึง SHA-1 ด้วย `eas credentials`
 
 **เกณฑ์ผ่าน:** เทสต์ login ด้วย username ผ่าน · ด้วยเบอร์ผ่าน · ด้วยอีเมลไม่ผ่าน ·
 ลืมรหัสผ่านส่ง OTP แล้วตั้งรหัสใหม่ได้ · คนใหม่ผ่าน Google ต้องผ่านฟอร์มสั้น + OTP ก่อนเข้าแอป
