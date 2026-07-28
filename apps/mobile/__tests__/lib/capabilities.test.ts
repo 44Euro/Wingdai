@@ -12,7 +12,7 @@ const base: Account = {
 
 const approvedShop: Restaurant = {
   id: 'r1', ownerUserId: 'u1', name: 'ร้านทดสอบ', isApproved: true, isOpen: true,
-  cuisine: 'rice', distanceKm: 1, prepTimeMinutes: 10,
+  cuisine: 'rice', distanceKm: 1, prepTimeMinutes: 10, rating: 4.5,
 };
 const pendingShop: Restaurant = { ...approvedShop, id: 'r2', isApproved: false };
 

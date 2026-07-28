@@ -32,10 +32,10 @@ export const seedAccounts: Account[] = [
 ];
 
 export const seedRestaurants: Restaurant[] = [
-  { id: 'r-malee', ownerUserId: 'u-malee', name: 'ครัวมาลี', isApproved: true, isOpen: true, cuisine: 'rice', distanceKm: 0.6, prepTimeMinutes: 12 },
-  { id: 'r-somtam', ownerUserId: 'u-other', name: 'ส้มตำแซ่บนัว', isApproved: true, isOpen: true, cuisine: 'somtam', distanceKm: 1.1, prepTimeMinutes: 10 },
-  { id: 'r-closed', ownerUserId: 'u-other', name: 'ก๋วยเตี๋ยวเรือ', isApproved: true, isOpen: false, cuisine: 'noodle', distanceKm: 0.9, prepTimeMinutes: 8 },
-  { id: 'r-pending', ownerUserId: 'u-somchai', name: 'ร้านรออนุมัติ', isApproved: false, isOpen: false, cuisine: 'rice', distanceKm: 1.4, prepTimeMinutes: 15 },
+  { id: 'r-malee', ownerUserId: 'u-malee', name: 'ครัวมาลี', isApproved: true, isOpen: true, cuisine: 'rice', distanceKm: 0.6, prepTimeMinutes: 12, rating: 4.8 },
+  { id: 'r-somtam', ownerUserId: 'u-other', name: 'ส้มตำแซ่บนัว', isApproved: true, isOpen: true, cuisine: 'somtam', distanceKm: 1.1, prepTimeMinutes: 10, rating: 4.9 },
+  { id: 'r-closed', ownerUserId: 'u-other', name: 'ก๋วยเตี๋ยวเรือ', isApproved: true, isOpen: false, cuisine: 'noodle', distanceKm: 0.9, prepTimeMinutes: 8, rating: 4.6 },
+  { id: 'r-pending', ownerUserId: 'u-somchai', name: 'ร้านรออนุมัติ', isApproved: false, isOpen: false, cuisine: 'rice', distanceKm: 1.4, prepTimeMinutes: 15, rating: 4.5 },
 ];
 
 export const seedMenuItems: MenuItem[] = [

@@ -136,14 +136,12 @@ describe('app.json identity', () => {
   it('มี scheme สำหรับ deep link กลับเข้าแอปหลัง OAuth', () => {
     expect(appJson.expo.scheme).toBe('wingdai');
   });
-
-  it('ตามระบบเครื่องได้ทั้งสว่างและมืด ไม่ล็อกสว่างอย่างเดียว', () => {
-    // claude.md §10: dark mode ตั้งแต่ commit แรก — ไรเดอร์ทำงานกลางคืน จอสว่างจ้าคือเรื่องความปลอดภัย
-    // ถ้าเป็น "light" ธีมมืดใน ThemeProvider จะไม่มีวันถูกใช้บนเครื่องจริง
-    expect(appJson.expo.userInterfaceStyle).toBe('automatic');
-  });
 });
 ```
+
+**หมายเหตุ — ยังไม่แตะ `userInterfaceStyle` ใน task นี้:** ตอนนี้เป็น `"light"` ซึ่งถูกแล้ว
+เพราะ `semantic.dark.ts` ถูกลบไปเมื่อ 2026-07-27 ยังไม่มี token ฝั่งมืดให้ใช้
+ถ้าเปิด `"automatic"` ตอนนี้ แอปจะสลับไปโหมดมืดแล้วสีเพี้ยนทั้งแอป — Task 4 เป็นคนเปิด
 
 - [ ] **Step 2: รันเทสต์ให้เห็นว่าตก**
 
@@ -197,7 +195,7 @@ cd apps/mobile && npx jest __tests__/app/appConfig.test.ts
 cd apps/mobile && npx jest __tests__/app/appConfig.test.ts
 ```
 
-คาดหวัง: PASS ทั้ง 4 ข้อ
+คาดหวัง: PASS ทั้ง 3 ข้อ
 
 - [ ] **Step 5: รันเทสต์ทั้งชุดกันของเดิมพัง**
 
@@ -211,12 +209,12 @@ cd apps/mobile && npx jest && npx tsc --noEmit
 
 ```bash
 git add apps/mobile/app.json apps/mobile/__tests__/app/appConfig.test.ts
-git commit -m "chore(app): ตั้งชื่อ Wingdai + bundle id/scheme + เปิดโหมดมืดตามระบบ"
+git commit -m "chore(app): ตั้งชื่อแอปเป็น Wingdai + bundle id/package/scheme"
 ```
 
 ---
 
-## Task 3: `isActiveStatus` + `useActiveOrder`
+## Task 4: `isActiveStatus` + `useActiveOrder`
 
 ตัวตัดสินว่าปุ่มแฮมเบอร์เกอร์จะโผล่ไหม ต้องไม่เป็นลิสต์สถานะที่พิมพ์ซ้ำ — ผูกกับ state machine เพื่อให้เพิ่มสถานะใหม่ในอนาคตแล้วไม่หลุด
 
@@ -392,7 +390,7 @@ git commit -m "feat(customer): useActiveOrder ผูกนิยาม 'ยั�
 
 ---
 
-## Task 4: ไอคอนแฮมเบอร์เกอร์
+## Task 5: ไอคอนแฮมเบอร์เกอร์
 
 **Files:**
 - Modify: `apps/mobile/src/ui/Icon.tsx`
@@ -486,7 +484,7 @@ git commit -m "feat(ui): เพิ่มไอคอนแฮมเบอร์�
 
 ---
 
-## Task 5: เปลี่ยนชุดแท็บเป็น Home · Menu · History · Me + จอหมวดหมู่
+## Task 6: เปลี่ยนชุดแท็บเป็น Home · Menu · History · Me + จอหมวดหมู่
 
 design ไม่มีแท็บกล่องข้อความ แต่มีแท็บ Menu แทน — แจ้งเตือนย้ายไปเข้าจากกระดิ่งบนหัวจอ Home (ทำในคลื่น 1B)
 
@@ -887,7 +885,7 @@ git commit -m "feat(customer): แท็บใหม่ Home/Menu/History/Me + �
 
 ---
 
-## Task 6: ปุ่มลอย 2 ปุ่มบน navbar
+## Task 7: ปุ่มลอย 2 ปุ่มบน navbar
 
 หัวใจของคลื่นนี้ — ปุ่มตะกร้ากลางแถบเดิมออก แทนด้วยปุ่มแฮมเบอร์เกอร์กลางที่โผล่เฉพาะตอนมีออเดอร์ที่ยังไม่จบ กับปุ่มตะกร้ากลมมุมขวาล่างที่โผล่เฉพาะตอนมีของ
 
@@ -897,7 +895,7 @@ git commit -m "feat(customer): แท็บใหม่ Home/Menu/History/Me + �
 - Create: `apps/mobile/__tests__/app/WingdaiTabBar.test.tsx`
 
 **Interfaces:**
-- Consumes: `useActiveOrder()` จาก Task 3 · `useCartStore` จาก `src/features/cart/cartStore` · `Icon` name `'burger'` จาก Task 4
+- Consumes: `useActiveOrder()` จาก Task 4 · `useCartStore` จาก `src/features/cart/cartStore` · `Icon` name `'burger'` จาก Task 5
 - Produces: `TAB_BAR_CLEARANCE` (ยังคง export ชื่อเดิม ค่าใหม่ `132`) · testID `tab-order`, `tab-cart`, `tab-cart-count`
 
 - [ ] **Step 1: เขียนเทสต์ที่ยังไม่ผ่าน**
@@ -1280,8 +1278,8 @@ export function WingdaiTabBar({ state, descriptors, navigation }: BottomTabBarPr
   OrderTracking: { orderId: string };
 ```
 
-ยังไม่ต้องลงทะเบียน `<Stack.Screen>` ใน Task นี้ — Task 8 เป็นคนสร้างจอ
-**ห้ามปล่อยให้ปุ่มกดแล้วไม่มีอะไรเกิดขึ้น** ดังนั้น Task 6 กับ Task 8 ต้อง merge เข้าสาขาพร้อมกัน อย่าปล่อย Task 6 ขึ้น main เดี่ยว ๆ
+ยังไม่ต้องลงทะเบียน `<Stack.Screen>` ใน Task นี้ — Task 9 เป็นคนสร้างจอ
+**ห้ามปล่อยให้ปุ่มกดแล้วไม่มีอะไรเกิดขึ้น** ดังนั้น Task 7 กับ Task 9 ต้อง merge เข้าสาขาพร้อมกัน อย่าปล่อย Task 7 ขึ้น main เดี่ยว ๆ
 
 - [ ] **Step 5: เพิ่มคีย์ i18n ที่ปุ่มใช้เป็น accessibilityLabel**
 
@@ -1292,7 +1290,7 @@ cd apps/mobile && grep -n '"cart"' -A3 src/i18n/locales/th.json
 ```
 
 ถ้ายังไม่มี ให้เพิ่มใน `customer` ของทั้ง `th.json` และ `en.json`
-และเพิ่ม `customer.tracking.title` ทั้งสองไฟล์ (Task 8 จะใช้ต่อ):
+และเพิ่ม `customer.tracking.title` ทั้งสองไฟล์ (Task 9 จะใช้ต่อ):
 
 ```json
     "tracking": {
@@ -1331,7 +1329,7 @@ git commit -m "feat(customer): ปุ่มลอย 2 ปุ่มบน navbar
 
 ---
 
-## Task 7: spike — พิสูจน์ว่า MapLibre เรนเดอร์ได้จริงก่อนสร้างจอ
+## Task 8: spike — พิสูจน์ว่า MapLibre เรนเดอร์ได้จริงก่อนสร้างจอ
 
 `maplibre-react-native` มีรายงานว่า iOS ไม่รู้จัก URL schema `pmtiles://` แล้ว throw error (issue #618) ส่วน MapLibre Native รองรับ PMTiles ตั้งแต่ Android 11.8.0 / iOS 6.10.0 — **ยังไม่ยืนยันว่าใช้ได้จริงกับเวอร์ชันที่เราจะติดตั้ง** task นี้จึงมีไว้พิสูจน์ ไม่ใช่สร้างฟีเจอร์
 
@@ -1342,7 +1340,7 @@ git commit -m "feat(customer): ปุ่มลอย 2 ปุ่มบน navbar
 
 **Interfaces:**
 - Consumes: `app.json` ที่ตั้ง identity แล้วจาก Task 2
-- Produces: บันทึกผลการทดสอบ + แหล่ง tile ที่เลือกใช้ ซึ่ง Task 8 จะอ่านไปใช้
+- Produces: บันทึกผลการทดสอบ + แหล่ง tile ที่เลือกใช้ ซึ่ง Task 9 จะอ่านไปใช้
 
 - [ ] **Step 1: ตรวจข้อกำหนดก่อนติดตั้ง**
 
@@ -1429,7 +1427,7 @@ git commit -m "chore(map): ติดตั้ง MapLibre + dev client และ
 
 ---
 
-## Task 8: จอติดตามออเดอร์ (C6)
+## Task 9: จอติดตามออเดอร์ (C6)
 
 **Files:**
 - Create: `apps/mobile/src/features/customer/components/TrackingMap.tsx`
@@ -1440,7 +1438,7 @@ git commit -m "chore(map): ติดตั้ง MapLibre + dev client และ
 - Create: `apps/mobile/__tests__/app/OrderTracking.test.tsx`
 
 **Interfaces:**
-- Consumes: `useActiveOrder()` (Task 3) · `useRestaurant(id)` · `TAB_BAR_CLEARANCE` · ผลจาก spike (Task 7)
+- Consumes: `useActiveOrder()` (Task 4) · `useRestaurant(id)` · `TAB_BAR_CLEARANCE` · ผลจาก spike (Task 8)
 - Produces: `useOrder(orderId): UseQueryResult<Order | undefined>` · `OrderTrackingScreen` · testID `tracking-status`, `tracking-food-total`, `tracking-delivery-fee`, `tracking-service-fee`, `tracking-restaurant`, `tracking-map`
 
 - [ ] **Step 1: เพิ่ม `getById` ใน OrderRepo**
@@ -1597,7 +1595,7 @@ cd apps/mobile && npx jest __tests__/app/OrderTracking.test.tsx
 
 - [ ] **Step 5: เพิ่มคีย์ i18n**
 
-ใน `customer.tracking` ของ `th.json` (ต่อจาก `title` ที่ Task 6 เพิ่มไว้):
+ใน `customer.tracking` ของ `th.json` (ต่อจาก `title` ที่ Task 7 เพิ่มไว้):
 
 ```json
     "tracking": {
@@ -1644,7 +1642,7 @@ cd apps/mobile && npx jest __tests__/app/OrderTracking.test.tsx
 - [ ] **Step 6: สร้าง TrackingMap**
 
 สร้าง `apps/mobile/src/features/customer/components/TrackingMap.tsx` — ห่อ MapLibre ไว้ที่เดียว
-ใช้แหล่ง tile ตามที่ Task 7 สรุปไว้ใน `docs/design/decisions/2026-07-28-maplibre-pmtiles-spike.md`
+ใช้แหล่ง tile ตามที่ Task 8 สรุปไว้ใน `docs/design/decisions/2026-07-28-maplibre-pmtiles-spike.md`
 
 ```tsx
 import React from 'react';
@@ -1653,7 +1651,7 @@ import { Map } from '@maplibre/maplibre-react-native';
 import { useTheme } from '../../../theme/ThemeProvider';
 
 /**
- * แหล่ง tile — ใช้ค่าที่ Task 7 สรุปไว้ใน
+ * แหล่ง tile — ใช้ค่าที่ Task 8 สรุปไว้ใน
  * docs/design/decisions/2026-07-28-maplibre-pmtiles-spike.md หัวข้อ "เลือกใช้"
  *
  * ค่าด้านล่างคือ demotiles ของ MapLibre เอง: ฟรี ไม่ต้องมี key ใช้ได้ทันที
@@ -1679,10 +1677,10 @@ export function TrackingMap({ height }: { height: number }) {
 ```
 
 **ก่อนเขียนไฟล์นี้ ให้เปิด https://maplibre.org/maplibre-react-native/docs/setup/expo อ่าน props จริงของเวอร์ชัน
-ที่ติดตั้งไปใน Task 7** — เอกสารระบุ component ชื่อ `Map` กับ prop `mapStyle` แต่ชื่อ prop ของ
+ที่ติดตั้งไปใน Task 8** — เอกสารระบุ component ชื่อ `Map` กับ prop `mapStyle` แต่ชื่อ prop ของ
 `style`/`Camera` อาจต่างไปตามเวอร์ชัน อย่าเดา
 
-**ถ้า spike (Task 7) สรุปว่าแผนที่เรนเดอร์ไม่ได้เลยบนแพลตฟอร์มที่ทดสอบ:** หยุดแล้วรายงานผู้ใช้
+**ถ้า spike (Task 8) สรุปว่าแผนที่เรนเดอร์ไม่ได้เลยบนแพลตฟอร์มที่ทดสอบ:** หยุดแล้วรายงานผู้ใช้
 ก่อนเขียนต่อ ให้เลือกระหว่าง (ก) เลื่อนแผนที่ไปคลื่นถัดไป จอติดตามแสดงแค่ไทม์ไลน์กับยอดเงิน
 หรือ (ข) เปลี่ยนแหล่ง tile — **ห้ามปล่อยกล่องเปล่าไว้** เพราะเป็น UI ตาย
 

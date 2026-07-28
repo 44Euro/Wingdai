@@ -28,6 +28,8 @@ export interface Restaurant {
   distanceKm: number;
   /** ค่าคงที่ที่ร้านตั้งเอง — seed cold-start ให้ dispatch (§6.3) */
   prepTimeMinutes: number;
+  /** คะแนนเฉลี่ย 0–5 (ยังไม่มีระบบรีวิว — ค่านี้มาจาก seed) */
+  rating: number;
 }
 
 export interface OptionChoice {

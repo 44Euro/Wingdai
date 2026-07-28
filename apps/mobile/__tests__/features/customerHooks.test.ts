@@ -10,6 +10,7 @@ const r = (id: string, isApproved: boolean): Restaurant => ({
   cuisine: 'rice',
   distanceKm: 1,
   prepTimeMinutes: 10,
+  rating: 4.5,
 });
 
 describe('filterApproved', () => {
