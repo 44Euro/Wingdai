@@ -232,6 +232,54 @@ export function Toggle({
 }
 
 /**
+ * ช่องติ๊กสี่เหลี่ยมมน 22×22 + ป้ายกำกับ ตาม design (A3 ยอมรับข้อกำหนด)
+ * ทั้งแถวกดได้เหมือน <label> ของ design
+ * เครื่องหมายถูกขาวบน brandAccent เป็น "กราฟิก" ไม่ใช่ตัวหนังสือ จึงใช้สีส้มสดได้ (3.37:1 ผ่านเกณฑ์ non-text 3:1)
+ */
+export function Checkbox({
+  checked,
+  onChange,
+  label,
+  testID,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  label: string;
+  testID?: string;
+}) {
+  const { tokens, primitives: p } = useTheme();
+  return (
+    <Pressable
+      testID={testID}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked }}
+      accessibilityLabel={label}
+      onPress={() => onChange(!checked)}
+      hitSlop={8}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: p.space.sm, minHeight: 44 }}
+    >
+      <View
+        style={{
+          width: 22,
+          height: 22,
+          borderRadius: 7,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: checked ? tokens.brandAccent : tokens.bgRaised,
+          borderWidth: checked ? 0 : 1.6,
+          borderColor: tokens.borderSubtle,
+        }}
+      >
+        {checked ? <Icon name="check" color={tokens.textOnBrand} size={14} strokeWidth={3.2} /> : null}
+      </View>
+      <Text variant="caption" color="muted" style={{ flex: 1 }}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+/**
  * บล็อกแทนรูปอาหาร — design ใช้ไล่เฉดเทาเป็น placeholder
  * เปลี่ยนเป็นรูปจริงได้ภายหลังโดยไม่ต้องแก้หน้าจอ
  */

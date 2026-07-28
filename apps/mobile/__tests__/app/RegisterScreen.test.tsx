@@ -45,6 +45,24 @@ function getFirstByTestId(root: ReactTestRenderer.ReactTestInstance, testID: str
   return nodes[0];
 }
 
+/** กรอกทุกช่องบังคับให้ผ่าน validation — ยังไม่ติ๊กยอมรับข้อกำหนด */
+function fillValidForm(root: ReactTestRenderer.ReactTestInstance) {
+  getFirstByTestId(root, 'input-username').props.onChangeText('somchai');
+  getFirstByTestId(root, 'input-password').props.onChangeText('secret123');
+  getFirstByTestId(root, 'input-phone').props.onChangeText('0812345678');
+  getFirstByTestId(root, 'input-fullName').props.onChangeText('สมชาย ใจดี');
+}
+
+// Checkbox เป็นคอมโพเนนต์ของเราเอง node แรกที่ตรง testID จึงเป็น composite (props = checked/onChange)
+// ตัวที่กดได้จริงคือ Pressable ข้างใน — หยิบ node ตัวแรกที่มี onPress
+function acceptTerms(root: ReactTestRenderer.ReactTestInstance) {
+  const pressable = findAllByTestId(root, 'checkbox-terms').find(
+    (n) => typeof n.props.onPress === 'function',
+  );
+  if (!pressable) throw new Error('ไม่พบปุ่มกดของ checkbox-terms');
+  pressable.props.onPress();
+}
+
 function getErrorText(root: ReactTestRenderer.ReactTestInstance): string | undefined {
   const nodes = findAllByTestId(root, 'register-error');
   const withChildren = nodes.find((n) => typeof n.props.children === 'string');
@@ -121,16 +139,31 @@ describe('RegisterScreen', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
+  it('กรอกครบถูกต้องแต่ไม่ติ๊กยอมรับข้อกำหนด → ขึ้น error ไม่ไปต่อ', () => {
+    const navigate = jest.fn();
+    const goBack = jest.fn();
+    const result = renderRegister({ navigate, goBack });
+
+    act(() => {
+      fillValidForm(result.root);
+    });
+
+    act(() => {
+      getFirstByTestId(result.root, 'btn-register').props.onPress();
+    });
+
+    expect(getErrorText(result.root)).toBe(i18n.t('auth.register.termsRequired'));
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it('กรอกครบถูกต้องทั้งหมด (ไม่กรอกอีเมล) → ไป OtpVerify พร้อม form param', () => {
     const navigate = jest.fn();
     const goBack = jest.fn();
     const result = renderRegister({ navigate, goBack });
 
     act(() => {
-      getFirstByTestId(result.root, 'input-username').props.onChangeText('somchai');
-      getFirstByTestId(result.root, 'input-password').props.onChangeText('secret123');
-      getFirstByTestId(result.root, 'input-phone').props.onChangeText('0812345678');
-      getFirstByTestId(result.root, 'input-fullName').props.onChangeText('สมชาย ใจดี');
+      fillValidForm(result.root);
+      acceptTerms(result.root);
     });
 
     act(() => {
@@ -147,6 +180,42 @@ describe('RegisterScreen', () => {
         fullName: 'สมชาย ใจดี',
       },
     });
+  });
+
+  // design โชว์ชิป +66 หน้าช่องเบอร์ และ placeholder เป็น "81 234 5678" (ไม่มี 0 นำ)
+  // คนกรอกตามที่เห็นต้องผ่าน และต้องเก็บลงฟอร์มเป็นรูปแบบเดียวกับที่ repo ใช้ค้นบัญชี
+  it('กรอกเบอร์ตามรูปแบบที่ design โชว์ ("81 234 5678") → เก็บเป็น 0812345678', () => {
+    const navigate = jest.fn();
+    const goBack = jest.fn();
+    const result = renderRegister({ navigate, goBack });
+
+    act(() => {
+      fillValidForm(result.root);
+      getFirstByTestId(result.root, 'input-phone').props.onChangeText('81 234 5678');
+      acceptTerms(result.root);
+    });
+
+    act(() => {
+      getFirstByTestId(result.root, 'btn-register').props.onPress();
+    });
+
+    expect(getErrorText(result.root)).toBeUndefined();
+    expect(navigate).toHaveBeenCalledWith(
+      'OtpVerify',
+      expect.objectContaining({ form: expect.objectContaining({ phone: '0812345678' }) }),
+    );
+  });
+
+  it('กดลิงก์ย้อนกลับหัวจอ → เรียก navigation.goBack()', () => {
+    const navigate = jest.fn();
+    const goBack = jest.fn();
+    const result = renderRegister({ navigate, goBack });
+
+    act(() => {
+      getFirstByTestId(result.root, 'btn-back').props.onPress();
+    });
+
+    expect(goBack).toHaveBeenCalledTimes(1);
   });
 
   it('กดลิงก์กลับไปหน้าเข้าสู่ระบบ → เรียก navigation.goBack()', () => {

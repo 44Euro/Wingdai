@@ -29,18 +29,24 @@
       "newHere": "New to Wingdai?"
     },
     "register": {
-      "title": "Sign up",
+      "title": "Create account",
+      "subtitle": "Takes less than a minute.",
       "username": "Username",
-      "email": "Email (optional)",
+      "email": "Email",
+      "optional": "· optional",
       "emailInvalid": "Invalid email format",
       "password": "Password",
       "fullName": "Full name",
       "phone": "Phone number",
+      "phonePlaceholder": "81 234 5678",
       "phoneInvalid": "Please enter a valid phone number",
       "usernameTaken": "That username is taken",
+      "terms": "I agree to the Terms & Privacy Policy",
+      "termsRequired": "Please accept the Terms & Privacy Policy",
+      "haveAccount": "Have an account?",
       "toLogin": "Already have an account? Log in",
       "required": "Please fill in all required fields",
-      "submit": "Sign up"
+      "submit": "Create account"
     },
     "otp": {
       "title": "Verify your phone",
