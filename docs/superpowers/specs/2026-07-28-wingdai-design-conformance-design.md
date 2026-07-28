@@ -338,17 +338,31 @@ hook อ่านจาก `useCustomerOrders` เดิม คืนออเ�
 |---|---|
 | โปรเจกต์ `Wingdai` (`wingdai-503804`, org `euro21-2004-org`) | ✅ สร้างแล้ว |
 | OAuth consent screen — External, testing mode | ✅ ตั้งแล้ว |
-| **Web client ID** `604454119763-53piv5sil6qe42p69pjcpmntou3s86q5.apps.googleusercontent.com` | ✅ ใช้เป็น `webClientId` ตอน `GoogleSignin.configure()` |
-| iOS client ID | ⛔ รอ — ต้องตั้ง `ios.bundleIdentifier` ใน app.json ก่อน |
-| Android client ID | ⛔ รอ — ต้องมี `android.package` + SHA-1 จาก build ก่อน |
+| Web client ID | ✅ `604454119763-53piv5sil6qe42p69pjcpmntou3s86q5.apps.googleusercontent.com` |
+| iOS client ID | ✅ `604454119763-km1m49afqj081oin5tincocas48111o5.apps.googleusercontent.com` |
+| Android client ID | ✅ `604454119763-l58er0h5kabndjqpqruvstrturtv5k97.apps.googleusercontent.com` |
+
+**ค่าที่ต้องตั้งให้ตรงกันใน `app.json` (ยังไม่ได้ทำ — ตอนนี้ยังเป็น `mobile` ทั้งไฟล์ ทั้งที่ `claude.md §10`
+สั่งให้ใช้ Wingdai ทุกที่):**
+
+| key | ค่า |
+|---|---|
+| `name` | `Wingdai` |
+| `slug` | `wingdai` |
+| `ios.bundleIdentifier` | `com.wingdai.app` |
+| `android.package` | `com.wingdai.app` |
+| `scheme` | `wingdai` |
+| plugin `iosUrlScheme` | `com.googleusercontent.apps.604454119763-km1m49afqj081oin5tincocas48111o5` |
+
+`webClientId` ที่ส่งให้ `GoogleSignin.configure()` คือ **Web client ID** ไม่ใช่ของ iOS/Android
+
+**⚠️ SHA-1 ที่ลงทะเบียนไว้เป็นของ debug keystore เครื่องพัฒนาเท่านั้น**
+(`5E:E4:B3:A6:61:CE:10:5D:35:AC:EC:77:A3:02:65:34:40:6E:25:FD`, `~/.android/debug.keystore`)
+ตอนขึ้น Play Store ต้องกลับไป **เพิ่ม** SHA-1 ของ release keystore ในหน้า Android client เดิม ไม่ใช่สร้างใหม่ —
+ถ้าลืม Google sign-in จะทำงานปกติตอนเทสต์แต่พังทันทีบนเครื่องที่โหลดจากสโตร์
 
 client ID เป็นค่าสาธารณะ เก็บใน `app.json` ได้ ไม่ต้องใช้ `.env` ·
 **client secret ของ Web client ห้ามเข้า repo และแอปมือถือไม่ต้องใช้**
-
-**งานที่ต้องทำก่อนขอ client ID อีก 2 ตัว:** ตั้ง identity ใน `app.json` —
-`name: Wingdai` · `slug: wingdai` · `ios.bundleIdentifier: com.wingdai.app` ·
-`android.package: com.wingdai.app` · `scheme: wingdai` (ตอนนี้ยังเป็น `mobile` ทั้งหมด
-ทั้งที่ `claude.md §10` สั่งให้ใช้ Wingdai ทุกที่) → แล้ว build ดึง SHA-1 ด้วย `eas credentials`
 
 **เกณฑ์ผ่าน:** เทสต์ login ด้วย username ผ่าน · ด้วยเบอร์ผ่าน · ด้วยอีเมลไม่ผ่าน ·
 ลืมรหัสผ่านส่ง OTP แล้วตั้งรหัสใหม่ได้ · คนใหม่ผ่าน Google ต้องผ่านฟอร์มสั้น + OTP ก่อนเข้าแอป
