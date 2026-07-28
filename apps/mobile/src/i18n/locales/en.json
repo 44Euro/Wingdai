@@ -177,6 +177,23 @@
       "body": "The restaurant is preparing your food",
       "orderNo": "Order number",
       "backHome": "Back to home"
+    },
+    "tracking": {
+      "title": "Track order",
+      "orderNumber": "Order #{{id}}",
+      "restaurant": "Kitchen",
+      "foodTotal": "Food",
+      "deliveryFee": "Delivery",
+      "serviceFee": "Service",
+      "total": "Total",
+      "status": {
+        "created": "Waiting for the kitchen",
+        "accepted": "Kitchen accepted",
+        "preparing": "Cooking now",
+        "picked_up": "Rider on the way",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled"
+      }
     }
   },
   "order": {

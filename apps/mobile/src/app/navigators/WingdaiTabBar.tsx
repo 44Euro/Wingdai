@@ -2,10 +2,12 @@ import React from 'react';
 import { View, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/ThemeProvider';
 import { Text } from '../../ui/Text';
 import { Icon, IconName } from '../../ui/Icon';
 import { useCartStore } from '../../features/cart/cartStore';
+import { useActiveOrder } from '../../features/customer/hooks';
 
 const ICONS: Record<string, IconName> = {
   CustomerHome: 'home',
@@ -14,22 +16,34 @@ const ICONS: Record<string, IconName> = {
   Profile: 'user',
 };
 
-/** ความสูงที่จอในแท็บต้องเว้นไว้ล่างสุด ไม่งั้นเนื้อหาจะโดนแถบลอยทับ */
-export const TAB_BAR_CLEARANCE = 104;
+/**
+ * ความสูงที่จอในแท็บต้องเว้นไว้ล่างสุด
+ * เผื่อทั้งแถบ nav และปุ่มตะกร้าที่ลอยอยู่เหนือแถบ ไม่งั้นเนื้อหาบรรทัดท้ายจะโดนบัง
+ */
+export const TAB_BAR_CLEARANCE = 132;
 
 /**
  * แถบนำทางทรงพิลลอยตาม Wingdai design system
- * พื้น teal มุม 24 เงานุ่ม · ตัวที่เลือกมีแผ่นส้มมนรองไอคอน · ปุ่มตะกร้าวงกลมกลางแถบ
+ *
+ * 4 แท็บเสมอ · ปุ่มลอย 2 ปุ่มโผล่ตามเงื่อนไขคนละอย่าง:
+ *   - แฮมเบอร์เกอร์กลางแถบ → มีออร์เดอร์ที่ยังไม่จบ → จอติดตาม
+ *   - ตะกร้ามุมขวาเหนือแถบ → มีของในตะกร้า → จอตะกร้า
+ * เวลาปกติไม่มีปุ่มลอยเลย เห็นแค่ 4 เมนูหลัก
+ *
+ * แท็บที่เลือกต่างกันสองโหมด: สว่างมีแผ่นส้มรองไอคอน · มืด (C32) ไม่มีแผ่นรอง ไอคอนเป็นสีส้มเอง
  */
 export function WingdaiTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const { t } = useTranslation();
   const { tokens, primitives: p, scheme } = useTheme();
   const isDark = scheme === 'dark';
   const insets = useSafeAreaInsets();
-  const lines = useCartStore((s) => s.lines);
-  const cartCount = lines.reduce((n, l) => n + l.quantity, 0);
+
+  const cartCount = useCartStore((s) => s.lines.reduce((n, l) => n + l.quantity, 0));
+  const activeOrder = useActiveOrder();
 
   const routes = state.routes;
   const mid = Math.ceil(routes.length / 2);
+  const barBottom = Math.max(insets.bottom, p.space.lg);
 
   const renderTab = (route: (typeof routes)[number], index: number) => {
     const focused = state.index === index;
@@ -87,77 +101,111 @@ export function WingdaiTabBar({ state, descriptors, navigation }: BottomTabBarPr
   };
 
   return (
-    <View
-      style={[
-        {
-          position: 'absolute',
-          left: p.space.lg,
-          right: p.space.lg,
-          bottom: Math.max(insets.bottom, p.space.lg),
-          height: 70,
-          backgroundColor: tokens.navSurface,
-          borderRadius: p.radius.xl,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-around',
-          paddingHorizontal: p.space.sm,
-        },
-        // เงา teal ใต้แถบดำในโหมดมืดจะเห็นเป็นคราบเขียว — C32 ใช้เงาดำล้วน
-        isDark ? { ...p.shadow.teal, shadowColor: '#000000', shadowOpacity: 0.5 } : p.shadow.teal,
-      ]}
-    >
-      {routes.slice(0, mid).map((r, i) => renderTab(r, i))}
-      <View style={{ width: 54 }} />
-      {routes.slice(mid).map((r, i) => renderTab(r, i + mid))}
-
-      {/* ปุ่มตะกร้ากลางแถบ — ตะกร้าอยู่บน stack แม่ ไม่ใช่แท็บ */}
-      <Pressable
-        testID="tab-cart"
-        accessibilityRole="button"
-        accessibilityLabel="ตะกร้า"
-        onPress={() => navigation.getParent()?.navigate('Cart')}
-        style={({ pressed }) => [
-          {
-            position: 'absolute',
-            alignSelf: 'center',
-            bottom: 34,
-            width: 60,
-            height: 60,
-            borderRadius: 30,
-            backgroundColor: tokens.brandAccent,
-            borderWidth: 4,
-            borderColor: tokens.bgSurface,
-            alignItems: 'center',
-            justifyContent: 'center',
-            transform: [{ scale: pressed ? 0.9 : 1 }],
-          },
-          p.shadow.brand,
-        ]}
-      >
-        <Icon name="cart" color="#FFFFFF" size={24} strokeWidth={2.2} />
-        {cartCount > 0 ? (
+    <>
+      {/* ปุ่มตะกร้า — ลอยมุมขวาเหนือแถบ โผล่เฉพาะตอนมีของ */}
+      {cartCount > 0 ? (
+        <Pressable
+          testID="tab-cart"
+          accessibilityRole="button"
+          accessibilityLabel={t('customer.cart.title')}
+          onPress={() => navigation.getParent()?.navigate('Cart')}
+          style={({ pressed }) => [
+            {
+              position: 'absolute',
+              right: p.space.lg,
+              bottom: barBottom + 70 + p.space.md,
+              width: 60,
+              height: 60,
+              borderRadius: 30,
+              backgroundColor: tokens.brandAccent,
+              alignItems: 'center',
+              justifyContent: 'center',
+              transform: [{ scale: pressed ? 0.9 : 1 }],
+            },
+            p.shadow.brand,
+          ]}
+        >
+          <Icon name="cart" color="#FFFFFF" size={24} strokeWidth={2.2} />
           <View
             style={{
               position: 'absolute',
-              top: -2,
-              right: -2,
-              minWidth: 22,
-              height: 22,
-              paddingHorizontal: 5,
-              borderRadius: 11,
-              backgroundColor: tokens.tealSolid,
-              borderWidth: 2,
-              borderColor: tokens.bgSurface,
+              top: -4,
+              right: -4,
+              minWidth: 24,
+              height: 24,
+              paddingHorizontal: 6,
+              borderRadius: 12,
+              // C32: ตัวนับเป็นวงพื้นเข้มเท่าพื้นแอป ตัวขาว ขอบส้ม
+              backgroundColor: tokens.bgSurface,
+              borderWidth: 2.5,
+              borderColor: tokens.brandAccent,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Text variant="kicker" style={{ letterSpacing: 0, color: '#FFFFFF' }}>
+            <Text testID="tab-cart-count" variant="kicker" bold style={{ letterSpacing: 0 }}>
               {cartCount}
             </Text>
           </View>
+        </Pressable>
+      ) : null}
+
+      <View
+        style={[
+          {
+            position: 'absolute',
+            left: p.space.lg,
+            right: p.space.lg,
+            bottom: barBottom,
+            height: 70,
+            backgroundColor: tokens.navSurface,
+            borderRadius: p.radius.xl,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-around',
+            paddingHorizontal: p.space.sm,
+          },
+          // เงา teal ใต้แถบดำในโหมดมืดจะเห็นเป็นคราบเขียว — C32 ใช้เงาดำล้วน
+          isDark ? { ...p.shadow.teal, shadowColor: '#000000', shadowOpacity: 0.5 } : p.shadow.teal,
+        ]}
+      >
+        {routes.slice(0, mid).map((r, i) => renderTab(r, i))}
+        {/* เว้นช่องกลางเฉพาะตอนที่ปุ่มออร์เดอร์โผล่ ไม่งั้นแท็บจะเบี้ยวโดยไม่จำเป็น */}
+        {activeOrder ? <View style={{ width: 54 }} /> : null}
+        {routes.slice(mid).map((r, i) => renderTab(r, i + mid))}
+
+        {/* ปุ่มออร์เดอร์ — คร่อมขอบบนแถบ โผล่เฉพาะตอนมีออร์เดอร์ที่ยังไม่จบ */}
+        {activeOrder ? (
+          <Pressable
+            testID="tab-order"
+            accessibilityRole="button"
+            accessibilityLabel={t('customer.tracking.title')}
+            onPress={() =>
+              navigation.getParent()?.navigate('OrderTracking', { orderId: activeOrder.id })
+            }
+            style={({ pressed }) => [
+              {
+                position: 'absolute',
+                alignSelf: 'center',
+                bottom: 34,
+                width: 64,
+                height: 64,
+                borderRadius: 32,
+                backgroundColor: tokens.brandAccent,
+                // ขอบเป็นสีพื้นแอป ทำให้ปุ่มดูเจาะทะลุแถบออกมา
+                borderWidth: 5,
+                borderColor: tokens.bgSurface,
+                alignItems: 'center',
+                justifyContent: 'center',
+                transform: [{ scale: pressed ? 0.9 : 1 }],
+              },
+              p.shadow.brand,
+            ]}
+          >
+            <Icon name="burger" color="#FFFFFF" size={26} strokeWidth={2.4} />
+          </Pressable>
         ) : null}
-      </Pressable>
-    </View>
+      </View>
+    </>
   );
 }
