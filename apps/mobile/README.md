@@ -22,7 +22,7 @@ npm test         # jest ทั้งหมด
 |---|---|---|---|---|
 | `somchai` | `somchai@wingdai.test` | `1234` | user | ลูกค้าทั่วไป → หน้าสั่งอาหาร (CustomerStack) |
 | `malee` | `malee@wingdai.test` | `1234` | user + เจ้าของร้าน | เริ่มที่โหมดร้าน (MerchantStack) เพราะเป็นเจ้าของร้าน "ครัวมาลี" ที่อนุมัติแล้ว · สลับเป็นโหมดลูกค้าได้ |
-| `rider_ann` | `rider_ann@wingdai.test` | `1234` | rider (อนุมัติแล้ว) | โหมดไรเดอร์ (RiderStack) · สลับเป็นโหมดลูกค้าได้ |
+| `                                                                                                                           ` | `rider_ann@wingdai.test` | `1234` | rider (อนุมัติแล้ว) | โหมดไรเดอร์ (RiderStack) · สลับเป็นโหมดลูกค้าได้ |
 | `rider_new` | `rider_new@wingdai.test` | `1234` | rider (รออนุมัติ) | เห็นแค่หน้า "รออนุมัติ" เข้า stack อื่นไม่ได้ |
 | `admin_root` | `admin_root@wingdai.test` | `1234` | admin | โหมดผู้ดูแล (AdminStack) — สร้างจาก seed เท่านั้น ไม่มีทางสมัคร |
 

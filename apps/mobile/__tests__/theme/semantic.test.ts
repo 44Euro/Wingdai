@@ -43,6 +43,11 @@ describe('semantic tokens', () => {
         expect(contrastRatio(t.brandLink, t.bgSurface)).toBeGreaterThanOrEqual(4.5);
       });
 
+      // บรรทัดรองบนการ์ด teal (การ์ดประกาศหน้าแรก) — จางลงได้แต่ยังเป็นตัวหนังสือ
+      it('ข้อความรองบนการ์ด teal ผ่าน AA', () => {
+        expect(contrastRatio(t.textOnTealMuted, t.tealSolid)).toBeGreaterThanOrEqual(4.5);
+      });
+
       it('ตัวอักษรบนแบดจ์สีแบรนด์ผ่าน AA', () => {
         expect(contrastRatio(t.textOnBrandTint, t.brandTint)).toBeGreaterThanOrEqual(4.5);
       });

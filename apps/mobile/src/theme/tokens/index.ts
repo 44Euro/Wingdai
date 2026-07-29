@@ -13,6 +13,8 @@ export type SemanticTokens = {
   textFaint: string;
   textOnBrand: string;
   textOnTeal: string;
+  /** บรรทัดรองบนการ์ด teal — จางกว่า textOnTeal แต่ยังผ่าน AA */
+  textOnTealMuted: string;
   borderSubtle: string;
   brandSolid: string;
   brandAccent: string;

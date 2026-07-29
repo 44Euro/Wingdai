@@ -17,6 +17,19 @@ export function useRestaurants() {
   });
 }
 
+/**
+ * ค้นร้าน/เมนู — ยิงเฉพาะตอนมีคำค้นจริง ไม่งั้น query ว่างจะกวาดทั้งฐาน
+ * กรองร้านที่ยังไม่อนุมัติออกซ้ำอีกชั้นเหมือน useRestaurants
+ */
+export function useSearchRestaurants(query: string) {
+  const q = query.trim();
+  return useQuery({
+    queryKey: ['searchRestaurants', q],
+    queryFn: async () => filterApproved(await repos.catalog.searchRestaurants(q)),
+    enabled: q.length > 0,
+  });
+}
+
 export function useRestaurant(id: string) {
   return useQuery({ queryKey: ['restaurant', id], queryFn: () => repos.catalog.getRestaurant(id) });
 }

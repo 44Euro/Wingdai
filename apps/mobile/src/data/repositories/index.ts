@@ -34,6 +34,11 @@ export interface CatalogRepo {
   getRestaurant(id: string): Promise<Restaurant | null>;
   getMenu(restaurantId: string): Promise<MenuItem[]>;
   createMenuItem(input: NewMenuItemInput): Promise<MenuItem>;
+  /**
+   * ค้นร้านจากชื่อร้าน "หรือ" ชื่อเมนูในร้านนั้น (design C2: "ค้นหาร้านหรือเมนู")
+   * ทำที่ชั้น repo ไม่ใช่ในจอ เพราะของจริงต้องค้นฝั่ง backend — จอไม่ควรดึงเมนูทุกร้านมาไว้ในเครื่อง
+   */
+  searchRestaurants(query: string): Promise<Restaurant[]>;
 }
 
 export interface OrderRepo {

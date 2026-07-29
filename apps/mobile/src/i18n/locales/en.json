@@ -99,7 +99,21 @@
       "announcementKicker": "Announcement",
       "greeting": "Near you right now",
       "deliveryFee": "Delivery",
-      "empty": "No restaurants in this zone yet"
+      "empty": "No restaurants in this zone yet",
+      "deliverTo": "Deliver to",
+      "defaultAddress": "Ari · Soi Ari 1",
+      "searchPlaceholder": "Search kitchens or dishes",
+      "announcementSub": "{{count}} kitchens within 1 km · avg 6 min",
+      "seeAll": "See all",
+      "notifications": "Notifications"
+    },
+    "search": {
+      "placeholder": "Search kitchens or dishes",
+      "cancel": "Cancel",
+      "results": "Results · {{count}}",
+      "empty": "No kitchens or dishes match your search",
+      "prompt": "Type a kitchen or dish name",
+      "deliveryFee": "delivery"
     },
     "cuisine": {
       "rice": "Rice",

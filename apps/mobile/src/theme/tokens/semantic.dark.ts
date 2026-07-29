@@ -15,6 +15,7 @@ export const semanticDark = {
   textFaint: p.night.textFaint,
   textOnBrand: p.white,
   textOnTeal: p.white,
+  textOnTealMuted: p.night.textMuted,
   borderSubtle: 'rgba(244,241,236,0.10)',
   /** เหมือนโหมดสว่าง — ขาวบน #F15A22 ได้ 3.37:1 ไม่ผ่าน AA ไม่ว่าพื้นหลังจะเป็นอะไร */
   brandSolid: p.brand[700],

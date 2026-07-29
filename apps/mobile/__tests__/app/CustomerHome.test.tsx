@@ -65,4 +65,35 @@ describe('CustomerHomeScreen', () => {
     });
     expect(navigate).toHaveBeenCalledWith('RestaurantDetail', { restaurantId: 'r-malee' });
   });
+
+  // C1 หัวจอมีสามอย่างที่กดได้ — ทุกปุ่มต้องพาไปที่ที่มีจอจริงรออยู่
+  it('กดแถบค้นหา → ไปจอค้นหา (C2)', async () => {
+    const navigate = jest.fn();
+    const result = render({ navigate });
+    await flush();
+    act(() => {
+      findAll(result.root, 'btn-search')[0].props.onPress();
+    });
+    expect(navigate).toHaveBeenCalledWith('Search');
+  });
+
+  it('กดกระดิ่ง → ไปกล่องข้อความ', async () => {
+    const navigate = jest.fn();
+    const result = render({ navigate });
+    await flush();
+    act(() => {
+      findAll(result.root, 'btn-notifications')[0].props.onPress();
+    });
+    expect(navigate).toHaveBeenCalledWith('Inbox');
+  });
+
+  it('กด "ดูทั้งหมด" → ไปแท็บหมวดหมู่', async () => {
+    const navigate = jest.fn();
+    const result = render({ navigate });
+    await flush();
+    act(() => {
+      findAll(result.root, 'link-see-all')[0].props.onPress();
+    });
+    expect(navigate).toHaveBeenCalledWith('Categories');
+  });
 });

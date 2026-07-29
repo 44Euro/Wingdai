@@ -9,6 +9,8 @@ export const semanticLight = {
   textFaint: p.ink[50],
   textOnBrand: p.white,
   textOnTeal: p.white,
+  // design ใช้ rgba(255,255,255,.72) บนการ์ด teal — ทำเป็นค่าทึบเพื่อให้เทสต์ contrast ตรวจได้ (7.18:1)
+  textOnTealMuted: '#BCC8C8',
   borderSubtle: p.neutral[100],
   brandSolid: p.brand[700],    // พื้นปุ่ม/ลิงก์ — ผ่าน AA กับตัวหนังสือขาว
   brandAccent: p.brand[500],   // กราฟิกเท่านั้น ห้ามใส่ตัวหนังสือทับ

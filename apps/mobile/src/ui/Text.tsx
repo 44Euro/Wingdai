@@ -7,7 +7,7 @@ export type TextVariant =
   | 'bodyLg' | 'body' | 'small' | 'caption' | 'kicker';
 
 export type TextColor =
-  | 'primary' | 'muted' | 'faint' | 'onBrand' | 'onTeal'
+  | 'primary' | 'muted' | 'faint' | 'onBrand' | 'onTeal' | 'onTealMuted'
   | 'brand' | 'link' | 'onBrandTint' | 'onTealTint' | 'danger' | 'success';
 
 type Props = RNTextProps & {
@@ -27,6 +27,7 @@ export function Text({ variant = 'body', color = 'primary', bold, style, ...rest
     faint: tokens.textFaint,
     onBrand: tokens.textOnBrand,
     onTeal: tokens.textOnTeal,
+    onTealMuted: tokens.textOnTealMuted,
     brand: tokens.brandLink, // ตัวอักษรสีแบรนด์ต้องผ่าน AA — ห้ามใช้ brandAccent ตรงนี้
     link: tokens.brandLink,
     onBrandTint: tokens.textOnBrandTint,

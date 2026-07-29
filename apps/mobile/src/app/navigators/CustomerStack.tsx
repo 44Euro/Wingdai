@@ -16,6 +16,7 @@ import { MenuItemScreen } from '../../features/customer/screens/MenuItemScreen';
 import { CartScreen } from '../../features/customer/screens/CartScreen';
 import { CheckoutScreen } from '../../features/customer/screens/CheckoutScreen';
 import { OrderPlacedScreen } from '../../features/customer/screens/OrderPlacedScreen';
+import { SearchScreen } from '../../features/customer/screens/SearchScreen';
 
 export type CustomerTabParamList = {
   CustomerHome: undefined;
@@ -34,6 +35,7 @@ export type CustomerStackParamList = {
   /** design ไม่มีแท็บกล่องข้อความ — เข้าจากกระดิ่งบนหัวจอ Home แทน */
   Inbox: undefined;
   OrderTracking: { orderId: string };
+  Search: undefined;
 };
 
 const Tab = createBottomTabNavigator<CustomerTabParamList>();
@@ -75,6 +77,8 @@ export function CustomerStack() {
       <Stack.Screen name="OrderPlaced" component={OrderPlacedScreen} options={{ gestureEnabled: false }} />
       <Stack.Screen name="Inbox" component={InboxScreen} />
       <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
+      {/* C2 เปิดจากแถบค้นหาบนหน้าแรก — ไม่มีแอนิเมชันสไลด์เพื่อให้รู้สึกเหมือนช่องค้นหาขยายขึ้นมา */}
+      <Stack.Screen name="Search" component={SearchScreen} options={{ animation: 'fade' }} />
     </Stack.Navigator>
   );
 }

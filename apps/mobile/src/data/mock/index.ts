@@ -73,6 +73,17 @@ export function createMockRepos(): Repos {
         menuItems.push(menuItem);
         return { ...menuItem };
       },
+      async searchRestaurants(query) {
+        await delay();
+        const q = query.trim().toLowerCase();
+        if (q === '') return [];
+        const hitByDish = new Set(
+          menuItems.filter((m) => m.isAvailable && m.name.toLowerCase().includes(q)).map((m) => m.restaurantId),
+        );
+        return restaurants
+          .filter((r) => r.name.toLowerCase().includes(q) || hitByDish.has(r.id))
+          .map((r) => ({ ...r }));
+      },
     },
 
     orders: {

@@ -99,7 +99,21 @@
       "announcementKicker": "ประกาศ",
       "greeting": "ใกล้คุณตอนนี้",
       "deliveryFee": "ค่าส่ง",
-      "empty": "ยังไม่มีร้านในโซนนี้"
+      "empty": "ยังไม่มีร้านในโซนนี้",
+      "deliverTo": "จัดส่งไปที่",
+      "defaultAddress": "อารีย์ · ซอยอารีย์ 1",
+      "searchPlaceholder": "ค้นหาร้านหรือเมนู",
+      "announcementSub": "{{count}} ร้านในระยะ 1 กม. · เฉลี่ย 6 นาที",
+      "seeAll": "ดูทั้งหมด",
+      "notifications": "การแจ้งเตือน"
+    },
+    "search": {
+      "placeholder": "ค้นหาร้านหรือเมนู",
+      "cancel": "ยกเลิก",
+      "results": "ผลการค้นหา · {{count}}",
+      "empty": "ไม่พบร้านหรือเมนูที่ตรงกับคำค้น",
+      "prompt": "พิมพ์ชื่อร้านหรือชื่อเมนูที่อยากกิน",
+      "deliveryFee": "ค่าส่ง"
     },
     "cuisine": {
       "rice": "ข้าว",
