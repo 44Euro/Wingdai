@@ -53,7 +53,8 @@
       "haveAccount": "Have an account?",
       "toLogin": "Already have an account? Log in",
       "required": "Please fill in all required fields",
-      "submit": "Create account"
+      "submit": "Create account",
+      "passwordTooShort": "Password must be at least 8 characters"
     },
     "otp": {
       "title": "Verify your phone",

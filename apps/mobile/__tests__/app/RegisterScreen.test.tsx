@@ -118,6 +118,30 @@ describe('RegisterScreen', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
+  /**
+   * เกณฑ์เดียวกับ PASSWORD_MIN_LENGTH ฝั่งเซิร์ฟเวอร์ — ถ้าจอนี้ปล่อยผ่าน
+   * ผู้ใช้จะกรอกครบทุกช่องแล้วไปโดนตีกลับตอนกดสมัคร ซึ่งเสียเวลากว่ามาก
+   */
+  it('รหัสผ่านสั้นกว่า 8 ตัว → ขึ้น error ตั้งแต่จอนี้ ไม่ปล่อยไปให้เซิร์ฟเวอร์ตีกลับ', () => {
+    const navigate = jest.fn();
+    const goBack = jest.fn();
+    const result = renderRegister({ navigate, goBack });
+
+    act(() => {
+      getFirstByTestId(result.root, 'input-username').props.onChangeText('somchai');
+      getFirstByTestId(result.root, 'input-password').props.onChangeText('1234');
+      getFirstByTestId(result.root, 'input-phone').props.onChangeText('0812345678');
+      getFirstByTestId(result.root, 'input-fullName').props.onChangeText('สมชาย ใจดี');
+    });
+
+    act(() => {
+      getFirstByTestId(result.root, 'btn-register').props.onPress();
+    });
+
+    expect(getErrorText(result.root)).toBe(i18n.t('auth.register.passwordTooShort'));
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it('กรอกเบอร์โทรถูกต้องแต่อีเมล = "abc" → ขึ้น error รูปแบบอีเมลผิด', () => {
     const navigate = jest.fn();
     const goBack = jest.fn();

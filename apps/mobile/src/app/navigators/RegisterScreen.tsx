@@ -23,6 +23,12 @@ export type RegisterFormValues = {
 // เบอร์มือถือไทย: ขึ้นต้น 0 แล้วตามด้วย 6/8/9 แล้วอีก 8 หลัก รวม 10 หลัก
 const PHONE_PATTERN = /^0[689]\d{8}$/;
 const EMAIL_PATTERN = /\S+@\S+\.\S+/;
+/**
+ * ต้องตรงกับ PASSWORD_MIN_LENGTH ใน services/core-api/src/auth/password.ts
+ * ถ้าฝั่งนี้หลวมกว่า ผู้ใช้จะกรอกจนครบแล้วโดนเซิร์ฟเวอร์ตีกลับตอนกดสมัคร
+ * ซึ่งเสียเวลากว่าการบอกตั้งแต่ตอนกรอกมาก
+ */
+const PASSWORD_MIN_LENGTH = 8;
 
 /**
  * design โชว์ชิป +66 หน้าช่องเบอร์ คนกรอกจึงพิมพ์ได้ทั้ง "081 234 5678" และ "81 234 5678"
@@ -60,6 +66,10 @@ export function RegisterScreen({ navigation }: Props) {
     const normalizedPhone = normalizePhone(phone);
     if (!PHONE_PATTERN.test(normalizedPhone)) {
       setError('auth.register.phoneInvalid');
+      return;
+    }
+    if (password.length < PASSWORD_MIN_LENGTH) {
+      setError('auth.register.passwordTooShort');
       return;
     }
     if (email.trim() && !EMAIL_PATTERN.test(email.trim())) {
