@@ -35,6 +35,7 @@ export function createHttpRepos(_baseUrl: string): Repos {
       get: nope('orders.get'),
       listForCustomer: nope('orders.listForCustomer'),
       updateStatus: nope('orders.updateStatus'),
+      payWithPromptPay: nope('orders.payWithPromptPay'),
     },
   };
 }

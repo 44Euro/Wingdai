@@ -87,6 +87,7 @@ describe('MockRepo — orders', () => {
       ],
       deliveryFee: 1500,
       serviceFee: 500,
+      paymentMethod: 'promptpay',
     });
     expect(order.foodTotal).toBe(12500);
     expect(order.deliveryFee).toBe(1500);
@@ -100,6 +101,7 @@ describe('MockRepo — orders', () => {
       customerId: 'u-somchai', restaurantId: 'r-malee',
       items: [{ menuItemId: 'm1', name: 'ข้าวมันไก่', unitPrice: 5000, quantity: 1 }],
       deliveryFee: 1500, serviceFee: 500,
+      paymentMethod: 'promptpay',
     });
     const accepted = await repos.orders.updateStatus(order.id, 'accepted');
     expect(accepted.status).toBe('accepted');
@@ -111,6 +113,7 @@ describe('MockRepo — orders', () => {
       customerId: 'u-somchai', restaurantId: 'r-malee',
       items: [{ menuItemId: 'm1', name: 'ข้าวมันไก่', unitPrice: 5000, quantity: 1 }],
       deliveryFee: 1500, serviceFee: 500,
+      paymentMethod: 'promptpay',
     });
     await expect(repos.orders.updateStatus(order.id, 'delivered')).rejects.toThrow(
       InvalidTransitionError,
@@ -124,6 +127,7 @@ describe('MockRepo — orders', () => {
       customerId: 'u-somchai', restaurantId: 'r-malee',
       items: [{ menuItemId: 'm1', name: 'ข้าวมันไก่', unitPrice: 5000, quantity: 1 }],
       deliveryFee: 1500, serviceFee: 500,
+      paymentMethod: 'promptpay',
     });
     expect(await b.orders.listForCustomer('u-somchai')).toHaveLength(0);
   });
@@ -153,6 +157,7 @@ describe('catalog.getMenu + orders guard', () => {
       customerId: 'u-somchai', restaurantId: 'r-malee',
       items: [{ menuItemId: 'm-malee-1', name: 'ข้าวกะเพรา', unitPrice: 5000, quantity: 2 }],
       deliveryFee: 1500, serviceFee: 500,
+      paymentMethod: 'promptpay',
     });
     expect(order.status).toBe('created');
     expect(order.foodTotal).toBe(10000);
@@ -164,7 +169,70 @@ describe('catalog.getMenu + orders guard', () => {
       customerId: 'u-malee', restaurantId: 'r-malee',
       items: [{ menuItemId: 'm-malee-1', name: 'ข้าวกะเพรา', unitPrice: 5000, quantity: 1 }],
       deliveryFee: 1500, serviceFee: 500,
+      paymentMethod: 'promptpay',
     })).rejects.toThrow();
+  });
+
+  it('สั่งเงินสด → ยังไม่ถือว่าจ่าย', async () => {
+    const repos = createMockRepos();
+    const order = await repos.orders.create({
+      customerId: 'u-somchai', restaurantId: 'r-malee',
+      items: [{ menuItemId: 'm-malee-1', name: 'ข้าวกะเพรา', unitPrice: 5000, quantity: 1 }],
+      deliveryFee: 1500, serviceFee: 500,
+      paymentMethod: 'cash',
+    });
+    expect(order.paymentStatus).toBe('pending');
+  });
+});
+
+/**
+ * ลูกค้าสั่งเงินสดแล้วเงินไม่พอ — กติกาต้องอยู่ที่ชั้น repo ด้วย ไม่ใช่แค่จอซ่อนปุ่มไว้
+ * (ของจริงคือเซิร์ฟเวอร์เป็นคนตัดสิน จอเป็นแค่ความสะดวก)
+ */
+describe('orders.payWithPromptPay', () => {
+  const cashInput = {
+    customerId: 'u-somchai', restaurantId: 'r-malee',
+    items: [{ menuItemId: 'm-malee-1', name: 'ข้าวกะเพรา', unitPrice: 5000, quantity: 1 }],
+    deliveryFee: 1500, serviceFee: 500,
+    paymentMethod: 'cash' as const,
+  };
+
+  it('เปลี่ยนออร์เดอร์เงินสดที่ค้างอยู่เป็นพร้อมเพย์แล้วถือว่าจ่ายแล้ว', async () => {
+    const repos = createMockRepos();
+    const order = await repos.orders.create(cashInput);
+    const paid = await repos.orders.payWithPromptPay(order.id);
+    expect(paid.paymentMethod).toBe('promptpay');
+    expect(paid.paymentStatus).toBe('paid');
+  });
+
+  it('การเปลี่ยนถูกบันทึกจริง อ่านซ้ำแล้วยังเป็นพร้อมเพย์', async () => {
+    const repos = createMockRepos();
+    const order = await repos.orders.create(cashInput);
+    await repos.orders.payWithPromptPay(order.id);
+    expect((await repos.orders.get(order.id))?.paymentStatus).toBe('paid');
+  });
+
+  it('กดจ่ายซ้ำรอบสองถูกปฏิเสธ', async () => {
+    const repos = createMockRepos();
+    const order = await repos.orders.create(cashInput);
+    await repos.orders.payWithPromptPay(order.id);
+    await expect(repos.orders.payWithPromptPay(order.id)).rejects.toThrow();
+  });
+
+  it('ส่งถึงแล้วเปลี่ยนไม่ได้ — ถือว่าเก็บเงินสดไปแล้ว', async () => {
+    const repos = createMockRepos();
+    const order = await repos.orders.create(cashInput);
+    for (const s of ['accepted', 'preparing', 'picked_up', 'delivered'] as const) {
+      // eslint-disable-next-line no-await-in-loop
+      await repos.orders.updateStatus(order.id, s);
+    }
+    await expect(repos.orders.payWithPromptPay(order.id)).rejects.toThrow();
+  });
+
+  it('ออร์เดอร์ที่จ่ายพร้อมเพย์อยู่แล้วกดซ้ำไม่ได้', async () => {
+    const repos = createMockRepos();
+    const order = await repos.orders.create({ ...cashInput, paymentMethod: 'promptpay' });
+    await expect(repos.orders.payWithPromptPay(order.id)).rejects.toThrow();
   });
 });
 

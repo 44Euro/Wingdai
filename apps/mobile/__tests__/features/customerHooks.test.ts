@@ -30,6 +30,8 @@ function makeOrder(id: string, status: Order['status'], createdAt: string): Orde
     foodTotal: 5000,
     deliveryFee: 1500,
     serviceFee: 500,
+    paymentMethod: 'promptpay',
+    paymentStatus: 'paid',
     createdAt,
   };
 }

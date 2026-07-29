@@ -72,6 +72,15 @@ export interface OrderItem {
   quantity: number;
 }
 
+/**
+ * ช่องทางชำระเงิน (claude.md §6.5)
+ * `card` มีในรายการแต่ยังเลือกไม่ได้ จนกว่าจะตัดสินใจเรื่อง payment gateway (§11 ข้อ 3)
+ */
+export type PaymentMethod = 'promptpay' | 'cash' | 'card';
+
+/** เงินสดเป็น 'pending' จนกว่าไรเดอร์จะเก็บตอนส่ง ส่วนพร้อมเพย์จ่ายจบตั้งแต่ก่อนออร์เดอร์เดิน */
+export type PaymentStatus = 'pending' | 'paid';
+
 export interface Order {
   id: string;
   customerId: string;
@@ -83,5 +92,7 @@ export interface Order {
   foodTotal: number;
   deliveryFee: number;
   serviceFee: number;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
   createdAt: string;
 }

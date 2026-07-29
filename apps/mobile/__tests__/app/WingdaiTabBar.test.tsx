@@ -39,6 +39,8 @@ const activeOrder: Order = {
   foodTotal: 5000,
   deliveryFee: 1500,
   serviceFee: 500,
+  paymentMethod: 'promptpay',
+  paymentStatus: 'paid',
   createdAt: '2026-07-28T01:00:00.000Z',
 };
 

@@ -9,7 +9,7 @@ import { Button } from '../../../ui/Button';
 import { RoundButton } from '../../../ui/Surface';
 import { Icon } from '../../../ui/Icon';
 import { formatBaht } from '../../../lib/format';
-import { usePlaceOrder } from '../hooks';
+import { usePlaceOrder, useOrder, usePayWithPromptPay } from '../hooks';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
 
 type Props = NativeStackScreenProps<CustomerStackParamList, 'PromptPay'>;
@@ -34,13 +34,22 @@ export function formatCountdown(secondsLeft: number): string {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-/** C5 — จอสแกน PromptPay พื้น teal เต็มจอ */
-export function PromptPayScreen({ navigation }: Props) {
+/**
+ * C5 — จอสแกน PromptPay พื้น teal เต็มจอ
+ *
+ * ใช้สองทาง: จ่ายตะกร้าที่กำลังสั่ง (ไม่มี orderId) และจ่ายออร์เดอร์เงินสดที่ค้างอยู่ (มี orderId)
+ * จอเดียวกันเพราะสิ่งที่ผู้ใช้ทำเหมือนกันเป๊ะ — ต่างแค่ว่าจ่ายเสร็จแล้วไปไหนต่อ
+ */
+export function PromptPayScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const { placeOrder, totals, isPending, canPlace } = usePlaceOrder();
   const [secondsLeft, setSecondsLeft] = useState(EXPIRY_SECONDS);
   const [error, setError] = useState<string | null>(null);
+
+  const orderId = route.params?.orderId;
+  const { data: pendingOrder } = useOrder(orderId ?? '');
+  const payExisting = usePayWithPromptPay();
 
   useEffect(() => {
     const id = setInterval(() => setSecondsLeft((s) => (s <= 0 ? 0 : s - 1)), 1000);
@@ -48,6 +57,27 @@ export function PromptPayScreen({ navigation }: Props) {
   }, []);
 
   const expired = secondsLeft === 0;
+  const amount = pendingOrder
+    ? pendingOrder.foodTotal + pendingOrder.deliveryFee + pendingOrder.serviceFee
+    : totals.grandTotal;
+  // โหมดจ่ายออร์เดอร์เก่าไม่เกี่ยวกับตะกร้า — ตะกร้าว่างไม่ควรทำให้ปุ่มกดไม่ได้
+  const busy = isPending || payExisting.isPending;
+  const canConfirm = orderId ? !!pendingOrder : canPlace;
+
+  function handlePaid() {
+    if (orderId) {
+      payExisting.mutate(orderId, {
+        onSuccess: () => navigation.goBack(),
+        onError: () => setError('payment.error.cannotSwitch'),
+      });
+      return;
+    }
+    placeOrder({
+      onSuccess: (order) => navigation.replace('OrderPlaced', { orderId: order.id }),
+      // เหตุผลเดียวที่ถูกบล็อกในเส้นทางสั่งของคือ guard สั่งร้านตัวเอง (map เป็น i18n key เดียว)
+      onError: () => setError('order.error.ownRestaurant'),
+    });
+  }
 
   return (
     // จอชำระเงินเป็นพื้น teal เต็มจอตาม design — ไม่ผูกกับโหมดสว่าง/มืด
@@ -85,7 +115,7 @@ export function PromptPayScreen({ navigation }: Props) {
           {t('customer.promptpay.amount')}
         </Text>
         <Text testID="promptpay-amount" variant="display" color="onTeal" style={{ marginTop: 2 }}>
-          {formatBaht(totals.grandTotal)}
+          {formatBaht(amount)}
         </Text>
 
         {/* PromptPay QR แบบ mock — ลายจำลอง ไม่ใช่ QR ที่สแกนได้ */}
@@ -181,14 +211,8 @@ export function PromptPayScreen({ navigation }: Props) {
           testID="btn-paid"
           label={t('customer.promptpay.paid')}
           variant="ghostOnDark"
-          disabled={expired || isPending || !canPlace}
-          onPress={() =>
-            placeOrder({
-              onSuccess: (order) => navigation.replace('OrderPlaced', { orderId: order.id }),
-              // เหตุผลเดียวที่ถูกบล็อกใน slice นี้คือ guard สั่งร้านตัวเอง (map เป็น i18n key เดียว)
-              onError: () => setError('order.error.ownRestaurant'),
-            })
-          }
+          disabled={expired || busy || !canConfirm}
+          onPress={handlePaid}
         />
       </View>
     </SafeAreaView>

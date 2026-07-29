@@ -1,4 +1,6 @@
-import type { Account, AccountType, MenuItem, Order, OrderItem, OrderStatus, Restaurant } from '../types';
+import type {
+  Account, AccountType, MenuItem, Order, OrderItem, OrderStatus, PaymentMethod, Restaurant,
+} from '../types';
 
 export interface RegisterInput {
   username: string;
@@ -16,6 +18,7 @@ export interface CreateOrderInput {
   items: OrderItem[];
   deliveryFee: number;
   serviceFee: number;
+  paymentMethod: PaymentMethod;
 }
 
 export interface AuthRepo {
@@ -46,6 +49,12 @@ export interface OrderRepo {
   get(id: string): Promise<Order | null>;
   listForCustomer(customerId: string): Promise<Order[]>;
   updateStatus(id: string, status: OrderStatus): Promise<Order>;
+  /**
+   * ลูกค้าที่สั่งเงินสดไว้แล้วเงินไม่พอ กดจ่ายด้วยพร้อมเพย์แทน
+   * เงินเข้าแพลตฟอร์มโดยตรง ไรเดอร์ไม่ต้องออกเงินและไม่ต้องเก็บเงินสดใบนี้อีก
+   * เงื่อนไขว่าเปลี่ยนได้เมื่อไหร่อยู่ที่ `canPayNowWithPromptPay` ใน src/lib/rules.ts
+   */
+  payWithPromptPay(orderId: string): Promise<Order>;
 }
 
 export interface Repos {

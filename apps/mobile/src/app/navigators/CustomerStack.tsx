@@ -34,7 +34,11 @@ export type CustomerStackParamList = {
   Cart: undefined;
   Checkout: undefined;
   PaymentMethod: undefined;
-  PromptPay: undefined;
+  /**
+   * ไม่ส่ง orderId = จ่ายตะกร้าที่กำลังสั่ง
+   * ส่ง orderId = จ่ายออร์เดอร์เงินสดที่ค้างอยู่ (ลูกค้าเงินสดไม่พอ ดู C6)
+   */
+  PromptPay: { orderId?: string } | undefined;
   OrderPlaced: { orderId: string };
   /** design ไม่มีแท็บแจ้งเตือน — เข้าจากกระดิ่งบนหัวจอ Home แทน (C20) */
   Notifications: undefined;

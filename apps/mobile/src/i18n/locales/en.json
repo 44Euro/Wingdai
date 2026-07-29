@@ -260,7 +260,10 @@
         "picked_up": "Rider on the way",
         "delivered": "Delivered",
         "cancelled": "Cancelled"
-      }
+      },
+      "cashPending": "Not paid yet - pay the rider in cash on arrival",
+      "switchToPromptPayHint": "Short on cash? Pay by PromptPay instead and the rider will not collect anything.",
+      "switchToPromptPay": "Switch to PromptPay"
     },
     "payment": {
       "title": "Payment method",
@@ -321,6 +324,11 @@
       "choicePrice": "Extra price",
       "removeGroup": "Remove group",
       "save": "Save item"
+    }
+  },
+  "payment": {
+    "error": {
+      "cannotSwitch": "This order can no longer change payment method"
     }
   }
 }

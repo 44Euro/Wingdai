@@ -50,11 +50,16 @@ const order: Order = {
   foodTotal: 10000,
   deliveryFee: 1500,
   serviceFee: 500,
+  paymentMethod: 'promptpay',
+  paymentStatus: 'paid',
   createdAt: '2026-07-28T01:00:00.000Z',
 };
 
-function render() {
-  jest.spyOn(repos.orders, 'get').mockResolvedValue(order);
+const navigate = jest.fn();
+
+function render(shown: Order = order) {
+  navigate.mockClear();
+  jest.spyOn(repos.orders, 'get').mockResolvedValue(shown);
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   act(() => {
     r = ReactTestRenderer.create(
@@ -62,7 +67,7 @@ function render() {
         <ThemeProvider>
           <NavigationContainer>
             <OrderTrackingScreen
-              navigation={{ goBack: jest.fn(), navigate: jest.fn() } as never}
+              navigation={{ goBack: jest.fn(), navigate } as never}
               route={{ key: 'k', name: 'OrderTracking', params: { orderId: 'o-1' } } as never}
             />
           </NavigationContainer>
@@ -98,5 +103,43 @@ describe('OrderTrackingScreen', () => {
     const result = render();
     await flush();
     expect(findAll(result.root, 'tracking-restaurant').length).toBeGreaterThanOrEqual(1);
+  });
+});
+
+/**
+ * เคส "สั่งเงินสดไว้แล้วเงินไม่พอ" — ทางออกต้องอยู่ในแอป ไม่ใช่ให้ไรเดอร์ออกเงินแทน
+ * เหตุผลเต็มอยู่ที่ canPayNowWithPromptPay ใน src/lib/rules.ts
+ */
+describe('OrderTrackingScreen — เปลี่ยนไปจ่ายพร้อมเพย์', () => {
+  const cashOrder: Order = { ...order, paymentMethod: 'cash', paymentStatus: 'pending' };
+
+  it('ออร์เดอร์เงินสดที่ยังไม่จ่าย เห็นปุ่มเปลี่ยนไปพร้อมเพย์', async () => {
+    const result = render(cashOrder);
+    await flush();
+    expect(findAll(result.root, 'tracking-switch-payment').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('ออร์เดอร์ที่จ่ายพร้อมเพย์แล้วไม่เห็นปุ่มนี้', async () => {
+    const result = render();
+    await flush();
+    expect(findAll(result.root, 'tracking-switch-payment')).toHaveLength(0);
+  });
+
+  it('ส่งถึงแล้วไม่เห็นปุ่มนี้ ต่อให้เป็นออร์เดอร์เงินสด', async () => {
+    const result = render({ ...cashOrder, status: 'delivered' });
+    await flush();
+    expect(findAll(result.root, 'tracking-switch-payment')).toHaveLength(0);
+  });
+
+  it('กดแล้วพาไปจอ QR พร้อมส่ง orderId ไปด้วย ไม่ใช่จอจ่ายตะกร้าใหม่', async () => {
+    const result = render(cashOrder);
+    await flush();
+    const btn = result.root.findAll(
+      (n) => n.props?.testID === 'btn-switch-promptpay' && typeof n.props?.onPress === 'function',
+    )[0]!;
+    await act(async () => {
+      btn.props.onPress();
+    });
+    expect(navigate).toHaveBeenCalledWith('PromptPay', { orderId: 'o-1' });
   });
 });

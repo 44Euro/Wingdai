@@ -1,13 +1,12 @@
 import { create } from 'zustand';
 import type { IconName } from '../../ui/Icon';
+import type { PaymentMethod } from '../../data/types';
 
 /**
- * ช่องทางชำระเงินที่ลูกค้าเลือกได้
- *
  * `card` โผล่ในรายการแต่ยังเลือกไม่ได้ เพราะยังไม่ได้ตัดสินใจว่าจะใช้ payment gateway เจ้าไหน
  * (claude.md §11 ข้อ 3) — โชว์ไว้พร้อมป้ายบอกตรง ๆ ดีกว่าซ่อนแล้วลูกค้าไม่รู้ว่ามีแผน
  */
-export type PaymentMethod = 'promptpay' | 'cash' | 'card';
+export type { PaymentMethod };
 
 export const PAYMENT_METHODS: PaymentMethod[] = ['promptpay', 'cash', 'card'];
 

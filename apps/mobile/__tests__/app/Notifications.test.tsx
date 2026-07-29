@@ -129,6 +129,7 @@ describe('NotificationsScreen (C20)', () => {
       items: [{ menuItemId: 'm-malee-1', name: 'ข้าวกะเพรา', unitPrice: 5000, quantity: 1 }],
       deliveryFee: 1500,
       serviceFee: 500,
+      paymentMethod: 'promptpay',
     });
 
     const navigate = jest.fn();

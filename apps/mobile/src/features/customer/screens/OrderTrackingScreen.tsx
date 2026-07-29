@@ -5,8 +5,10 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Card } from '../../../ui/Surface';
+import { Button } from '../../../ui/Button';
 import { ScreenHeader } from '../../../ui/ScreenHeader';
 import { formatBaht } from '../../../lib/format';
+import { canPayNowWithPromptPay } from '../../../lib/rules';
 import { useOrder, useRestaurant } from '../hooks';
 import { TrackingMap } from '../components/TrackingMap';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
@@ -73,6 +75,25 @@ export function OrderTrackingScreen({ navigation, route }: Props) {
             ))}
           </View>
         </Card>
+
+        {/* ลูกค้าสั่งเงินสดแล้วเงินไม่พอ — ทางออกคือจ่ายเข้าแพลตฟอร์มตรง ๆ
+            ไม่ใช่ให้ไรเดอร์ออกเงินแล้วค่อยโอนคืนเขา เหตุผลเต็มอยู่ที่ canPayNowWithPromptPay */}
+        {canPayNowWithPromptPay(order) ? (
+          <Card testID="tracking-switch-payment" style={{ gap: p.space.sm }}>
+            <Text variant="body" bold>
+              {t('customer.tracking.cashPending')}
+            </Text>
+            <Text variant="small" color="muted">
+              {t('customer.tracking.switchToPromptPayHint')}
+            </Text>
+            <Button
+              testID="btn-switch-promptpay"
+              label={t('customer.tracking.switchToPromptPay')}
+              variant="secondary"
+              onPress={() => navigation.navigate('PromptPay', { orderId: order.id })}
+            />
+          </Card>
+        ) : null}
 
         <Card style={{ gap: p.space.xs }}>
           <Text variant="kicker" color="muted">

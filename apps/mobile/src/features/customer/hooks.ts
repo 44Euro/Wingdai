@@ -1,10 +1,11 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { repos } from '../../data';
 import { useAuthStore } from '../auth/authStore';
 import { isActiveStatus } from '../../data/orderStateMachine';
 import { buildNotifications, type AppNotification } from './notifications';
 import { useNotificationStore } from './notificationStore';
 import { useCartStore } from '../cart/cartStore';
+import { usePaymentStore } from '../payment/paymentStore';
 import { orderTotals, orderItemName } from '../cart/pricing';
 import type { Order, Restaurant } from '../../data/types';
 import type { CreateOrderInput } from '../../data/repositories';
@@ -54,6 +55,7 @@ export function usePlaceOrder() {
   const cart = useCartStore();
   const account = useAuthStore((s) => s.account);
   const createOrder = useCreateOrder();
+  const paymentMethod = usePaymentStore((s) => s.method);
   const totals = orderTotals(cart.foodTotal());
 
   function placeOrder(handlers: { onSuccess: (order: Order) => void; onError: () => void }) {
@@ -70,6 +72,7 @@ export function usePlaceOrder() {
         })),
         deliveryFee: totals.deliveryFee,
         serviceFee: totals.serviceFee,
+        paymentMethod,
       },
       {
         onSuccess: (order) => {
@@ -109,7 +112,26 @@ export function useActiveOrder(): Order | undefined {
 }
 
 export function useOrder(orderId: string) {
-  return useQuery({ queryKey: ['order', orderId], queryFn: () => repos.orders.get(orderId) });
+  return useQuery({
+    queryKey: ['order', orderId],
+    queryFn: () => repos.orders.get(orderId),
+    enabled: orderId.length > 0,
+  });
+}
+
+/**
+ * จ่ายออร์เดอร์เงินสดที่ค้างอยู่ด้วยพร้อมเพย์แทน (ลูกค้าเงินสดไม่พอ)
+ * ล้าง cache ทั้งใบเดียวและรายการ เพื่อให้จอติดตามกับจอประวัติเปลี่ยนพร้อมกัน
+ */
+export function usePayWithPromptPay() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (orderId: string) => repos.orders.payWithPromptPay(orderId),
+    onSuccess: (order) => {
+      queryClient.setQueryData(['order', order.id], order);
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
+  });
 }
 
 /** รายการแจ้งเตือน (C20) — ประกอบจากออร์เดอร์จริง + ชื่อร้าน ดู notifications.ts ว่าทำไมไม่เก็บเป็นตารางแยก */

@@ -1,7 +1,7 @@
 import type { Repos, RegisterInput, CreateOrderInput } from '../repositories';
 import type { Account, MenuItem, Order, Restaurant } from '../types';
 import { assertTransition } from '../orderStateMachine';
-import { canOrderFromRestaurant } from '../../lib/rules';
+import { canOrderFromRestaurant, canPayNowWithPromptPay } from '../../lib/rules';
 import { seedAccounts, seedRestaurants, seedMenuItems, MOCK_PASSWORD } from './seed';
 
 export function createMockRepos(): Repos {
@@ -105,6 +105,9 @@ export function createMockRepos(): Repos {
           foodTotal,
           deliveryFee: input.deliveryFee,
           serviceFee: input.serviceFee,
+          paymentMethod: input.paymentMethod,
+          // เงินสดยังไม่ได้จ่าย ไรเดอร์เก็บตอนส่ง — ช่องทางอื่นจ่ายจบก่อนออร์เดอร์เริ่มเดิน
+          paymentStatus: input.paymentMethod === 'cash' ? 'pending' : 'paid',
           createdAt: new Date().toISOString(),
         };
         orders.push(order);
@@ -125,6 +128,16 @@ export function createMockRepos(): Repos {
         if (!o) throw new Error(`ไม่พบออร์เดอร์ ${id}`);
         assertTransition(o.status, status); // โยน InvalidTransitionError ถ้าข้ามขั้น
         o.status = status;
+        return { ...o };
+      },
+      async payWithPromptPay(orderId) {
+        await delay();
+        const o = orders.find((x) => x.id === orderId);
+        if (!o) throw new Error(`ไม่พบออร์เดอร์ ${orderId}`);
+        // ตรวจซ้ำที่ชั้น repo ไม่ใช่เชื่อว่าจอซ่อนปุ่มไว้แล้ว — ของจริงต้องเป็นเซิร์ฟเวอร์ที่ตัดสิน
+        if (!canPayNowWithPromptPay(o)) throw new Error('payment.error.cannotSwitch');
+        o.paymentMethod = 'promptpay';
+        o.paymentStatus = 'paid';
         return { ...o };
       },
     },
