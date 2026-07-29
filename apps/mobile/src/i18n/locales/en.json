@@ -231,10 +231,9 @@
     },
     "checkout": {
       "title": "Checkout",
-      "payWithPromptPay": "Pay with PromptPay",
-      "scanToPay": "Scan the QR to pay (mock)",
-      "amount": "Amount due",
-      "confirmPay": "Confirm payment"
+      "deliverTo": "Deliver to",
+      "payWith": "Pay with",
+      "change": "Change"
     },
     "orderPlaced": {
       "title": "Order placed",
@@ -258,6 +257,33 @@
         "delivered": "Delivered",
         "cancelled": "Cancelled"
       }
+    },
+    "payment": {
+      "title": "Payment method",
+      "note": "The method you pick here becomes the default for your next order.",
+      "method": {
+        "promptpay": {
+          "title": "PromptPay QR",
+          "subtitle": "Scan to pay · most popular"
+        },
+        "cash": {
+          "title": "Cash on delivery",
+          "subtitle": "Pay the rider in cash"
+        },
+        "card": {
+          "title": "Credit / debit card",
+          "subtitle": "Not available yet — payment gateway pending"
+        }
+      }
+    },
+    "promptpay": {
+      "title": "PromptPay",
+      "amount": "Amount due",
+      "scanHint": "Scan with any banking app",
+      "expiresIn": "Expires in",
+      "expired": "QR expired",
+      "paid": "I've paid — check status",
+      "mockNote": "This QR is a mock — no real payment gateway is connected yet."
     }
   },
   "order": {

@@ -1,146 +1,222 @@
 import React, { useState } from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Button } from '../../../ui/Button';
-import { RoundButton } from '../../../ui/Surface';
+import { IconChip } from '../../../ui/Surface';
+import { ScreenHeader } from '../../../ui/ScreenHeader';
+import type { IconName } from '../../../ui/Icon';
 import { useCartStore } from '../../cart/cartStore';
-import { orderTotals, orderItemName } from '../../cart/pricing';
 import { formatBaht } from '../../../lib/format';
-import { useCreateOrder } from '../hooks';
-import { useAuthStore } from '../../auth/authStore';
+import { usePlaceOrder } from '../hooks';
+import { usePaymentStore, PAYMENT_ICON } from '../../payment/paymentStore';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
 
 type Props = NativeStackScreenProps<CustomerStackParamList, 'Checkout'>;
 
-/** ลาย QR จำลอง — ไม่ใช่ QR จริง ใช้คู่กับข้อความ "(ตัวอย่าง)" จนกว่าจะเลือก payment gateway (claude.md §11.3) */
-const QR_GRID = 13;
-function qrCell(row: number, col: number) {
-  // แพตเทิร์นคงที่ (ไม่สุ่มตอน render) เพื่อไม่ให้ลายเปลี่ยนทุกครั้งที่ re-render
-  const isFinder =
-    (row < 3 && col < 3) || (row < 3 && col >= QR_GRID - 3) || (row >= QR_GRID - 3 && col < 3);
-  if (isFinder) return (row + col) % 2 === 0 || row === 0 || col === 0;
-  return ((row * 7 + col * 11 + ((row * col) % 5)) % 3) !== 0;
-}
-
+/** C17 — ทวนออร์เดอร์ก่อนจ่าย: ที่อยู่ + ช่องทางจ่าย + ยอดแยกบรรทัด */
 export function CheckoutScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
-  const cart = useCartStore();
-  const account = useAuthStore((s) => s.account);
-  const createOrder = useCreateOrder();
-  const totals = orderTotals(cart.foodTotal());
+  const lineCount = useCartStore((s) => s.lines.reduce((n, l) => n + l.quantity, 0));
+  const method = usePaymentStore((s) => s.method);
+  const { placeOrder, totals, isPending, canPlace } = usePlaceOrder();
   const [error, setError] = useState<string | null>(null);
 
-  function confirm() {
-    if (!cart.restaurantId || !account) return;
+  function handlePlaceOrder() {
     setError(null);
-    createOrder.mutate(
-      {
-        customerId: account.id,
-        restaurantId: cart.restaurantId,
-        items: cart.lines.map((l) => ({
-          menuItemId: l.menuItemId,
-          name: orderItemName(l.name, l.selectedChoices),
-          unitPrice: l.unitPrice,
-          quantity: l.quantity,
-        })),
-        deliveryFee: totals.deliveryFee,
-        serviceFee: totals.serviceFee,
-      },
-      {
-        onSuccess: (order) => {
-          cart.clear();
-          navigation.replace('OrderPlaced', { orderId: order.id });
-        },
-        onError: () => {
-          // เหตุผลเดียวที่ถูกบล็อกใน slice นี้คือ guard สั่งร้านตัวเอง (map เป็น i18n key เดียว)
-          setError('order.error.ownRestaurant');
-        },
-      },
-    );
+    // พร้อมเพย์ต้องสแกนก่อน — เงินสดจ่ายปลายทาง จึงสร้างออร์เดอร์ได้เลย
+    if (method === 'promptpay') {
+      navigation.navigate('PromptPay');
+      return;
+    }
+    placeOrder({
+      onSuccess: (order) => navigation.replace('OrderPlaced', { orderId: order.id }),
+      onError: () => setError('order.error.ownRestaurant'),
+    });
   }
 
   return (
-    // จอชำระเงินเป็นพื้น teal เต็มจอตาม design — ไม่ผูกกับโหมดสว่าง/มืด
-    <SafeAreaView testID="screen-checkout" edges={['top', 'bottom']} style={{ flex: 1, backgroundColor: tokens.tealSolid }}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: p.space.md,
-          paddingHorizontal: p.space.screen,
-          paddingTop: p.space.sm,
-          paddingBottom: p.space.xs,
-        }}
-      >
-        <RoundButton icon="chevronLeft" tone="onDark" onPress={() => navigation.goBack()} accessibilityLabel={t('common.back')} />
-        <Text variant="h3" color="onTeal">{t('customer.checkout.payWithPromptPay')}</Text>
-      </View>
+    <SafeAreaView testID="screen-checkout" edges={['top', 'bottom']} style={{ flex: 1 }}>
+      <ScreenHeader title={t('customer.checkout.title')} onBack={() => navigation.goBack()} />
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: p.space.xl, alignItems: 'center', paddingBottom: p.space.lg }}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: p.space.screen, paddingBottom: p.space.lg, gap: p.space.md }}
       >
-        <Text variant="small" style={{ color: 'rgba(255,255,255,0.62)', marginTop: p.space.md }}>
-          {t('customer.checkout.amount')}
-        </Text>
-        <Text variant="display" color="onTeal" style={{ marginTop: 2 }}>
-          {formatBaht(totals.grandTotal)}
-        </Text>
+        {/* ที่อยู่ยังแก้ไม่ได้จนกว่าจะทำจอจัดการที่อยู่ (C9/C29) — ไม่ใส่ปุ่ม "เปลี่ยน" ที่กดแล้วไม่เกิดอะไร */}
+        <SummaryRow
+          testID="row-address"
+          icon="mapPin"
+          tone="teal"
+          kicker={t('customer.checkout.deliverTo')}
+          value={t('customer.home.defaultAddress')}
+        />
 
-        {/* PromptPay QR แบบ mock — ลายจำลอง ไม่ใช่ QR ที่สแกนได้ */}
+        <SummaryRow
+          testID="row-payment"
+          icon={PAYMENT_ICON[method]}
+          tone="brand"
+          kicker={t('customer.checkout.payWith')}
+          value={t(`customer.payment.method.${method}.title`)}
+          actionLabel={t('customer.checkout.change')}
+          onPress={() => navigation.navigate('PaymentMethod')}
+        />
+
+        {/* ค่าอาหาร/ค่าส่ง/ค่าบริการ แยกบรรทัดเสมอ ห้ามรวมเข้าไปในราคาอาหาร (claude.md §3 ข้อ 2) */}
         <View
           style={[
-            {
-              backgroundColor: '#FFFFFF',
-              borderRadius: p.radius.xl,
-              padding: p.space.xl,
-              marginTop: p.space.xl,
-            },
-            p.shadow.teal,
+            { backgroundColor: tokens.bgRaised, borderRadius: p.radius.lg, padding: p.space.lg },
+            p.shadow.card,
           ]}
         >
-          <View style={{ width: 13 * 14, height: 13 * 14, flexDirection: 'row', flexWrap: 'wrap' }}>
-            {Array.from({ length: QR_GRID * QR_GRID }).map((_, i) => {
-              const row = Math.floor(i / QR_GRID);
-              const col = i % QR_GRID;
-              return (
-                <View
-                  key={i}
-                  style={{
-                    width: 14,
-                    height: 14,
-                    backgroundColor: qrCell(row, col) ? '#1B1917' : '#FFFFFF',
-                  }}
-                />
-              );
-            })}
+          <TotalLine
+            testID="line-food"
+            label={`${t('customer.cart.foodTotal')} · ${lineCount} ${t('customer.restaurant.items')}`}
+            value={formatBaht(totals.foodTotal)}
+          />
+          <TotalLine testID="line-delivery" label={t('customer.cart.deliveryFee')} value={formatBaht(totals.deliveryFee)} />
+          <TotalLine testID="line-service" label={t('customer.cart.serviceFee')} value={formatBaht(totals.serviceFee)} last />
+
+          <View
+            style={{
+              marginTop: 12,
+              paddingTop: 12,
+              borderTopWidth: 1.5,
+              borderTopColor: tokens.borderSubtle,
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <Text variant="bodyLg" bold>
+              {t('customer.cart.grandTotal')}
+            </Text>
+            <Text testID="line-total" variant="bodyLg" color="link" bold>
+              {formatBaht(totals.grandTotal)}
+            </Text>
           </View>
         </View>
 
-        <Text variant="small" style={{ color: 'rgba(255,255,255,0.72)', marginTop: p.space.lg, textAlign: 'center' }}>
-          {t('customer.checkout.scanToPay')}
-        </Text>
-
         {error ? (
-          <Text testID="checkout-error" variant="small" bold style={{ color: '#FFB4AB', marginTop: p.space.md, textAlign: 'center' }}>
+          <Text testID="checkout-error" variant="small" color="danger" bold>
             {t(error)}
           </Text>
         ) : null}
       </ScrollView>
 
-      <View style={{ paddingHorizontal: p.space.xl, paddingBottom: p.space.lg, paddingTop: p.space.sm }}>
+      <View style={{ paddingHorizontal: p.space.screen, paddingBottom: p.space.lg, paddingTop: p.space.sm }}>
         <Button
-          testID="btn-confirm-pay"
-          label={t('customer.checkout.confirmPay')}
-          disabled={createOrder.isPending || cart.lines.length === 0}
-          onPress={confirm}
+          testID="btn-place-order"
+          label={t('customer.cart.placeOrder')}
+          trailingLabel={formatBaht(totals.grandTotal)}
+          disabled={isPending || !canPlace}
+          onPress={handlePlaceOrder}
         />
       </View>
     </SafeAreaView>
+  );
+}
+
+/** แถวสรุปตาม C17: ชิปไอคอน + kicker + ค่า (+ ลิงก์ "เปลี่ยน" ถ้ากดได้) */
+function SummaryRow({
+  testID,
+  icon,
+  tone,
+  kicker,
+  value,
+  actionLabel,
+  onPress,
+}: {
+  testID: string;
+  icon: IconName;
+  tone: 'brand' | 'teal';
+  kicker: string;
+  value: string;
+  actionLabel?: string;
+  onPress?: () => void;
+}) {
+  const { tokens, primitives: p } = useTheme();
+  const body = (
+    <>
+      <IconChip name={icon} tone={tone} size={40} />
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text variant="kicker" color="muted">
+          {kicker}
+        </Text>
+        <Text variant="small" bold numberOfLines={1} style={{ marginTop: 2 }}>
+          {value}
+        </Text>
+      </View>
+      {actionLabel ? (
+        <Text variant="caption" color="link" bold>
+          {actionLabel}
+        </Text>
+      ) : null}
+    </>
+  );
+
+  const style = [
+    {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: 13,
+      backgroundColor: tokens.bgRaised,
+      borderRadius: p.radius.lg,
+      padding: 15,
+    },
+    p.shadow.card,
+  ];
+
+  if (!onPress) {
+    return (
+      <View testID={testID} style={style}>
+        {body}
+      </View>
+    );
+  }
+  return (
+    <Pressable
+      testID={testID}
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [...style, { opacity: pressed ? 0.9 : 1 }]}
+    >
+      {body}
+    </Pressable>
+  );
+}
+
+function TotalLine({
+  testID,
+  label,
+  value,
+  last,
+}: {
+  testID: string;
+  label: string;
+  value: string;
+  last?: boolean;
+}) {
+  return (
+    <View
+      testID={testID}
+      style={{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: last ? 0 : 9,
+      }}
+    >
+      <Text variant="caption" color="muted">
+        {label}
+      </Text>
+      <Text variant="caption" bold>
+        {value}
+      </Text>
+    </View>
   );
 }

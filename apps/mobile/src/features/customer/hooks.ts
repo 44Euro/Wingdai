@@ -4,6 +4,8 @@ import { useAuthStore } from '../auth/authStore';
 import { isActiveStatus } from '../../data/orderStateMachine';
 import { buildNotifications, type AppNotification } from './notifications';
 import { useNotificationStore } from './notificationStore';
+import { useCartStore } from '../cart/cartStore';
+import { orderTotals, orderItemName } from '../cart/pricing';
 import type { Order, Restaurant } from '../../data/types';
 import type { CreateOrderInput } from '../../data/repositories';
 
@@ -42,6 +44,44 @@ export function useMenu(restaurantId: string) {
 
 export function useCreateOrder() {
   return useMutation({ mutationFn: (input: CreateOrderInput) => repos.orders.create(input) });
+}
+
+/**
+ * "สั่งเลย" — ประกอบ input จากตะกร้า + บัญชีที่ล็อกอินอยู่ แล้วล้างตะกร้าเมื่อสำเร็จ
+ * รวมไว้ที่เดียวเพราะมีสองทางเข้า: จ่ายเงินสด (จบที่จอ Checkout) กับพร้อมเพย์ (จบที่จอ QR)
+ */
+export function usePlaceOrder() {
+  const cart = useCartStore();
+  const account = useAuthStore((s) => s.account);
+  const createOrder = useCreateOrder();
+  const totals = orderTotals(cart.foodTotal());
+
+  function placeOrder(handlers: { onSuccess: (order: Order) => void; onError: () => void }) {
+    if (!cart.restaurantId || !account) return;
+    createOrder.mutate(
+      {
+        customerId: account.id,
+        restaurantId: cart.restaurantId,
+        items: cart.lines.map((l) => ({
+          menuItemId: l.menuItemId,
+          name: orderItemName(l.name, l.selectedChoices),
+          unitPrice: l.unitPrice,
+          quantity: l.quantity,
+        })),
+        deliveryFee: totals.deliveryFee,
+        serviceFee: totals.serviceFee,
+      },
+      {
+        onSuccess: (order) => {
+          cart.clear();
+          handlers.onSuccess(order);
+        },
+        onError: handlers.onError,
+      },
+    );
+  }
+
+  return { placeOrder, totals, isPending: createOrder.isPending, canPlace: cart.lines.length > 0 };
 }
 
 export function useCustomerOrders() {

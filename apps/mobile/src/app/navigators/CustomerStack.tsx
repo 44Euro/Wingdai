@@ -17,6 +17,8 @@ import { CartScreen } from '../../features/customer/screens/CartScreen';
 import { CheckoutScreen } from '../../features/customer/screens/CheckoutScreen';
 import { OrderPlacedScreen } from '../../features/customer/screens/OrderPlacedScreen';
 import { SearchScreen } from '../../features/customer/screens/SearchScreen';
+import { PaymentMethodScreen } from '../../features/customer/screens/PaymentMethodScreen';
+import { PromptPayScreen } from '../../features/customer/screens/PromptPayScreen';
 
 export type CustomerTabParamList = {
   CustomerHome: undefined;
@@ -31,6 +33,8 @@ export type CustomerStackParamList = {
   MenuItem: { restaurantId: string; menuItemId: string };
   Cart: undefined;
   Checkout: undefined;
+  PaymentMethod: undefined;
+  PromptPay: undefined;
   OrderPlaced: { orderId: string };
   /** design ไม่มีแท็บแจ้งเตือน — เข้าจากกระดิ่งบนหัวจอ Home แทน (C20) */
   Notifications: undefined;
@@ -74,6 +78,8 @@ export function CustomerStack() {
       <Stack.Screen name="MenuItem" component={MenuItemScreen} />
       <Stack.Screen name="Cart" component={CartScreen} />
       <Stack.Screen name="Checkout" component={CheckoutScreen} />
+      <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} />
+      <Stack.Screen name="PromptPay" component={PromptPayScreen} />
       <Stack.Screen name="OrderPlaced" component={OrderPlacedScreen} options={{ gestureEnabled: false }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />

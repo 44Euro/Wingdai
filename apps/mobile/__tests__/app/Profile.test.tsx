@@ -43,7 +43,9 @@ describe('ProfileScreen', () => {
       capabilities: ['customer'],
       activeCapability: 'customer',
     } as never);
-    const result = render(<ProfileScreen />);
+    const result = render(
+      <ProfileScreen navigation={{ navigate: jest.fn() } as never} route={{ key: 'k', name: 'Profile' } as never} />,
+    );
 
     const hasName = result.root.findAll((n) => n.props?.children === 'สมชาย ใจดี').length > 0;
     expect(hasName).toBe(true);

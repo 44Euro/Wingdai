@@ -8,6 +8,7 @@ import { ThemeProvider } from '../../src/theme/ThemeProvider';
 import { initI18n, i18n } from '../../src/i18n';
 import { useCartStore } from '../../src/features/cart/cartStore';
 import { useAuthStore } from '../../src/features/auth/authStore';
+import { usePaymentStore } from '../../src/features/payment/paymentStore';
 import type { MenuItem } from '../../src/data/types';
 import type { CustomerStackParamList } from '../../src/app/navigators/CustomerStack';
 
@@ -26,6 +27,7 @@ beforeAll(async () => {
 beforeEach(() => {
   useCartStore.getState().clear();
   useAuthStore.setState({ account: null } as never);
+  usePaymentStore.setState({ method: 'promptpay' });
 });
 let r: ReactTestRenderer.ReactTestRenderer | null = null;
 afterEach(() => {
@@ -67,8 +69,9 @@ function render(nav: { navigate: jest.Mock; replace: jest.Mock; popToTop: jest.M
   return r!;
 }
 
-describe('CheckoutScreen', () => {
-  it('ลูกค้าปกติยืนยันชำระเงิน → สร้างออร์เดอร์แล้ว replace ไป OrderPlaced + ตะกร้าถูกล้าง', async () => {
+describe('CheckoutScreen (C17)', () => {
+  // พร้อมเพย์ต้องสแกนก่อน จอนี้จึงพาไปจอ QR ไม่ใช่สร้างออร์เดอร์เอง
+  it('จ่ายด้วยพร้อมเพย์ → ไปจอ QR ยังไม่สร้างออร์เดอร์', async () => {
     useAuthStore.setState({ account: { id: 'u-somchai' } } as never);
     act(() => {
       useCartStore.getState().addItem('r-malee', item('m-malee-1', 5000));
@@ -76,7 +79,24 @@ describe('CheckoutScreen', () => {
     const nav = { navigate: jest.fn(), replace: jest.fn(), popToTop: jest.fn() };
     const result = render(nav);
     act(() => {
-      findAll(result.root, 'btn-confirm-pay')[0].props.onPress();
+      findAll(result.root, 'btn-place-order')[0].props.onPress();
+    });
+    await flush();
+    expect(nav.navigate).toHaveBeenCalledWith('PromptPay');
+    expect(nav.replace).not.toHaveBeenCalled();
+    expect(useCartStore.getState().lines).toHaveLength(1);
+  });
+
+  it('จ่ายเงินสด → สร้างออร์เดอร์เลยแล้ว replace ไป OrderPlaced + ตะกร้าถูกล้าง', async () => {
+    useAuthStore.setState({ account: { id: 'u-somchai' } } as never);
+    usePaymentStore.setState({ method: 'cash' });
+    act(() => {
+      useCartStore.getState().addItem('r-malee', item('m-malee-1', 5000));
+    });
+    const nav = { navigate: jest.fn(), replace: jest.fn(), popToTop: jest.fn() };
+    const result = render(nav);
+    act(() => {
+      findAll(result.root, 'btn-place-order')[0].props.onPress();
     });
     await flush();
     expect(nav.replace).toHaveBeenCalledTimes(1);
@@ -84,19 +104,33 @@ describe('CheckoutScreen', () => {
     expect(useCartStore.getState().lines).toHaveLength(0);
   });
 
-  it('เจ้าของร้านสั่งร้านตัวเอง → error โชว์ ไม่ replace', async () => {
+  it('เจ้าของร้านสั่งร้านตัวเอง (เงินสด) → error โชว์ ไม่ replace', async () => {
     useAuthStore.setState({ account: { id: 'u-malee' } } as never);
+    usePaymentStore.setState({ method: 'cash' });
     act(() => {
       useCartStore.getState().addItem('r-malee', item('m-malee-1', 5000));
     });
     const nav = { navigate: jest.fn(), replace: jest.fn(), popToTop: jest.fn() };
     const result = render(nav);
     act(() => {
-      findAll(result.root, 'btn-confirm-pay')[0].props.onPress();
+      findAll(result.root, 'btn-place-order')[0].props.onPress();
     });
     await flush();
     expect(nav.replace).not.toHaveBeenCalled();
     const err = findAll(result.root, 'checkout-error').find((n) => typeof n.props.children === 'string');
     expect(err?.props.children).toBe(i18n.t('order.error.ownRestaurant'));
+  });
+
+  it('กดแถวช่องทางจ่ายเงิน → ไปจอเลือกช่องทาง (C18)', async () => {
+    useAuthStore.setState({ account: { id: 'u-somchai' } } as never);
+    act(() => {
+      useCartStore.getState().addItem('r-malee', item('m-malee-1', 5000));
+    });
+    const nav = { navigate: jest.fn(), replace: jest.fn(), popToTop: jest.fn() };
+    const result = render(nav);
+    act(() => {
+      findAll(result.root, 'row-payment')[0].props.onPress();
+    });
+    expect(nav.navigate).toHaveBeenCalledWith('PaymentMethod');
   });
 });
