@@ -1,17 +1,26 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    // NestJS เป็น CommonJS และ DI ของมันอ่านชนิดของ constructor จาก emitDecoratorMetadata
+    // ถ้าคอมไพล์โดยไม่เปิดสองตัวนี้ จะเจอ "cannot resolve dependency at index 0" ที่หาสาเหตุยาก
+    // จึงคอมไพล์ด้วย tsc ตรง ๆ ไม่ใช่ esbuild/swc
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "lib": ["ES2023"],
     "types": ["node"],
     "strict": true,
+    // property ที่ Nest ฉีดให้ผ่าน decorator ไม่ได้ถูก assign ใน constructor
+    "strictPropertyInitialization": false,
     "noUncheckedIndexedAccess": true,
-    "noEmit": true,
+    "outDir": "dist",
+    "sourceMap": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*.ts", "drizzle.config.ts"]
+  "include": ["src/**/*.ts", "drizzle.config.ts"],
+  "exclude": ["dist", "node_modules"]
 }

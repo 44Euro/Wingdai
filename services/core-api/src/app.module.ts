@@ -1,0 +1,23 @@
+import { Module, Controller, Get } from '@nestjs/common';
+import { ConfigModule } from './config.module';
+import { DbModule } from './db/db.module';
+import { AuthModule } from './auth/auth.module';
+
+/** ให้ตัวโหลดบาลานเซอร์และสคริปต์ทดสอบเช็คได้ว่าเซิร์ฟเวอร์ขึ้นแล้ว */
+@Controller('health')
+class HealthController {
+  @Get()
+  check() {
+    return { ok: true };
+  }
+}
+
+/**
+ * modular monolith ตาม claude.md §5 — auth, catalog, order, payment, ledger, notification
+ * แม็ปกับโมดูลของ NestJS หนึ่งต่อหนึ่ง แยกออกเป็นเซอร์วิสจริงค่อยว่ากันเมื่อโหลดบังคับ
+ */
+@Module({
+  imports: [ConfigModule, DbModule, AuthModule],
+  controllers: [HealthController],
+})
+export class AppModule {}
