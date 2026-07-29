@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { View, Pressable } from 'react-native';
+import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { Text } from '../../ui/Text';
-import { Icon, IconName } from '../../ui/Icon';
-import { IconChip } from '../../ui/Surface';
+import { ChoiceCard } from '../../ui/ChoiceCard';
 import { useAuthStore } from '../../features/auth/authStore';
 import type { AuthStackParamList } from './AuthNavigator';
 import type { AccountType } from '../../data/types';
@@ -14,69 +13,6 @@ import type { AccountType } from '../../data/types';
 type Props = {
   route: RouteProp<AuthStackParamList, 'ChooseAccountType'>;
 };
-
-/** การ์ดตัวเลือกบทบาทตาม design (A5): ชิปไอคอน + ข้อความ + วงกลมติ๊กถูกด้านขวา */
-function AccountTypeCard({
-  testID,
-  title,
-  description,
-  icon,
-  tone,
-  selected,
-  onPress,
-}: {
-  testID: string;
-  title: string;
-  description: string;
-  icon: IconName;
-  tone: 'brand' | 'teal';
-  selected: boolean;
-  onPress: () => void;
-}) {
-  const { tokens, primitives: p } = useTheme();
-  return (
-    <Pressable
-      testID={testID}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      onPress={onPress}
-      style={({ pressed }) => [
-        {
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: p.space.lg,
-          backgroundColor: tokens.bgRaised,
-          borderRadius: p.radius.xl,
-          borderWidth: selected ? 2.5 : 1.6,
-          borderColor: selected ? tokens.brandAccent : tokens.borderSubtle,
-          padding: p.space.xl,
-          opacity: pressed ? 0.9 : 1,
-        },
-        p.shadow.card,
-      ]}
-    >
-      <IconChip name={icon} tone={tone} size={54} />
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <Text variant="bodyLg" bold>{title}</Text>
-        <Text variant="caption" color="muted" style={{ marginTop: 3 }}>{description}</Text>
-      </View>
-      <View
-        style={{
-          width: 24,
-          height: 24,
-          borderRadius: 12,
-          borderWidth: selected ? 0 : 2,
-          borderColor: tokens.borderSubtle,
-          backgroundColor: selected ? tokens.brandAccent : 'transparent',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {selected ? <Icon name="check" color="#FFFFFF" size={14} strokeWidth={3.4} /> : null}
-      </View>
-    </Pressable>
-  );
-}
 
 export function ChooseAccountTypeScreen({ route }: Props) {
   const { t } = useTranslation();
@@ -105,7 +41,7 @@ export function ChooseAccountTypeScreen({ route }: Props) {
         <Text variant="h1">{t('auth.chooseType.title')}</Text>
 
         <View style={{ gap: p.space.md, marginTop: p.space.md }}>
-          <AccountTypeCard
+          <ChoiceCard
             testID="choose-user"
             title={t('auth.chooseType.user')}
             description={t('auth.chooseType.userDescription')}
@@ -115,7 +51,7 @@ export function ChooseAccountTypeScreen({ route }: Props) {
             onPress={() => handleChoose('user')}
           />
 
-          <AccountTypeCard
+          <ChoiceCard
             testID="choose-rider"
             title={t('auth.chooseType.rider')}
             description={t('auth.chooseType.riderDescription')}

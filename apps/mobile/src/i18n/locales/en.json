@@ -82,10 +82,14 @@
   },
   "roleSwitcher": {
     "title": "Switch mode",
-    "customer": "Customer mode",
-    "merchant": "Merchant mode",
-    "rider": "Rider mode",
-    "admin": "Admin mode"
+    "customer": "Order food",
+    "customerDescription": "Discover kitchens near you and track delivery live.",
+    "merchant": "My kitchen",
+    "merchantDescription": "Manage your menu, take orders and see your sales.",
+    "rider": "Deliver & earn",
+    "riderDescription": "Pick up nearby jobs and earn on your own schedule.",
+    "admin": "Admin",
+    "adminDescription": "Review orders needing attention and approve requests."
   },
   "settings": {
     "language": "Language",
