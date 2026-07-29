@@ -256,6 +256,13 @@ Status of each:
 - **Cash on delivery** — works end to end; the rider collects. Cash orders need their own ledger treatment (rider holds platform money) — get this right before launch.
 - **Card** — listed in the picker but **not selectable yet**, labelled "payment gateway pending". Enable it the moment §11.3 is resolved. The fee delta (0.8–1.8% vs 3.2–3.65%) must be visible in internal margin reporting — don't let card become invisible overhead.
 
+**Cash shortfall — the customer picked cash but doesn't have enough (resolved 2026-07-30).** Grab and LINE MAN riders handle this informally by taking a personal bank transfer, sometimes after fronting the food cost themselves. **Wingdai does not support that, and the app must never suggest it.** Three reasons, in order of severity:
+1. A rider who fronts food cost needs working capital to take jobs at all — §6.2 rules that out explicitly, because it gates rider recruitment on having cash on hand.
+2. Money transferred to a rider's personal account never passes through the ledger, so §6.2's daily reconciliation silently breaks.
+3. It moves the platform's collection risk onto the rider without any agreement to that effect.
+
+The supported path is a **"Switch to PromptPay" action on the order tracking screen (C6)**: the customer pays the platform directly, and the rider's cash-collection duty for that order disappears. Allowed while the order is still active and unpaid; once `delivered`, the money is considered collected and any problem goes through the refund flow (§6.4) instead — changing payment method retroactively is never the answer. The rule lives in `canPayNowWithPromptPay` (`apps/mobile/src/lib/rules.ts`) and must be re-checked server-side when the order module lands, not trusted from the client.
+
 ---
 
 ## 7. Core data entities (starting point, not final schema)
@@ -334,6 +341,7 @@ mock repo for the HTTP one stays a one-file change.
 - **Dark mode: yes, from the first commit** (decided 2026-07-21). Riders work at night; a bright screen while driving is a safety issue, not a preference. This requires a semantic token layer (`bg-surface`, `text-primary`, …) rather than components referencing raw palette values — retrofitting dark mode later means editing every file.
 - ~~**Email as optional login alias** (decided 2026-07-23)~~ — **superseded 2026-07-29.** Login identifier is now **username OR phone**, not email. Email is still captured at registration (optional, not OTP-verified) but is only a password-reset channel. `Account` keeps its optional `email` field. See §4.2.
 - **Payment methods: PromptPay + cash + card** (decided 2026-07-29) — card payments moved off the §2 "do not build yet" list. PromptPay remains the default; the customer picks their own default in Profile → Payment method. Card stays disabled in the UI until §11.3 is resolved. See §6.5.
+- **Cash shortfall is solved in-app, never by the rider** (decided 2026-07-30) — a customer who picked cash and can't pay switches that order to PromptPay from the tracking screen. Riders never front money and never take personal transfers. See §6.5.
 - **Notifications are derived from orders, not a separate table** (decided 2026-07-29) — Phase 1 has no push infrastructure or notification entity, so the in-app notification list (design C20) is generated from the customer's own order events. Swap the data source when the backend lands; the screen doesn't change.
 - **Design handoff features that stay banned** — the handoff contains screens for wallet/credit, loyalty points, group order, and promotions. Take the visual language only. When a design screen's *content* is a banned feature, replace it with content backed by real data rather than dropping the screen or faking the data.
 - **Visual language: "Wingdai rounded-soft"** (decided 2026-07-27). The app follows the design handoff (`Wingdai App.dc.html`, 58 screens): warm off-white ground `#F6F1EA`, white rounded cards (radius 20–24) with soft ambient shadows, pill buttons/chips, a floating teal pill bottom-nav, brand orange `#F15A22` + brand teal `#0E3B3A`. **All new screens must be composed from the primitives in `apps/mobile/src/ui/` — no raw colors, radii, or shadows in screen files.** Full spec: `docs/design/wingdai-design-system.md`.
