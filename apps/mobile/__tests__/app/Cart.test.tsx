@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 import { NavigationContainer } from '@react-navigation/native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CartScreen } from '../../src/features/customer/screens/CartScreen';
 import { ThemeProvider } from '../../src/theme/ThemeProvider';
@@ -35,16 +36,19 @@ function findAll(root: ReactTestRenderer.ReactTestInstance, id: string) {
 }
 
 function render(nav: { navigate: jest.Mock }) {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   act(() => {
     r = ReactTestRenderer.create(
-      <ThemeProvider forceScheme="light">
-        <NavigationContainer>
-          <CartScreen
-            navigation={nav as unknown as NativeStackScreenProps<CustomerStackParamList, 'Cart'>['navigation']}
-            route={{ key: 'k', name: 'Cart' } as never}
-          />
-        </NavigationContainer>
-      </ThemeProvider>,
+      <QueryClientProvider client={qc}>
+        <ThemeProvider forceScheme="light">
+          <NavigationContainer>
+            <CartScreen
+              navigation={nav as unknown as NativeStackScreenProps<CustomerStackParamList, 'Cart'>['navigation']}
+              route={{ key: 'k', name: 'Cart' } as never}
+            />
+          </NavigationContainer>
+        </ThemeProvider>
+      </QueryClientProvider>,
     );
   });
   return r!;

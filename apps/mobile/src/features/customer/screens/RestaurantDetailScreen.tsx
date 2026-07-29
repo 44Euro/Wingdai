@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, ScrollView, Pressable, Modal } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
@@ -21,6 +21,7 @@ export function RestaurantDetailScreen({ navigation, route }: Props) {
   const { restaurantId } = route.params;
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
+  const insets = useSafeAreaInsets();
   const { data: restaurant } = useRestaurant(restaurantId);
   const { data: menu = [] } = useMenu(restaurantId);
   const cart = useCartStore();
@@ -58,13 +59,39 @@ export function RestaurantDetailScreen({ navigation, route }: Props) {
         {/* รูปหน้าร้านเต็มความกว้าง + ปุ่มย้อนกลับลอยทับ ตาม design */}
         <View>
           <PhotoBlock height={188} radius={0} />
-          <View style={{ position: 'absolute', top: p.space.lg, left: p.space.lg }}>
+          {/* รูปไหลขึ้นไปใต้แถบสถานะ — ปุ่มย้อนกลับต้องเผื่อ inset เอง ไม่งั้นชนรอยบาก */}
+          <View style={{ position: 'absolute', top: insets.top + 14, left: 16 }}>
             <RoundButton icon="chevronLeft" onPress={() => navigation.goBack()} accessibilityLabel={t('common.back')} />
           </View>
         </View>
 
         <View style={{ paddingHorizontal: p.space.screen, paddingTop: p.space.lg, gap: p.space.md }}>
-          <Text variant="h1">{restaurant?.name ?? ''}</Text>
+          {/* C3: ชื่อร้าน + หมวด อยู่ซ้าย · แบดจ์คะแนนสี teal อยู่ขวา */}
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: p.space.md }}>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text variant="h1">{restaurant?.name ?? ''}</Text>
+              {restaurant ? (
+                <Text variant="caption" color="muted" style={{ marginTop: 4 }}>
+                  {t(`customer.cuisine.${restaurant.cuisine}`)}
+                </Text>
+              ) : null}
+            </View>
+            {restaurant ? (
+              <View
+                testID="restaurant-rating"
+                style={{
+                  backgroundColor: tokens.tealSolid,
+                  paddingHorizontal: 11,
+                  paddingVertical: 7,
+                  borderRadius: p.radius.sm,
+                }}
+              >
+                <Text variant="caption" color="onTeal" bold>
+                  ★ {restaurant.rating.toFixed(1)}
+                </Text>
+              </View>
+            ) : null}
+          </View>
 
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: p.space.sm }}>
             {restaurant ? (

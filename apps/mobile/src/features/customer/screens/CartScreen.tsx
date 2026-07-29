@@ -10,6 +10,7 @@ import { Icon } from '../../../ui/Icon';
 import { Card, PhotoBlock } from '../../../ui/Surface';
 import { ScreenHeader } from '../../../ui/ScreenHeader';
 import { useCartStore } from '../../cart/cartStore';
+import { useRestaurant } from '../hooks';
 import { orderTotals } from '../../cart/pricing';
 import { formatBaht } from '../../../lib/format';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
@@ -21,6 +22,7 @@ export function CartScreen({ navigation }: Props) {
   const { tokens, primitives: p } = useTheme();
   const cart = useCartStore();
   const totals = orderTotals(cart.foodTotal());
+  const { data: restaurant } = useRestaurant(cart.restaurantId ?? '');
 
   if (cart.lines.length === 0) {
     return (
@@ -68,6 +70,21 @@ export function CartScreen({ navigation }: Props) {
   return (
     <SafeAreaView testID="screen-cart" edges={['top', 'bottom']} style={{ flex: 1, backgroundColor: tokens.bgSurface }}>
       <ScreenHeader title={t('customer.cart.title')} onBack={() => navigation.goBack()} />
+
+      {/* C4 บอกว่าตะกร้าใบนี้เป็นของร้านไหน — ตะกร้าถือได้ร้านเดียวต่อครั้ง */}
+      {restaurant ? (
+        <View style={{ flexDirection: 'row', gap: 4, paddingHorizontal: p.space.screen, paddingBottom: 6 }}>
+          <Text variant="caption" color="muted">
+            {t('customer.cart.from')}
+          </Text>
+          <Text testID="cart-restaurant" variant="caption" bold numberOfLines={1} style={{ flexShrink: 1 }}>
+            {restaurant.name}
+          </Text>
+          <Text variant="caption" color="muted">
+            · {restaurant.distanceKm} {t('customer.home.km')}
+          </Text>
+        </View>
+      ) : null}
 
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: p.space.screen, paddingBottom: p.space.xl, gap: p.space.md }}

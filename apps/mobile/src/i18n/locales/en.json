@@ -215,7 +215,9 @@
     "profile": {
       "title": "Profile",
       "phone": "Phone",
-      "logout": "Log out"
+      "logout": "Log out",
+      "statOrders": "Orders",
+      "statDelivered": "Delivered"
     },
     "cart": {
       "title": "Cart",
@@ -227,7 +229,8 @@
       "placeOrder": "Place order",
       "emptyBody": "Find something delicious from kitchens near you — it only takes a couple of taps.",
       "browse": "Browse kitchens",
-      "remove": "Remove"
+      "remove": "Remove",
+      "from": "From"
     },
     "checkout": {
       "title": "Checkout",

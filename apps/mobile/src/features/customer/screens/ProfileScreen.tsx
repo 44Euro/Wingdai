@@ -12,6 +12,7 @@ import { Card, IconChip } from '../../../ui/Surface';
 import { TAB_BAR_CLEARANCE } from '../../../app/navigators/WingdaiTabBar';
 import { RoleSwitcher } from '../../../app/RoleSwitcher';
 import { useAuthStore } from '../../auth/authStore';
+import { useCustomerOrders } from '../hooks';
 import { usePaymentStore, PAYMENT_ICON } from '../../payment/paymentStore';
 import type { CustomerStackParamList, CustomerTabParamList } from '../../../app/navigators/CustomerStack';
 
@@ -27,6 +28,7 @@ export function ProfileScreen({ navigation }: Props) {
   const account = useAuthStore((s) => s.account);
   const logout = useAuthStore((s) => s.logout);
   const method = usePaymentStore((s) => s.method);
+  const { data: orders = [] } = useCustomerOrders();
 
   const initial = (account?.fullName ?? account?.username ?? '?').trim().charAt(0).toUpperCase();
 
@@ -65,6 +67,17 @@ export function ProfileScreen({ navigation }: Props) {
               {t('customer.profile.phone')} · {account?.phone ?? ''}
             </Text>
           </View>
+        </View>
+
+        {/* C8 มีการ์ดตัวเลขสามใบ — เอามาสองใบที่นับจากข้อมูลจริง
+            ใบ "Wingdai credit" ไม่เอา เพราะ claude.md §2 แบนกระเป๋าเงิน/แต้ม */}
+        <View style={{ flexDirection: 'row', gap: p.space.sm, paddingHorizontal: p.space.screen }}>
+          <StatCard testID="stat-orders" value={String(orders.length)} label={t('customer.profile.statOrders')} tone="teal" />
+          <StatCard
+            testID="stat-delivered"
+            value={String(orders.filter((o) => o.status === 'delivered').length)}
+            label={t('customer.profile.statDelivered')}
+          />
         </View>
 
         <View style={{ paddingHorizontal: p.space.screen, gap: p.space.lg }}>
@@ -122,5 +135,31 @@ export function ProfileScreen({ navigation }: Props) {
         </View>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+/** การ์ดตัวเลขบนโปรไฟล์ตาม C8 — ใบแรกเป็น teal ที่เหลือเป็นการ์ดขาว */
+function StatCard({
+  testID,
+  value,
+  label,
+  tone = 'raised',
+}: {
+  testID: string;
+  value: string;
+  label: string;
+  tone?: 'raised' | 'teal';
+}) {
+  const { primitives: p } = useTheme();
+  const onTeal = tone === 'teal';
+  return (
+    <Card testID={testID} tone={tone} padded={false} style={{ flex: 1, padding: 14, borderRadius: 18 }}>
+      <Text variant="h2" color={onTeal ? 'onTeal' : 'primary'}>
+        {value}
+      </Text>
+      <Text variant="kicker" color={onTeal ? 'onTealMuted' : 'muted'} style={{ marginTop: 2 }}>
+        {label}
+      </Text>
+    </Card>
   );
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ProfileScreen } from '../../src/features/customer/screens/ProfileScreen';
 import { ThemeProvider } from '../../src/theme/ThemeProvider';
 import { initI18n } from '../../src/i18n';
@@ -30,8 +31,13 @@ async function flush() {
   }
 }
 function render(node: React.ReactElement) {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   act(() => {
-    r = ReactTestRenderer.create(<ThemeProvider forceScheme="light">{node}</ThemeProvider>);
+    r = ReactTestRenderer.create(
+      <QueryClientProvider client={qc}>
+        <ThemeProvider forceScheme="light">{node}</ThemeProvider>
+      </QueryClientProvider>,
+    );
   });
   return r!;
 }
