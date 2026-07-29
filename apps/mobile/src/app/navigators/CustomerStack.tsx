@@ -7,7 +7,7 @@ import { useTheme } from '../../theme/ThemeProvider';
 import { WingdaiTabBar } from './WingdaiTabBar';
 import { CustomerHomeScreen } from '../../features/customer/screens/CustomerHomeScreen';
 import { OrderHistoryScreen } from '../../features/customer/screens/OrderHistoryScreen';
-import { InboxScreen } from '../../features/customer/screens/InboxScreen';
+import { NotificationsScreen } from '../../features/customer/screens/NotificationsScreen';
 import { CategoriesScreen } from '../../features/customer/screens/CategoriesScreen';
 import { OrderTrackingScreen } from '../../features/customer/screens/OrderTrackingScreen';
 import { ProfileScreen } from '../../features/customer/screens/ProfileScreen';
@@ -32,8 +32,8 @@ export type CustomerStackParamList = {
   Cart: undefined;
   Checkout: undefined;
   OrderPlaced: { orderId: string };
-  /** design ไม่มีแท็บกล่องข้อความ — เข้าจากกระดิ่งบนหัวจอ Home แทน */
-  Inbox: undefined;
+  /** design ไม่มีแท็บแจ้งเตือน — เข้าจากกระดิ่งบนหัวจอ Home แทน (C20) */
+  Notifications: undefined;
   OrderTracking: { orderId: string };
   Search: undefined;
 };
@@ -75,7 +75,7 @@ export function CustomerStack() {
       <Stack.Screen name="Cart" component={CartScreen} />
       <Stack.Screen name="Checkout" component={CheckoutScreen} />
       <Stack.Screen name="OrderPlaced" component={OrderPlacedScreen} options={{ gestureEnabled: false }} />
-      <Stack.Screen name="Inbox" component={InboxScreen} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
       {/* C2 เปิดจากแถบค้นหาบนหน้าแรก — ไม่มีแอนิเมชันสไลด์เพื่อให้รู้สึกเหมือนช่องค้นหาขยายขึ้นมา */}
       <Stack.Screen name="Search" component={SearchScreen} options={{ animation: 'fade' }} />

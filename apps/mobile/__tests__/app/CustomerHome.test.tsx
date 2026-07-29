@@ -77,14 +77,14 @@ describe('CustomerHomeScreen', () => {
     expect(navigate).toHaveBeenCalledWith('Search');
   });
 
-  it('กดกระดิ่ง → ไปกล่องข้อความ', async () => {
+  it('กดกระดิ่ง → ไปจอแจ้งเตือน', async () => {
     const navigate = jest.fn();
     const result = render({ navigate });
     await flush();
     act(() => {
       findAll(result.root, 'btn-notifications')[0].props.onPress();
     });
-    expect(navigate).toHaveBeenCalledWith('Inbox');
+    expect(navigate).toHaveBeenCalledWith('Notifications');
   });
 
   it('กด "ดูทั้งหมด" → ไปแท็บหมวดหมู่', async () => {

@@ -6,7 +6,14 @@
     "back": "Back",
     "save": "Save",
     "loading": "Loading",
-    "errorGeneric": "Something went wrong. Please try again."
+    "errorGeneric": "Something went wrong. Please try again.",
+    "time": {
+      "justNow": "Just now",
+      "minutesAgo": "{{count}} min ago",
+      "hoursAgo": "{{count}} h ago",
+      "yesterday": "Yesterday",
+      "daysAgo": "{{count}} d ago"
+    }
   },
   "auth": {
     "login": {
@@ -167,9 +174,39 @@
         "cancelled": "Cancelled"
       }
     },
-    "inbox": {
-      "title": "Inbox",
-      "empty": "No messages yet"
+    "notifications": {
+      "title": "Notifications",
+      "markAllRead": "Mark all read",
+      "today": "Today",
+      "earlier": "Earlier",
+      "empty": "No notifications yet",
+      "emptyBody": "Once you place an order, its progress shows up here.",
+      "status": {
+        "created": {
+          "title": "Order placed",
+          "body": "Waiting for {{restaurant}} to accept"
+        },
+        "accepted": {
+          "title": "Kitchen accepted",
+          "body": "{{restaurant}} is about to start cooking"
+        },
+        "preparing": {
+          "title": "Cooking now",
+          "body": "{{restaurant}} is preparing your food"
+        },
+        "picked_up": {
+          "title": "Rider picked it up",
+          "body": "Your food from {{restaurant}} is on the way"
+        },
+        "delivered": {
+          "title": "Delivered",
+          "body": "Your order from {{restaurant}} arrived"
+        },
+        "cancelled": {
+          "title": "Order cancelled",
+          "body": "Your order from {{restaurant}} was cancelled"
+        }
+      }
     },
     "profile": {
       "title": "Profile",

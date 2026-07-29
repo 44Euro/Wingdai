@@ -14,7 +14,8 @@ import { TAB_BAR_CLEARANCE } from '../../../app/navigators/WingdaiTabBar';
 import { useAuthStore } from '../../auth/authStore';
 import { DELIVERY_FEE } from '../../cart/pricing';
 import { formatBaht } from '../../../lib/format';
-import { useRestaurants } from '../hooks';
+import { useRestaurants, useNotifications } from '../hooks';
+import { countUnread } from '../notifications';
 import type { CustomerStackParamList, CustomerTabParamList } from '../../../app/navigators/CustomerStack';
 import type { CuisineCategory, Restaurant } from '../../../data/types';
 
@@ -31,6 +32,7 @@ export function CustomerHomeScreen({ navigation }: Props) {
   const { data: restaurants = [] } = useRestaurants();
   const account = useAuthStore((s) => s.account);
   const [cat, setCat] = useState<CuisineCategory | 'all'>('all');
+  const unread = countUnread(useNotifications());
 
   const shown = cat === 'all' ? restaurants : restaurants.filter((r) => r.cuisine === cat);
 
@@ -62,7 +64,7 @@ export function CustomerHomeScreen({ navigation }: Props) {
             testID="btn-notifications"
             accessibilityRole="button"
             accessibilityLabel={t('customer.home.notifications')}
-            onPress={() => navigation.navigate('Inbox')}
+            onPress={() => navigation.navigate('Notifications')}
             hitSlop={6}
             style={({ pressed }) => [
               {
@@ -78,6 +80,23 @@ export function CustomerHomeScreen({ navigation }: Props) {
             ]}
           >
             <Icon name="inbox" color={tokens.textPrimary} size={21} strokeWidth={2} />
+            {/* จุดส้มขึ้นจริงตามจำนวนที่ยังไม่อ่าน — ไม่ได้วาดไว้ตายตัว */}
+            {unread > 0 ? (
+              <View
+                testID="notifications-dot"
+                style={{
+                  position: 'absolute',
+                  top: 9,
+                  right: 10,
+                  width: 9,
+                  height: 9,
+                  borderRadius: 4.5,
+                  backgroundColor: tokens.brandAccent,
+                  borderWidth: 2,
+                  borderColor: tokens.bgRaised,
+                }}
+              />
+            ) : null}
           </Pressable>
 
           <View

@@ -2,6 +2,8 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { repos } from '../../data';
 import { useAuthStore } from '../auth/authStore';
 import { isActiveStatus } from '../../data/orderStateMachine';
+import { buildNotifications, type AppNotification } from './notifications';
+import { useNotificationStore } from './notificationStore';
 import type { Order, Restaurant } from '../../data/types';
 import type { CreateOrderInput } from '../../data/repositories';
 
@@ -68,4 +70,12 @@ export function useActiveOrder(): Order | undefined {
 
 export function useOrder(orderId: string) {
   return useQuery({ queryKey: ['order', orderId], queryFn: () => repos.orders.get(orderId) });
+}
+
+/** รายการแจ้งเตือน (C20) — ประกอบจากออร์เดอร์จริง + ชื่อร้าน ดู notifications.ts ว่าทำไมไม่เก็บเป็นตารางแยก */
+export function useNotifications(): AppNotification[] {
+  const { data: orders = [] } = useCustomerOrders();
+  const { data: restaurants = [] } = useRestaurants();
+  const lastReadAt = useNotificationStore((s) => s.lastReadAt);
+  return buildNotifications(orders, restaurants, lastReadAt);
 }

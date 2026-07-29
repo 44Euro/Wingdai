@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 import { ProfileScreen } from '../../src/features/customer/screens/ProfileScreen';
-import { InboxScreen } from '../../src/features/customer/screens/InboxScreen';
 import { ThemeProvider } from '../../src/theme/ThemeProvider';
 import { initI18n } from '../../src/i18n';
 import { useAuthStore } from '../../src/features/auth/authStore';
@@ -54,12 +53,5 @@ describe('ProfileScreen', () => {
     });
     await flush();
     expect(useAuthStore.getState().account).toBeNull();
-  });
-});
-
-describe('InboxScreen', () => {
-  it('แสดง empty state', () => {
-    const result = render(<InboxScreen />);
-    expect(findAll(result.root, 'screen-inbox').length).toBeGreaterThanOrEqual(1);
   });
 });
