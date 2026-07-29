@@ -85,25 +85,29 @@ export function LoginScreen({ navigation }: Props) {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             flexGrow: 1,
+            // จอสูงกว่าเนื้อหาเสมอ — กระจายที่ว่างเป็นสองช่อง (ใต้หัวจอ กับเหนือบรรทัดท้าย)
+            // แทนที่จะกองไว้ก้อนเดียวใต้ปุ่ม Google ซึ่งดูเหมือนจอค้างมากกว่าจงใจเว้น
+            justifyContent: 'space-between',
             paddingHorizontal: p.space.xl,
             paddingTop: p.space.xl,
             paddingBottom: p.space.lg,
-            gap: p.space.lg,
+            gap: p.space.xl,
           }}
         >
           {/* A2 — โลโก้เล็กชิดซ้าย ไม่ใช่ hero กลางจอ */}
-          <Image
-            source={LOGO_MARK}
-            accessibilityLabel={t('common.appName')}
-            resizeMode="contain"
-            style={{ width: 52, height: 52 }}
-          />
-
-          <View style={{ gap: p.space.xs }}>
-            <Text variant="h1">{t('auth.login.welcome')}</Text>
-            <Text variant="small" color="muted">
-              {t('auth.login.subtitle')}
-            </Text>
+          <View style={{ gap: p.space.lg }}>
+            <Image
+              source={LOGO_MARK}
+              accessibilityLabel={t('common.appName')}
+              resizeMode="contain"
+              style={{ width: 52, height: 52 }}
+            />
+            <View style={{ gap: p.space.xs }}>
+              <Text variant="h1">{t('auth.login.welcome')}</Text>
+              <Text variant="small" color="muted">
+                {t('auth.login.subtitle')}
+              </Text>
+            </View>
           </View>
 
           <View style={{ gap: p.space.md }}>
@@ -233,8 +237,6 @@ export function LoginScreen({ navigation }: Props) {
               justifyContent: 'center',
               alignItems: 'center',
               gap: p.space.xs,
-              marginTop: 'auto',
-              paddingTop: p.space.lg,
             }}
           >
             <Text variant="small" color="muted">

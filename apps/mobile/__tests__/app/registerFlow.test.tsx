@@ -143,7 +143,10 @@ describe('ChooseAccountTypeScreen', () => {
     const result = renderChooseAccountType({ ...sampleForm, username: 'newuser_choose_user' });
 
     await act(async () => {
-      await getFirstByTestId(result.root, 'choose-user').props.onPress();
+      getFirstByTestId(result.root, 'choose-user').props.onPress();
+    });
+    await act(async () => {
+      await getFirstByTestId(result.root, 'btn-choose-continue').props.onPress();
     });
 
     const s = useAuthStore.getState();
@@ -156,7 +159,10 @@ describe('ChooseAccountTypeScreen', () => {
     const result = renderChooseAccountType({ ...sampleForm, username: 'newuser_choose_rider' });
 
     await act(async () => {
-      await getFirstByTestId(result.root, 'choose-rider').props.onPress();
+      getFirstByTestId(result.root, 'choose-rider').props.onPress();
+    });
+    await act(async () => {
+      await getFirstByTestId(result.root, 'btn-choose-continue').props.onPress();
     });
 
     const s = useAuthStore.getState();

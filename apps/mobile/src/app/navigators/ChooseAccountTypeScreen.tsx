@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { Text } from '../../ui/Text';
+import { Button } from '../../ui/Button';
 import { ChoiceCard } from '../../ui/ChoiceCard';
 import { useAuthStore } from '../../features/auth/authStore';
 import type { AuthStackParamList } from './AuthNavigator';
@@ -23,10 +24,11 @@ export function ChooseAccountTypeScreen({ route }: Props) {
 
   const { form } = route.params;
 
-  // กดการ์ดแล้วสมัครเลย (พฤติกรรมเดิม) — state ใช้แค่ให้เห็นว่ากดอันไหนระหว่างรอ
-  async function handleChoose(accountType: AccountType) {
-    setChoice(accountType);
-    await register({ ...form, accountType });
+  // A5 แยกสองจังหวะ: กดการ์ด = เลือก · กดปุ่มล่าง = ยืนยัน
+  // เดิมกดการ์ดแล้วสมัครทันที เปลี่ยนใจไม่ได้เลย และปุ่มล่างที่ design วางไว้ก็หายไปด้วย
+  async function handleContinue() {
+    if (!choice) return;
+    await register({ ...form, accountType: choice });
     // ไม่ต้อง navigate เอง — พอ authStore.register ตั้ง account สำเร็จ RootNavigator
     // จะ re-render แล้วสลับจาก AuthNavigator ไป stack ตาม capability อัตโนมัติ
   }
@@ -37,10 +39,13 @@ export function ChooseAccountTypeScreen({ route }: Props) {
       edges={['top', 'bottom']}
       style={{ flex: 1, backgroundColor: tokens.bgSurface }}
     >
-      <View style={{ flex: 1, paddingHorizontal: p.space.screen, paddingTop: p.space.xl, gap: p.space.md }}>
+      <View style={{ flex: 1, paddingHorizontal: p.space.screen, paddingTop: p.space.xl }}>
         <Text variant="h1">{t('auth.chooseType.title')}</Text>
+        <Text variant="small" color="muted" style={{ marginTop: 9 }}>
+          {t('auth.chooseType.subtitle')}
+        </Text>
 
-        <View style={{ gap: p.space.md, marginTop: p.space.md }}>
+        <View style={{ gap: p.space.md, marginTop: p.space.xl }}>
           <ChoiceCard
             testID="choose-user"
             title={t('auth.chooseType.user')}
@@ -48,7 +53,7 @@ export function ChooseAccountTypeScreen({ route }: Props) {
             icon="menu"
             tone="brand"
             selected={choice === 'user'}
-            onPress={() => handleChoose('user')}
+            onPress={() => setChoice('user')}
           />
 
           <ChoiceCard
@@ -58,15 +63,32 @@ export function ChooseAccountTypeScreen({ route }: Props) {
             icon="bike"
             tone="teal"
             selected={choice === 'rider'}
-            onPress={() => handleChoose('rider')}
+            onPress={() => setChoice('rider')}
           />
         </View>
 
         {error ? (
-          <Text testID="choose-account-type-error" variant="small" color="danger" bold>
+          <Text
+            testID="choose-account-type-error"
+            variant="small"
+            color="danger"
+            bold
+            style={{ marginTop: p.space.md }}
+          >
             {t(error)}
           </Text>
         ) : null}
+
+        {/* A5 มีปุ่มยืนยันท้ายจอ — ดันลงล่างสุดให้เต็มจอ */}
+        <View style={{ flex: 1, minHeight: p.space.lg }} />
+
+        <Button
+          testID="btn-choose-continue"
+          label={t('common.continue')}
+          disabled={!choice}
+          onPress={handleContinue}
+          style={{ marginBottom: p.space.lg }}
+        />
       </View>
     </SafeAreaView>
   );

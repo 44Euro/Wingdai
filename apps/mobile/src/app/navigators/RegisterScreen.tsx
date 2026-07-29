@@ -91,10 +91,9 @@ export function RegisterScreen({ navigation }: Props) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
-            flexGrow: 1,
             paddingHorizontal: p.space.xl,
             paddingTop: p.space.sm,
-            paddingBottom: p.space.lg,
+            paddingBottom: p.space.md,
           }}
         >
           {/* A3 ใช้ลิงก์ "< ย้อนกลับ" ตัวหนังสือ ไม่ใช่ปุ่มกลมแบบ ScreenHeader ของจอในแอป */}
@@ -154,9 +153,9 @@ export function RegisterScreen({ navigation }: Props) {
                     p.shadow.card,
                   ]}
                 >
-                  {/* ธงเป็นอีโมจิตาม design — ถ้าเครื่องไหนไม่มี glyph ธงจะกลายเป็นตัวอักษร "TH" ซึ่งยังอ่านรู้เรื่อง */}
+                  {/* ธงเป็นอีโมจิตาม design —  glyph ธงจะกลายเป็นตัวอักษร "TH" ซึ่งยังอ่านรู้เรื่อง */}
                   <Text variant="body" bold>
-                    🇹🇭 +66
+                  +66
                   </Text>
                 </View>
                 <Input
@@ -252,10 +251,12 @@ export function RegisterScreen({ navigation }: Props) {
               {t(error)}
             </Text>
           ) : null}
+        </ScrollView>
 
-          {/* A3 ดันปุ่มลงท้ายจอ */}
-          <View style={{ flex: 1, minHeight: p.space.lg }} />
-
+        {/* A3 วางปุ่มไว้ท้ายจอ — ตรึงไว้นอก ScrollView ไม่ใช่ดันด้วย spacer
+            เพราะฟอร์มเรามี 5 ช่อง (design มี 4) พอเนื้อหาสูงเกินจอ spacer จะยุบ
+            แล้วปุ่มกับบรรทัด "มีบัญชีอยู่แล้ว" จะหลุดใต้ขอบจอไปเลย */}
+        <View style={{ paddingHorizontal: p.space.xl, paddingTop: p.space.sm, paddingBottom: p.space.lg }}>
           <Button testID="btn-register" label={t('auth.register.submit')} onPress={handleSubmit} />
 
           <View
@@ -264,7 +265,7 @@ export function RegisterScreen({ navigation }: Props) {
               justifyContent: 'center',
               alignItems: 'center',
               gap: p.space.xs,
-              marginTop: p.space.md,
+              marginTop: p.space.sm,
             }}
           >
             <Text variant="small" color="muted">
@@ -282,7 +283,7 @@ export function RegisterScreen({ navigation }: Props) {
               </Text>
             </Pressable>
           </View>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
