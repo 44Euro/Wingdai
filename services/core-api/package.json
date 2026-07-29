@@ -11,13 +11,14 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "dotenv": "^17.4.2",
     "drizzle-orm": "^0.44.6",
     "postgres": "^3.4.7"
   },
   "devDependencies": {
+    "@types/node": "^22.18.9",
     "drizzle-kit": "^0.31.6",
     "typescript": "^5.9.3",
-    "vitest": "^3.2.4",
-    "@types/node": "^22.18.9"
+    "vitest": "^3.2.4"
   }
 }
