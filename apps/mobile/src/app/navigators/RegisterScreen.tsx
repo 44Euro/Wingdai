@@ -246,17 +246,26 @@ export function RegisterScreen({ navigation }: Props) {
             label={t('auth.register.terms')}
           />
 
-          {error ? (
-            <Text testID="register-error" variant="small" color="danger" bold style={{ marginTop: p.space.sm }}>
-              {t(error)}
-            </Text>
-          ) : null}
         </ScrollView>
 
         {/* A3 วางปุ่มไว้ท้ายจอ — ตรึงไว้นอก ScrollView ไม่ใช่ดันด้วย spacer
             เพราะฟอร์มเรามี 5 ช่อง (design มี 4) พอเนื้อหาสูงเกินจอ spacer จะยุบ
-            แล้วปุ่มกับบรรทัด "มีบัญชีอยู่แล้ว" จะหลุดใต้ขอบจอไปเลย */}
+            แล้วปุ่มกับบรรทัด "มีบัญชีอยู่แล้ว" จะหลุดใต้ขอบจอไปเลย
+            ข้อความ error อยู่ตรงนี้ด้วย ไม่ใช่ในลิสต์ที่เลื่อน — ไม่งั้นกดปุ่มแล้วเหมือนปุ่มเสีย
+            เพราะคำเตือนไปโผล่นอกจอ */}
         <View style={{ paddingHorizontal: p.space.xl, paddingTop: p.space.sm, paddingBottom: p.space.lg }}>
+          {error ? (
+            <Text
+              testID="register-error"
+              variant="small"
+              color="danger"
+              bold
+              style={{ marginBottom: p.space.sm, textAlign: 'center' }}
+            >
+              {t(error)}
+            </Text>
+          ) : null}
+
           <Button testID="btn-register" label={t('auth.register.submit')} onPress={handleSubmit} />
 
           <View
