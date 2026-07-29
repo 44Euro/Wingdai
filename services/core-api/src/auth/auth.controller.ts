@@ -1,0 +1,77 @@
+import { Controller, Post, Get, Patch, Body, UseGuards, HttpCode } from '@nestjs/common';
+import { ZodBody } from '../common/zod.pipe';
+import { AuthService, type PublicAccount, type SessionClaims } from './auth.service';
+import { OtpService } from './otp.service';
+import { JwtGuard, CurrentAccount } from './jwt.guard';
+import {
+  OtpRequestSchema, type OtpRequestInput,
+  OtpVerifySchema, type OtpVerifyInput,
+  RegisterSchema, type RegisterInput,
+  LoginSchema, type LoginInput,
+  GoogleSignInSchema, type GoogleSignInInput,
+  GoogleRegisterSchema, type GoogleRegisterInput,
+  UpdateProfileSchema, type UpdateProfileInput,
+} from './dto';
+
+/** ลำดับการสมัครตรงกับที่แอปทำอยู่ (product-spec §4.2): */
+@Controller('auth')
+export class AuthController {
+  constructor(
+    private readonly auth: AuthService,
+    private readonly otp: OtpService,
+  ) {}
+
+  @Post('otp/request')
+  @HttpCode(200)
+  requestOtp(@Body(new ZodBody(OtpRequestSchema)) body: OtpRequestInput) {
+    return this.otp.request(body.phone);
+  }
+
+  @Post('otp/verify')
+  @HttpCode(200)
+  verifyOtp(@Body(new ZodBody(OtpVerifySchema)) body: OtpVerifyInput) {
+    return this.otp.verify(body.phone, body.code);
+  }
+
+  @Post('register')
+  register(@Body(new ZodBody(RegisterSchema)) body: RegisterInput) {
+    return this.auth.register(body);
+  }
+
+  @Post('login')
+  @HttpCode(200)
+  login(@Body(new ZodBody(LoginSchema)) body: LoginInput) {
+    return this.auth.login(body);
+  }
+
+  /** Google sign-in ขั้นแรก เคยผูกไว้แล้วได้ token เลย ยังไม่เคยได้ตั๋วไปเดินฟอร์มสั้นต่อ */
+  @Post('google')
+  @HttpCode(200)
+  google(@Body(new ZodBody(GoogleSignInSchema)) body: GoogleSignInInput) {
+    return this.auth.googleSignIn(body.idToken);
+  }
+
+  @Post('google/register')
+  googleRegister(@Body(new ZodBody(GoogleRegisterSchema)) body: GoogleRegisterInput) {
+    return this.auth.googleRegister(body);
+  }
+
+  @Get('me')
+  @UseGuards(JwtGuard)
+  me(@CurrentAccount() claims: SessionClaims): Promise<PublicAccount> {
+    return this.auth.publicAccount(claims.sub);
+  }
+
+  /** C21 แก้โปรไฟล์ เบอร์กับชื่อผู้ใช้แก้ทางนี้ไม่ได้ ดูเหตุผลใน auth.service */
+  @Patch('me')
+  @UseGuards(JwtGuard)
+  updateMe(
+    @CurrentAccount() claims: SessionClaims,
+    @Body(new ZodBody(UpdateProfileSchema)) body: UpdateProfileInput,
+  ): Promise<PublicAccount> {
+    return this.auth.updateProfile(claims.sub, {
+      fullName: body.fullName,
+      email: body.email ?? null,
+    });
+  }
+}
