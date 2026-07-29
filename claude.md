@@ -31,7 +31,6 @@ We are building **Phase 1 (MVP)**. Scope discipline matters more than speed here
 **Do NOT build yet, even if it looks easy to add:**
 - Group Order
 - Promotions / coupons / discount codes
-- Card payments
 - Fully automated ledger + payout runs (see the note in §6.2 — Phase 1 can log refund/payout data without building the automated reconciliation engine yet)
 - Any grocery/non-restaurant vertical, any "super app" feature (rides, courier, bill pay)
 - Loyalty points, in-app chat, AI recommendations
@@ -70,7 +69,7 @@ There is **one React Native app**, not separate apps per user type. But the acco
 
 ### 4.2 Auth flow
 
-- **Login:** identifier + password, where identifier is **either the username or the email** (decided 2026-07-23). Email is an optional convenience login alias — phone remains the verified contact channel, email is not OTP-verified. A login attempt matches an account whose username OR email equals the identifier.
+- **Login:** identifier + password, where identifier is **either the username or the phone number** (decided 2026-07-29, replacing the 2026-07-23 username-or-email rule). Username is short and easy to type; phone is the channel that's already OTP-verified. **Email is captured at registration but is NOT a login identifier** — it exists only as a password-reset channel. A login attempt matches an account whose username OR phone equals the identifier.
 - **Register:** username, password, phone number, name, **and an optional email** — phone number still gets a **one-time OTP verification at registration** (not at every login), and email does NOT replace it. This matters even though login itself doesn't use OTP: riders, restaurants, and customers need working contact numbers for delivery coordination, and skipping verification opens the door to fake-number signups. Email is stored only as a login alias / password-reset channel, never as the verified identity.
 - **Forgot password:** a real flow is needed now (wasn't required under the old OTP-only login) — reset via SMS to the verified number or via email.
 - At the end of registration, the user picks **`user` or `rider`** — nothing else is offered here.
@@ -224,7 +223,12 @@ Fault attribution convention: wrong item → restaurant's cost; spilled/damaged 
 Instrument refund rate from day 1; > 2% is a signal something systemic broke, not just normal noise.
 
 ### 6.5 Payment
-PromptPay QR is the default and only Phase 1 payment method. When card payment is added later, the fee delta (0.8–1.8% vs 3.2–3.65%) should be visible in internal margin reporting — don't let card become invisible overhead.
+Phase 1 ships **three** payment methods (decided 2026-07-29): **PromptPay QR**, **cash on delivery**, and **card**. PromptPay stays the *default* and the path of least resistance — §3 rule 5 is unchanged, and the customer's chosen default is stored per account (they can change it in Profile → Payment method).
+
+Status of each:
+- **PromptPay** — mocked QR screen until the gateway question in §11 is answered.
+- **Cash on delivery** — works end to end; the rider collects. Cash orders need their own ledger treatment (rider holds platform money) — get this right before launch.
+- **Card** — listed in the picker but **not selectable yet**, labelled "payment gateway pending". Enable it the moment §11.3 is resolved. The fee delta (0.8–1.8% vs 3.2–3.65%) must be visible in internal margin reporting — don't let card become invisible overhead.
 
 ---
 
@@ -296,7 +300,10 @@ The plan's North Star Metric is **Orders per Rider Hour**, not order count or us
 - **Map tiles: Protomaps** (decided 2026-07-21) — self-hosted `.pmtiles`, no per-load billing, which is the cost trap §5 already warns about. MapLibre remains the renderer.
 - **Font scaling: disabled** (`allowFontScaling={false}`, decided 2026-07-21). Accepted tradeoff: users who enlarge system text will not see larger text in this app. Revisit if accessibility feedback demands it.
 - **Dark mode: yes, from the first commit** (decided 2026-07-21). Riders work at night; a bright screen while driving is a safety issue, not a preference. This requires a semantic token layer (`bg-surface`, `text-primary`, …) rather than components referencing raw palette values — retrofitting dark mode later means editing every file.
-- **Email as optional login alias** (decided 2026-07-23) — see §4.2. Login accepts username OR email as identifier; email is captured at registration as optional, is NOT OTP-verified, and does not replace phone as the verified contact channel. `Account` carries an optional `email` field.
+- ~~**Email as optional login alias** (decided 2026-07-23)~~ — **superseded 2026-07-29.** Login identifier is now **username OR phone**, not email. Email is still captured at registration (optional, not OTP-verified) but is only a password-reset channel. `Account` keeps its optional `email` field. See §4.2.
+- **Payment methods: PromptPay + cash + card** (decided 2026-07-29) — card payments moved off the §2 "do not build yet" list. PromptPay remains the default; the customer picks their own default in Profile → Payment method. Card stays disabled in the UI until §11.3 is resolved. See §6.5.
+- **Notifications are derived from orders, not a separate table** (decided 2026-07-29) — Phase 1 has no push infrastructure or notification entity, so the in-app notification list (design C20) is generated from the customer's own order events. Swap the data source when the backend lands; the screen doesn't change.
+- **Design handoff features that stay banned** — the handoff contains screens for wallet/credit, loyalty points, group order, and promotions. Take the visual language only. When a design screen's *content* is a banned feature, replace it with content backed by real data rather than dropping the screen or faking the data.
 - **Visual language: "Wingdai rounded-soft"** (decided 2026-07-27). The app follows the design handoff (`Wingdai App.dc.html`, 58 screens): warm off-white ground `#F6F1EA`, white rounded cards (radius 20–24) with soft ambient shadows, pill buttons/chips, a floating teal pill bottom-nav, brand orange `#F15A22` + brand teal `#0E3B3A`. **All new screens must be composed from the primitives in `apps/mobile/src/ui/` — no raw colors, radii, or shadows in screen files.** Full spec: `docs/design/wingdai-design-system.md`.
   - Note the AA carve-out documented there: `#F15A22` fails contrast for text (3.37:1 with white), so it is a **graphics-only** token (`brandAccent`). Text-bearing fills use `#CC4310` (`brandSolid`) and brand-colored text uses `#B23A0C` (`brandLink`). Don't "fix" this by loosening the contrast tests.
   - The handoff contains screens for features §2 bans (deals/promo codes, group order, wallet/points, card & cash payment, merchant promotions). Take the **visual language only** — never the banned features, and never ship UI elements that do nothing.

@@ -18,7 +18,8 @@ export function createMockRepos(): Repos {
     auth: {
       async login(identifier, password) {
         await delay();
-        const acc = accounts.find((a) => a.username === identifier || a.email === identifier);
+        // identifier = username หรือเบอร์โทร (claude.md §4.2) — อีเมลใช้ล็อกอินไม่ได้
+        const acc = accounts.find((a) => a.username === identifier || a.phone === identifier);
         if (!acc || password !== MOCK_PASSWORD) {
           throw new Error('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
         }

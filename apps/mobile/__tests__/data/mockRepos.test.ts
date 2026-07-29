@@ -20,10 +20,16 @@ describe('MockRepo — auth', () => {
     expect(acc.riderApproval).toBe('pending');
   });
 
-  it('ล็อกอินด้วยอีเมล seed แทน username ได้', async () => {
+  it('ล็อกอินด้วยเบอร์โทรแทน username ได้', async () => {
     const repos = createMockRepos();
-    const acc = await repos.auth.login('somchai@wingdai.test', '1234');
+    const acc = await repos.auth.login('0812345678', '1234');
     expect(acc.username).toBe('somchai');
+  });
+
+  // อีเมลเป็นแค่ช่องทางรีเซ็ตรหัส ไม่ใช่ identifier (claude.md §4.2 ปรับ 2026-07-29)
+  it('ล็อกอินด้วยอีเมลไม่ได้', async () => {
+    const repos = createMockRepos();
+    await expect(repos.auth.login('somchai@wingdai.test', '1234')).rejects.toThrow();
   });
 
   it('ล็อกอินด้วย username เดิมยังใช้ได้ (regression)', async () => {
@@ -37,9 +43,9 @@ describe('MockRepo — auth', () => {
     await expect(repos.auth.login('not_a_real_identifier', '1234')).rejects.toThrow();
   });
 
-  it('register พร้อมอีเมล แล้วล็อกอินด้วยอีเมลนั้นได้', async () => {
+  it('register พร้อมอีเมล — อีเมลถูกเก็บไว้ แต่ล็อกอินด้วยเบอร์ที่สมัคร ไม่ใช่ด้วยอีเมล', async () => {
     const repos = createMockRepos();
-    await repos.auth.register({
+    const created = await repos.auth.register({
       username: 'newuser1',
       password: '1234',
       fullName: 'ผู้ใช้ใหม่',
@@ -47,8 +53,12 @@ describe('MockRepo — auth', () => {
       accountType: 'user',
       email: 'newuser1@example.com',
     });
-    const acc = await repos.auth.login('newuser1@example.com', '1234');
+    expect(created.email).toBe('newuser1@example.com');
+
+    const acc = await repos.auth.login('0899999999', '1234');
     expect(acc.username).toBe('newuser1');
+
+    await expect(repos.auth.login('newuser1@example.com', '1234')).rejects.toThrow();
   });
 
   it('register ไม่ใส่อีเมล แล้วล็อกอินด้วย username ได้', async () => {

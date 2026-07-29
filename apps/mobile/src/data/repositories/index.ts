@@ -19,7 +19,7 @@ export interface CreateOrderInput {
 }
 
 export interface AuthRepo {
-  /** identifier รับได้ทั้ง username หรือ email — อีเมลเป็น login alias เสริม ไม่ใช่ verified channel ตาม claude.md §4.2 */
+  /** identifier รับได้ทั้ง username หรือเบอร์โทร — อีเมลใช้ล็อกอินไม่ได้ เป็นแค่ช่องทางรีเซ็ตรหัส (claude.md §4.2) */
   login(identifier: string, password: string): Promise<Account>;
   register(input: RegisterInput): Promise<Account>;
   verifyOtp(accountId: string, code: string): Promise<boolean>;
