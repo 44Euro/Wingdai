@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, TextInput, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +24,7 @@ export function OtpVerifyScreen({ navigation, route }: Props) {
   const verifyOtp = useAuthStore((s) => s.verifyOtp);
 
   const { form } = route.params;
+  const inputRef = useRef<TextInput>(null);
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -44,12 +45,19 @@ export function OtpVerifyScreen({ navigation, route }: Props) {
       <View style={{ flex: 1, paddingHorizontal: p.space.screen, gap: p.space.lg }}>
         <Text variant="body" color="muted">{t('auth.otp.description')}</Text>
 
-        {/* ช่องรหัส 6 ตัวตาม design — ช่องจริงเป็น TextInput โปร่งใสวางทับทั้งแถว */}
-        <View>
+        {/* ช่องรหัส 6 ตัวตาม design — ช่องกรอกจริงเป็น TextInput ใสวางทับทั้งแถว
+            ต้องกดที่ Pressable เพื่อสั่ง focus เอง ไม่พึ่งการกดโดน TextInput ใส ๆ ตรง ๆ
+            เพราะ input ที่ opacity 0 รับสัมผัสไม่แน่นอน (บน Android แทบไม่ติดเลย) */}
+        <Pressable
+          testID="otp-boxes"
+          accessibilityRole="button"
+          accessibilityLabel={t('auth.otp.title')}
+          onPress={() => inputRef.current?.focus()}
+        >
           <View style={{ flexDirection: 'row', gap: p.space.sm }}>
             {Array.from({ length: OTP_LENGTH }).map((_, i) => {
               const char = code[i] ?? '';
-              const isCursor = i === code.length;
+              const isCursor = i === Math.min(code.length, OTP_LENGTH - 1);
               return (
                 <View
                   key={i}
@@ -74,13 +82,22 @@ export function OtpVerifyScreen({ navigation, route }: Props) {
           </View>
 
           <TextInput
+            ref={inputRef}
             testID="input-otp-code"
             accessibilityLabel={t('auth.otp.title')}
-            keyboardType="numeric"
+            keyboardType="number-pad"
             maxLength={OTP_LENGTH}
+            autoFocus
+            caretHidden
+            // iOS/Android เติมรหัสจาก SMS ให้อัตโนมัติได้ถ้าประกาศไว้
+            textContentType="oneTimeCode"
+            autoComplete="one-time-code"
             allowFontScaling={false}
             value={code}
-            onChangeText={setCode}
+            onChangeText={(v) => {
+              setCode(v.replace(/\D/g, '').slice(0, OTP_LENGTH));
+              setError(null);
+            }}
             style={{
               position: 'absolute',
               top: 0,
@@ -88,10 +105,9 @@ export function OtpVerifyScreen({ navigation, route }: Props) {
               right: 0,
               height: 64,
               opacity: 0,
-              color: tokens.textPrimary,
             }}
           />
-        </View>
+        </Pressable>
 
         {error ? (
           <Text testID="otp-error" variant="small" color="danger" bold>

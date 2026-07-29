@@ -105,6 +105,22 @@ function renderChooseAccountType(form: RegisterFormValues = sampleForm) {
 }
 
 describe('OtpVerifyScreen', () => {
+  // ช่องกรอก OTP เป็น TextInput ใสวางทับกล่องหกช่อง — ถ้าไม่มีตัวสั่ง focus
+  // คนกดที่กล่องแล้วคีย์บอร์ดไม่ขึ้น พิมพ์ไม่ได้เลย (บักที่เจอบนเครื่องจริง)
+  it('แถวกล่องรหัสกดได้ และช่องกรอกโฟกัสเองตั้งแต่เปิดจอ', () => {
+    const result = renderOtpVerify({ navigate: jest.fn() });
+    expect(typeof getFirstByTestId(result.root, 'otp-boxes').props.onPress).toBe('function');
+    expect(getFirstByTestId(result.root, 'input-otp-code').props.autoFocus).toBe(true);
+  });
+
+  it('พิมพ์ตัวอักษรที่ไม่ใช่ตัวเลข → ถูกตัดทิ้ง', () => {
+    const result = renderOtpVerify({ navigate: jest.fn() });
+    act(() => {
+      getFirstByTestId(result.root, 'input-otp-code').props.onChangeText('1a2b3c4d');
+    });
+    expect(getFirstByTestId(result.root, 'input-otp-code').props.value).toBe('1234');
+  });
+
   it('กรอกรหัสผิด (000000) → ขึ้น otp-error, ไม่ navigate', async () => {
     const navigate = jest.fn();
     const result = renderOtpVerify({ navigate });
