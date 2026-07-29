@@ -134,13 +134,25 @@ Consequences for navigation and data:
 
 Do not treat "switch to Google Maps" as a way to get more realtime tracking — it isn't one, and it reintroduces the per-load billing risk noted above.
 
-### Backend — ✅ confirmed: Spring Boot + Go
+### Backend — ✅ confirmed 2026-07-29: TypeScript (NestJS) on Supabase Postgres
+
+**This replaces the earlier Spring Boot + Go decision.** That decision was made assuming a team; with a solo builder, running two backend languages alongside a React Native app costs more than the safety it buys. The safety argument for Java was ecosystem, not language — ACID comes from Postgres either way, and §7 already mandates integer satang, which removes the floating-point risk that motivated the original choice.
+
 | Layer | Choice | Notes |
 |---|---|---|
-| Core API (money-handling) | Spring Boot 3, Java 21, virtual threads | auth, catalog, order, payment, promotion, ledger, notification — modular monolith. Strong ACID story for money-handling code. |
-| Realtime/dispatch | Go | WebSocket fan-out, location pings, rider matching/dispatch scoring (§6.3) — high connection count, low-latency, I/O-bound workload |
+| Core API | **NestJS (TypeScript, Node 22)** | auth, catalog, order, payment, ledger, notification — modular monolith. NestJS modules map 1:1 onto these. |
+| DB access | **Drizzle ORM** | SQL-first, real `transaction()`, and a clean raw-SQL escape hatch — needed because PostGIS types have no first-class ORM support. Prisma was rejected for weak PostGIS handling. |
+| Realtime/dispatch | **same NestJS process for now** | Split into its own service only when connection count justifies it. Node's I/O model is what made Go attractive here in the first place. |
+| Database / storage | **Supabase** (managed Postgres 15 + PostGIS + Storage), region `ap-southeast-1` | See the rule below on what Supabase is and isn't for. |
 
-**This decision is final.** Scaffold services against Java/Spring Boot and Go. A TypeScript-only (NestJS) alternative was considered and rejected — don't reintroduce it without an explicit new decision from the team.
+**Supabase is the data plane, not the logic plane.** Use it for: managed Postgres + PostGIS, Storage (rider ID/licence photos), backups, and connection pooling. Do **not** put business logic in Edge Functions or plpgsql — money logic (§6.2) and dispatch (§6.3) live in the NestJS service where they can be unit-tested and versioned. The payoff: the DB is plain Postgres, so moving to RDS later is a connection-string change, not a rewrite.
+
+**Do not use Supabase Auth.** §4.2 requires username-or-phone as the login identifier; Supabase Auth only supports email/phone/OAuth, so username login would mean faking synthetic emails. Auth is our own: argon2id password hashes + JWT, issued by core-api. Supabase's phone OTP is not used either — OTP delivery goes through a Thai SMS provider when that's picked.
+
+**Three non-negotiable guardrails** — these are what make TypeScript as safe as Java would have been for money code. Do not skip them:
+1. **All money is an integer number of satang.** No floats anywhere in the path from API to ledger. Keep a test that fails on any non-integer amount.
+2. **Ledger writes go in the same `db.transaction()` as the order status change.** No exceptions, no "we'll reconcile later".
+3. **Ledger tests assert debits === credits as a property**, generated across many order shapes — not one worked example.
 
 ### Data & infrastructure (not affected by the frontend/backend decision above)
 - **PostgreSQL + PostGIS** — primary DB, zone boundaries, geospatial queries
@@ -168,12 +180,26 @@ Every completed order must produce balanced ledger entries. Example for a ฿170
 
 | Account | Debit | Credit |
 |---|---|---|
-| `cash` (from payment gateway) | ฿170.00 | |
+| `cash` (net settled by the gateway) | ฿168.64 | |
+| `payment_fee_expense` | ฿1.36 | |
 | `restaurant_payable` | | ฿127.50 |
 | `rider_payable` | | ฿30.00 |
-| `payment_fee_expense` | ฿1.36 | |
-| `platform_revenue` | | ฿13.86 |
-| **Total** | **฿171.36** | **฿171.36** ✓ |
+| `platform_revenue` | | ฿12.50 |
+| **Total** | **฿170.00** | **฿170.00** ✓ |
+
+**Corrected 2026-07-29.** An earlier version of this table debited `cash` the full ฿170 and credited `platform_revenue` ฿13.86. It balanced, but it was wrong in two ways: the gateway never remits the gross amount (it nets its fee out before settlement), and crediting revenue ฿13.86 overstated it by exactly the fee — which made cash and PromptPay look equally profitable, contradicting §6.5. With the corrected entries, `platform_revenue` is ฿12.50 regardless of payment method and the fee shows up only as an expense, so net contribution is ฿12.50 for cash and ฿11.14 for PromptPay. The property test in `services/core-api/src/ledger/postOrder.test.ts` is what surfaced this.
+
+**Same order paid in cash** — the rider collects money that belongs to the platform, so it lands in `rider_cash_held` rather than `cash`, and there is no gateway fee:
+
+| Account | Debit | Credit |
+|---|---|---|
+| `rider_cash_held` | ฿170.00 | |
+| `restaurant_payable` | | ฿127.50 |
+| `rider_payable` | | ฿30.00 |
+| `platform_revenue` | | ฿12.50 |
+| **Total** | **฿170.00** | **฿170.00** ✓ |
+
+**The rider never fronts the food cost.** The restaurant is paid by the platform on the weekly run no matter how the customer paid. Requiring riders to carry working capital would gate recruitment on having cash on hand and would push cancellation losses onto them — both are direct threats to the rider supply the whole model depends on. At payout, `rider_cash_held` is netted against `rider_payable`; a rider with ฿170 collected and ฿30 earned owes the platform ฿140, deducted from their cashless earnings. Enforce a cash-in-hand ceiling (`rider_profiles.cash_limit_satang`, default ฿1,500) — over the ceiling, stop offering cash orders until they settle.
 
 Rules:
 - Entries are **append-only** — never UPDATE or DELETE a ledger row. Corrections are reversal entries.
@@ -282,18 +308,24 @@ The plan's North Star Metric is **Orders per Rider Hour**, not order count or us
 /apps
   /mobile              # React Native + Expo — role-based stacks live here
 /services
-  /core-api            # Spring Boot (Java 21) — auth, catalog, order, payment, ledger, notification
-  /dispatch            # Go — WebSocket realtime + auto-dispatch matching engine (§6.3)
+  /core-api            # NestJS (TypeScript) — auth, catalog, order, payment, ledger, notification,
+                       #   and (for now) realtime + auto-dispatch (§6.3)
 /packages
-  /shared-types        # generated from the OpenAPI spec — do not hand-duplicate types between FE/BE
-/infra                 # Terraform
+  /shared-types        # types shared FE↔BE — do not hand-duplicate
+/infra                 # Terraform (only once we outgrow Supabase's managed setup)
 ```
+
+Since both sides are TypeScript now, `shared-types` can export the Drizzle-inferred row types
+directly instead of being generated from an OpenAPI spec. The mobile app must keep importing
+through `src/data/repositories` — screens never import backend types directly, so swapping the
+mock repo for the HTTP one stays a one-file change.
 
 ---
 
 ## 10. Resolved decisions
 
-- **Backend language: Spring Boot (Java 21) + Go.** Confirmed — see §5. Not open for revisiting without an explicit new decision from the team.
+- ~~**Backend language: Spring Boot (Java 21) + Go**~~ — **superseded 2026-07-29.** Backend is now **NestJS (TypeScript) on Supabase Postgres with Drizzle** — see §5 for the full reasoning and the three money-code guardrails that replace what Java's ecosystem was buying us. The deciding factor: for a solo builder the biggest risk is not shipping, and two backend languages beside a React Native app is a tax paid daily.
+- **Supabase is the data plane only** (decided 2026-07-29) — Postgres + PostGIS + Storage. Business logic stays in NestJS, never in Edge Functions or plpgsql. Supabase Auth is not used (§4.2 needs username login). See §5.
 - **Brand name: Wingdai** (decided 2026-07-21). Earlier revisions of this file said "FoodRush" — that name is retired. Use Wingdai everywhere: app display name, bundle identifier, copy, assets.
 - **A rider account can also place customer orders** (decided 2026-07-21) — see §4.3. Replaces the earlier mutually-exclusive design.
 - **Bilingual UI, Thai + English, auto-selected from device locale** (decided 2026-07-21) — moved into Phase 1 from the "do not build yet" list. See §2.
