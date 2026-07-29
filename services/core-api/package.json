@@ -8,7 +8,9 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:setup": "tsx src/db/setup.ts",
+    "db:verify": "tsx src/db/verify.ts"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

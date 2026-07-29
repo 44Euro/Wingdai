@@ -13,8 +13,6 @@
 --    ด้วย ST_GeomFromGeoJSON — โซนมีไม่กี่โซนในเฟส 1 ยังไม่คุ้มที่จะทำคอลัมน์
 --    polygon แยกที่ drizzle มองไม่เห็น (แล้วโดน generate ครั้งหน้าสั่งลบทิ้ง)
 -- ─────────────────────────────────────────────────────────────
-create extension if not exists postgis;
-
 alter table zones       alter column center   type geometry(Point, 4326) using st_setsrid(center, 4326);
 alter table restaurants alter column location type geometry(Point, 4326) using st_setsrid(location, 4326);
 alter table addresses   alter column location type geometry(Point, 4326) using st_setsrid(location, 4326);
@@ -31,10 +29,12 @@ begin
 end;
 $$ language plpgsql;
 
+drop trigger if exists ledger_entries_no_update on ledger_entries;
 create trigger ledger_entries_no_update
   before update on ledger_entries
   for each row execute function ledger_is_append_only();
 
+drop trigger if exists ledger_entries_no_delete on ledger_entries;
 create trigger ledger_entries_no_delete
   before delete on ledger_entries
   for each row execute function ledger_is_append_only();
@@ -63,6 +63,7 @@ begin
 end;
 $$ language plpgsql;
 
+drop trigger if exists ledger_entries_balanced on ledger_entries;
 create constraint trigger ledger_entries_balanced
   after insert on ledger_entries
   deferrable initially deferred
@@ -90,6 +91,7 @@ begin
 end;
 $$ language plpgsql;
 
+drop trigger if exists orders_self_order_guard on orders;
 create trigger orders_self_order_guard
   before insert or update of restaurant_id, customer_id, rider_id on orders
   for each row execute function orders_no_self_order();
@@ -98,6 +100,7 @@ create trigger orders_self_order_guard
 -- 4. ค่าคอมมิชชันต้องเป็น 15% ของค่าอาหารเป๊ะ (claude.md §6.1)
 --    ตัวเลขนี้คือฐานของคำสัญญา "ราคาเท่าหน้าร้าน" ห้ามให้เพี้ยนเงียบ ๆ
 -- ─────────────────────────────────────────────────────────────
+alter table orders drop constraint if exists orders_commission_is_15_percent;
 alter table orders
   add constraint orders_commission_is_15_percent
   check (commission_satang = floor(food_total_satang * 1500 / 10000));
@@ -114,6 +117,7 @@ begin
 end;
 $$ language plpgsql;
 
+drop trigger if exists rider_profiles_account_type_guard on rider_profiles;
 create trigger rider_profiles_account_type_guard
   before insert or update of account_id on rider_profiles
   for each row execute function rider_profile_requires_rider_account();
@@ -131,6 +135,7 @@ begin
 end;
 $$ language plpgsql;
 
+drop trigger if exists restaurants_owner_type_guard on restaurants;
 create trigger restaurants_owner_type_guard
   before insert or update of owner_user_id on restaurants
   for each row execute function restaurant_owner_must_be_user();
