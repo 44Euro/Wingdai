@@ -84,9 +84,46 @@ npm test        # เทสต์บัญชี + รหัสผ่าน + �
 npm run typecheck
 ```
 
+## catalog · order · ที่อยู่
+
+```
+GET  /api/catalog/restaurants          ไม่ต้องล็อกอิน · ?q= ค้นทั้งชื่อร้านและชื่อเมนู
+GET  /api/catalog/restaurants/:id
+GET  /api/catalog/restaurants/:id/menu
+POST /api/orders                       Bearer · { restaurantId, items, paymentMethod }
+GET  /api/orders                       ออร์เดอร์ของตัวเอง
+GET  /api/orders/:id                   ลูกค้า/ไรเดอร์ที่รับงาน/เจ้าของร้าน เท่านั้น
+PATCH /api/orders/:id/status           ถึง delivered = เขียน ledger ในทรานแซกชันเดียวกัน
+POST /api/orders/:id/pay-promptpay     เงินสดไม่พอ → จ่ายพร้อมเพย์แทน (§6.5)
+GET/POST /api/addresses
+```
+
+**เซิร์ฟเวอร์คิดเงินเองทั้งหมด** — `items` ส่งมาแค่ `{ menuItemId, quantity, choiceIds }`
+ไม่มีช่องราคาให้ส่ง ถ้ารับราคาจากแอป คนที่แก้แอปจะสั่งของแพงในราคาถูกได้
+และคอมมิชชัน 15% (§6.1) จะคิดจากยอดปลอมนั้น — ร้านเสียเงินจริง
+
+`rating` กับ `distanceKm` เป็น `null` เมื่อไม่รู้จริง **ไม่ใส่ค่าปลอมแทน**
+ยังไม่มีระบบรีวิว (คลื่นที่ 3) และระยะทางรู้ได้ต่อเมื่อล็อกอินแล้วมีที่อยู่
+
+## Google sign-in
+
+```
+POST /api/auth/google           { idToken } → เคยผูกแล้วได้ token · ยังไม่เคยได้ googleToken
+POST /api/auth/google/register  { googleToken, username, fullName, phone, accountType,
+                                  verificationToken }
+```
+
+- ตรวจ `id_token` ที่เซิร์ฟเวอร์เท่านั้น (ยอมรับ `aud` ทั้งสาม client: web/iOS/Android)
+- ผูกบัญชีด้วย Google `sub` **ไม่ใช่อีเมล** — อีเมลฝั่งเราไม่เคยยืนยัน จับคู่อัตโนมัติ = ยึดบัญชีกันได้
+- Google **ไม่ทดแทน OTP** คนใหม่ยังต้องยืนยันเบอร์
+- บัญชี Google ล้วนมี `password_hash` เป็น null และ `login` ตอบเหมือนกรณีหาไม่เจอเป๊ะ
+
 ## ที่ยังไม่ได้ทำ
 
-- catalog / order / payment / dispatch — ยังไม่มี HTTP endpoint
+- dispatch (§6.3) · คืนเงิน (§6.4) · payout (§6.2) — ยังไม่มี
+- เพิ่ม/แก้เมนูฝั่งร้าน — ยังไม่มี endpoint (คลื่นที่ 3)
+- `PAYMENT_FEE_BP` ยังเป็น 0 ทุกช่องทาง เพราะยังไม่ได้เลือกเกตเวย์ (§11 ข้อ 3)
+  **ต้องกลับมาแก้ตอนเลือกได้** ไม่งั้นรายงานกำไรจะสูงเกินจริง
 - refresh token — ตอนนี้ตั๋วเซสชันอายุ 30 วันและเพิกถอนกลางคันไม่ได้
 - ตาราง `payouts` รอบจ่ายเงินรายสัปดาห์ (§6.2) — Phase 2
 - ตารางตำแหน่งไรเดอร์ + dispatch (§6.3)

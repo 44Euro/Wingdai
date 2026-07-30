@@ -7,24 +7,48 @@ React Native + Expo (SDK 57), TypeScript. แอปเดียวหลาย r
 ```bash
 cd apps/mobile
 npm install
-npm run web      # เปิดบนเบราว์เซอร์ (react-native-web)
-npm run ios      # iOS simulator
-npm run android  # Android emulator
 npm test         # jest ทั้งหมด
 ```
 
-## บัญชีทดสอบ (mock data)
+**ต้องใช้ dev build ไม่ใช่ Expo Go** เพราะ MapLibre กับ Google sign-in เป็น native module
 
-> ตอนนี้ใช้ **mock data** ทั้งหมด (ยังไม่ต่อ backend จริง) — รหัสผ่านของ **ทุกบัญชี** คือ `1234`
-> ช่อง "เข้าสู่ระบบ" รับได้ทั้ง **username หรือ email** เป็น identifier (email เป็น login alias เสริม ไม่ผ่าน OTP)
+```bash
+npx expo prebuild --platform ios --clean   # ครั้งแรก หรือหลังแก้ app.config.ts
+npx expo run:ios                            # build + เปิด simulator
+```
 
-| Username | Email (ใช้ล็อกอินแทน username ได้) | รหัสผ่าน | ประเภทบัญชี | เข้าแอปแล้วเจอ |
-|---|---|---|---|---|
-| `somchai` | `somchai@wingdai.test` | `1234` | user | ลูกค้าทั่วไป → หน้าสั่งอาหาร (CustomerStack) |
-| `malee` | `malee@wingdai.test` | `1234` | user + เจ้าของร้าน | เริ่มที่โหมดร้าน (MerchantStack) เพราะเป็นเจ้าของร้าน "ครัวมาลี" ที่อนุมัติแล้ว · สลับเป็นโหมดลูกค้าได้ |
-| `                                                                                                                           ` | `rider_ann@wingdai.test` | `1234` | rider (อนุมัติแล้ว) | โหมดไรเดอร์ (RiderStack) · สลับเป็นโหมดลูกค้าได้ |
-| `rider_new` | `rider_new@wingdai.test` | `1234` | rider (รออนุมัติ) | เห็นแค่หน้า "รออนุมัติ" เข้า stack อื่นไม่ได้ |
-| `admin_root` | `admin_root@wingdai.test` | `1234` | admin | โหมดผู้ดูแล (AdminStack) — สร้างจาก seed เท่านั้น ไม่มีทางสมัคร |
+### เลือกว่าจะใช้ข้อมูลจำลองหรือ API จริง
+
+ตัวแปรเดียว — ไม่ตั้ง = ใช้ข้อมูลจำลองในเครื่อง แอปจึงเปิดได้เสมอแม้ไม่มีเซิร์ฟเวอร์
+
+```bash
+# ข้อมูลจำลอง (ค่าเริ่มต้น)
+npx expo run:ios
+
+# ต่อ core-api จริง — ต้องสั่ง npm run dev ที่ services/core-api ไว้ก่อน
+WINGDAI_API_URL=http://localhost:3000/api npx expo run:ios
+```
+
+> **เครื่องจริงต้องใช้ IP ในวงแลน** ไม่ใช่ `localhost` เพราะ localhost บนมือถือคือตัวมือถือเอง
+> `WINGDAI_API_URL=http://192.168.1.42:3000/api`
+
+## บัญชีทดสอบ
+
+| Username | ประเภทบัญชี | เข้าแอปแล้วเจอ |
+|---|---|---|
+| `somchai` | user | ลูกค้าทั่วไป → หน้าสั่งอาหาร (CustomerStack) · มีที่อยู่บันทึกไว้แล้ว 2 ที่ |
+| `malee` | user + เจ้าของร้าน | เริ่มที่โหมดร้าน (MerchantStack) เพราะเป็นเจ้าของ "ครัวมาลี" ที่อนุมัติแล้ว · สลับเป็นโหมดลูกค้าได้ |
+| `rider_ann` | rider (อนุมัติแล้ว) | โหมดไรเดอร์ (RiderStack) · สลับเป็นโหมดลูกค้าได้ |
+| `rider_new` | rider (รออนุมัติ) | เห็นแค่หน้า "รออนุมัติ" เข้า stack อื่นไม่ได้ |
+| `admin_root` | admin | โหมดผู้ดูแล (AdminStack) — สร้างจาก seed เท่านั้น ไม่มีทางสมัคร |
+
+**รหัสผ่าน:** ข้อมูลจำลองใช้ `1234` · API จริงใช้ `wingdai1234` (เกณฑ์จริงคือ 8 ตัวขึ้นไป)
+
+ช่อง "เข้าสู่ระบบ" รับ **username หรือเบอร์โทร** — **อีเมลใช้ล็อกอินไม่ได้** (`CLAUDE.md` §4.2)
+อีเมลเก็บไว้เป็นช่องทางรีเซ็ตรหัสอย่างเดียว
+
+**รหัส OTP:** ข้อมูลจำลองใช้ `123456` · API จริงสุ่มหกหลักแล้ว**พิมพ์ลง log ของเซิร์ฟเวอร์**
+(ยังไม่ได้เลือกผู้ให้บริการ SMS — `CLAUDE.md` §11 ข้อ 3) ดูได้ที่หน้าต่างที่รัน `npm run dev`
 
 > Merchant/Rider/Admin stack บางส่วนยังเป็นหน้า placeholder — กำลังไล่ทำตามลำดับใน `docs/superpowers/specs/`
 
