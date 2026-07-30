@@ -19,17 +19,28 @@ export function ChooseAccountTypeScreen({ route }: Props) {
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const register = useAuthStore((s) => s.register);
+  const registerWithGoogle = useAuthStore((s) => s.registerWithGoogle);
   const error = useAuthStore((s) => s.error);
   const [choice, setChoice] = useState<AccountType | null>(null);
 
-  const { form } = route.params;
+  const { form, verificationToken, google } = route.params;
 
   // A5 แยกสองจังหวะ: กดการ์ด = เลือก · กดปุ่มล่าง = ยืนยัน
   // เดิมกดการ์ดแล้วสมัครทันที เปลี่ยนใจไม่ได้เลย และปุ่มล่างที่ design วางไว้ก็หายไปด้วย
   async function handleContinue() {
     if (!choice) return;
-    await register({ ...form, accountType: choice });
-    // ไม่ต้อง navigate เอง — พอ authStore.register ตั้ง account สำเร็จ RootNavigator
+    // มาจาก Google = ไม่มีรหัสผ่าน จึงต้องใช้เส้นทางสมัครอีกแบบ
+    await (google
+      ? registerWithGoogle({
+          googleToken: google.googleToken,
+          username: form.username,
+          fullName: form.fullName,
+          phone: form.phone,
+          accountType: choice,
+          verificationToken,
+        })
+      : register({ ...form, accountType: choice, verificationToken }));
+    // ไม่ต้อง navigate เอง — พอ authStore ตั้ง account สำเร็จ RootNavigator
     // จะ re-render แล้วสลับจาก AuthNavigator ไป stack ตาม capability อัตโนมัติ
   }
 

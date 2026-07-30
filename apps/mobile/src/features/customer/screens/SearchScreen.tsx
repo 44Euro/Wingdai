@@ -8,7 +8,7 @@ import { Text } from '../../../ui/Text';
 import { Icon } from '../../../ui/Icon';
 import { PhotoBlock } from '../../../ui/Surface';
 import { DELIVERY_FEE } from '../../cart/pricing';
-import { formatBaht } from '../../../lib/format';
+import { formatBaht, ratingLabel, distanceLabel, joinMeta } from '../../../lib/format';
 import { useSearchRestaurants } from '../hooks';
 import { CUISINE_ICON } from '../cuisineIcon';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
@@ -170,7 +170,11 @@ function SearchResultRow({ r, onPress }: { r: Restaurant; onPress: () => void })
           {r.name}
         </Text>
         <Text variant="caption" color="muted" numberOfLines={1} style={{ marginTop: 2 }}>
-          {t(`customer.cuisine.${r.cuisine}`)} · ★ {r.rating.toFixed(1)} · {r.distanceKm} {t('customer.home.km')}
+          {joinMeta(
+            t(`customer.cuisine.${r.cuisine}`),
+            ratingLabel(r.rating),
+            distanceLabel(r.distanceKm, t('customer.home.km')),
+          )}
         </Text>
         <Text variant="kicker" color="onTealTint" numberOfLines={1} style={{ marginTop: 6 }}>
           {r.prepTimeMinutes} {t('customer.home.minutes')} · {formatBaht(DELIVERY_FEE)}{' '}

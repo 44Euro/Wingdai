@@ -23,6 +23,7 @@ describe('filterApproved', () => {
 function makeOrder(id: string, status: Order['status'], createdAt: string): Order {
   return {
     id,
+    reference: `WD-${id}`,
     customerId: 'u-1',
     restaurantId: 'r-malee',
     status,

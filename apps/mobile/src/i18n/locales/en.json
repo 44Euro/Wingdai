@@ -27,13 +27,13 @@
       "submit": "Log in",
       "or": "or",
       "google": "Continue with Google",
-      "googleSoon": "Google sign-in is coming soon",
       "forgot": "Forgot password",
       "toRegister": "No account yet? Sign up",
       "invalidCredentials": "Incorrect username or password",
       "welcome": "Welcome back",
       "subtitle": "Log in with your username or phone number.",
-      "newHere": "New to Wingdai?"
+      "newHere": "New to Wingdai?",
+      "googleFailed": "Google sign-in failed"
     },
     "register": {
       "title": "Create account",
@@ -54,13 +54,16 @@
       "toLogin": "Already have an account? Log in",
       "required": "Please fill in all required fields",
       "submit": "Create account",
-      "passwordTooShort": "Password must be at least 8 characters"
+      "passwordTooShort": "Password must be at least 8 characters",
+      "phoneTaken": "This number is already registered, or too many code requests"
     },
     "otp": {
       "title": "Verify your phone",
       "description": "We sent a 6-digit code to your number",
       "resend": "Send code again",
-      "invalid": "Incorrect code"
+      "invalid": "Incorrect code",
+      "resendIn": "Request a new code in {{seconds}}s",
+      "resendFailed": "Could not send a new code, please try again"
     },
     "chooseType": {
       "title": "How will you use Wingdai?",
@@ -144,7 +147,8 @@
       "differentTitle": "Start a new cart?",
       "differentBody": "Your cart has items from another restaurant. Clear it to order from here.",
       "clearAndAdd": "Clear & add",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "soldOut": "Sold out today"
     },
     "item": {
       "customize": "Customize",

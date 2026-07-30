@@ -27,6 +27,9 @@ beforeEach(() => {
     capabilities: [],
     activeCapability: null,
     isLoading: false,
+    // เทสต์ตั้ง state เองอยู่แล้ว จึงข้ามขั้นกู้เซสชัน — ของจริง RootNavigator
+    // จะไม่วาดอะไรจนกว่าจะรู้ว่ามี token ค้างอยู่ไหม (กันจอ login แวบขึ้นมาแล้วหาย)
+    isRestoring: false,
     error: null,
   });
 });

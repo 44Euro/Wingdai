@@ -43,6 +43,7 @@ async function flush() {
 
 const order: Order = {
   id: 'o-1',
+  reference: 'WD-TEST01',
   customerId: 'u-1',
   restaurantId: 'r-malee',
   status: 'preparing',

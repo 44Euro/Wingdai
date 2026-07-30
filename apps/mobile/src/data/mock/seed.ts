@@ -1,4 +1,4 @@
-import type { Account, Restaurant, MenuItem } from '../types';
+import type { Account, Restaurant, MenuItem, Address } from '../types';
 
 /** รหัสผ่านของทุกบัญชีทดสอบคือ 1234 */
 export const MOCK_PASSWORD = '1234';
@@ -83,7 +83,7 @@ export const seedMenuItems: MenuItem[] = [
     ],
   },
   { id: 'm-malee-4', restaurantId: 'r-malee', name: 'ชาไทยเย็น', price: 2500, category: 'drink', isAvailable: true },
-  { id: 'm-malee-5', restaurantId: 'r-malee', name: 'ข้าวหมูทอด (หมด)', price: 5000, category: 'rice', isAvailable: false },
+  { id: 'm-malee-5', restaurantId: 'r-malee', name: 'ข้าวหมูทอด', price: 5000, category: 'rice', isAvailable: false },
   // ส้มตำแซ่บนัว (somtam)
   {
     id: 'm-somtam-1', restaurantId: 'r-somtam', name: 'ส้มตำไทย', price: 4000, category: 'somtam', isAvailable: true,
@@ -126,4 +126,21 @@ export const seedMenuItems: MenuItem[] = [
     ],
   },
   { id: 'm-closed-2', restaurantId: 'r-closed', name: 'เกาเหลา', price: 5500, category: 'noodle', isAvailable: true },
+];
+
+/**
+ * ที่อยู่จัดส่ง — ผูกกับบัญชี เพราะเป็นข้อมูลส่วนตัว
+ * สมชายมีที่อยู่ไว้ให้สั่งอาหารได้เลย ส่วนบัญชีที่สมัครใหม่ต้องเพิ่มเองก่อนสั่ง (เหมือนของจริง)
+ */
+export const seedAddresses: (Address & { accountId: string })[] = [
+  {
+    id: 'addr-somchai-home', accountId: 'u-somchai', label: 'บ้าน',
+    addressText: 'ซอยอารีย์ 3 คอนโดอารีย์เพลส ห้อง 502', note: 'ฝากไว้ที่นิติได้',
+    lat: 13.7815, lng: 100.5450,
+  },
+  {
+    id: 'addr-somchai-work', accountId: 'u-somchai', label: 'ที่ทำงาน',
+    addressText: 'อาคารพหลโยธินเพลส ชั้น 12',
+    lat: 13.7789, lng: 100.5395,
+  },
 ];

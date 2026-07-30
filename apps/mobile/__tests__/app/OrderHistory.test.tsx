@@ -47,13 +47,13 @@ function render() {
 
 describe('OrderHistoryScreen', () => {
   it('ลูกค้าที่มีออร์เดอร์ → เห็นการ์ดออร์เดอร์', async () => {
-    useAuthStore.setState({ account: { id: 'u-somchai' } } as never);
+    // ต้องล็อกอินผ่าน repo จริง ไม่ใช่ยัด account ลง store ตรง ๆ
+    // เพราะ orders.create อ่านว่าใครล็อกอินอยู่จาก repo เหมือนที่เซิร์ฟเวอร์อ่านจาก token
+    const account = await repos.auth.login('somchai', '1234');
+    useAuthStore.setState({ account });
     const order = await repos.orders.create({
-      customerId: 'u-somchai',
       restaurantId: 'r-malee',
-      items: [{ menuItemId: 'm-malee-1', name: 'ข้าวกะเพรา', unitPrice: 5000, quantity: 1 }],
-      deliveryFee: 1500,
-      serviceFee: 500,
+      items: [{ menuItemId: 'm-malee-4', quantity: 1, choiceIds: [] }],
       paymentMethod: 'promptpay',
     });
     const result = render();

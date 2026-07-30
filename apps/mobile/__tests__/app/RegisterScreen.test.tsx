@@ -45,11 +45,18 @@ function getFirstByTestId(root: ReactTestRenderer.ReactTestInstance, testID: str
   return nodes[0];
 }
 
-/** กรอกทุกช่องบังคับให้ผ่าน validation — ยังไม่ติ๊กยอมรับข้อกำหนด */
+/**
+ * กรอกทุกช่องบังคับให้ผ่าน validation — ยังไม่ติ๊กยอมรับข้อกำหนด
+ *
+ * เบอร์ต้องเป็นเบอร์ที่**ยังไม่มีใครสมัคร** เพราะการกดสมัครจะไปขอรหัส OTP จริง
+ * ซึ่งเบอร์ที่สมัครไว้แล้วจะถูกปฏิเสธ (0812345678 เป็นของสมชายในข้อมูลตั้งต้น)
+ */
+const FREE_PHONE = '0891234567';
+
 function fillValidForm(root: ReactTestRenderer.ReactTestInstance) {
   getFirstByTestId(root, 'input-username').props.onChangeText('somchai');
   getFirstByTestId(root, 'input-password').props.onChangeText('secret123');
-  getFirstByTestId(root, 'input-phone').props.onChangeText('0812345678');
+  getFirstByTestId(root, 'input-phone').props.onChangeText(FREE_PHONE);
   getFirstByTestId(root, 'input-fullName').props.onChangeText('สมชาย ใจดี');
 }
 
@@ -69,7 +76,11 @@ function getErrorText(root: ReactTestRenderer.ReactTestInstance): string | undef
   return withChildren?.props.children as string | undefined;
 }
 
-function renderRegister(navigation: { navigate: jest.Mock; goBack: jest.Mock }) {
+/** `google` ใส่เมื่อต้องการจำลองว่ามาจากปุ่ม Google (จอนั้นไม่มีช่องรหัสผ่าน) */
+function renderRegister(
+  navigation: { navigate: jest.Mock; goBack: jest.Mock },
+  params: { google?: { googleToken: string; prefill: { email: string | null; fullName: string | null } } } = {},
+) {
   act(() => {
     currentRenderer = ReactTestRenderer.create(
       <ThemeProvider forceScheme="light">
@@ -77,6 +88,7 @@ function renderRegister(navigation: { navigate: jest.Mock; goBack: jest.Mock }) 
           navigation={
             navigation as unknown as NativeStackNavigationProp<AuthStackParamList, 'Register'>
           }
+          route={{ key: 'k', name: 'Register', params: params.google ? params : undefined } as never}
         />
       </ThemeProvider>,
     );
@@ -180,7 +192,7 @@ describe('RegisterScreen', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
-  it('กรอกครบถูกต้องทั้งหมด (ไม่กรอกอีเมล) → ไป OtpVerify พร้อม form param', () => {
+  it('กรอกครบถูกต้องทั้งหมด (ไม่กรอกอีเมล) → ขอ OTP แล้วไป OtpVerify พร้อม form param', async () => {
     const navigate = jest.fn();
     const goBack = jest.fn();
     const result = renderRegister({ navigate, goBack });
@@ -190,8 +202,9 @@ describe('RegisterScreen', () => {
       acceptTerms(result.root);
     });
 
-    act(() => {
-      getFirstByTestId(result.root, 'btn-register').props.onPress();
+    // handleSubmit ขอรหัส OTP ก่อนเปลี่ยนจอ — เป็น async แล้ว ต้องรอให้จบก่อนตรวจ
+    await act(async () => {
+      await getFirstByTestId(result.root, 'btn-register').props.onPress();
     });
 
     expect(getErrorText(result.root)).toBeUndefined();
@@ -200,7 +213,7 @@ describe('RegisterScreen', () => {
         username: 'somchai',
         email: undefined,
         password: 'secret123',
-        phone: '0812345678',
+        phone: FREE_PHONE,
         fullName: 'สมชาย ใจดี',
       },
     });
@@ -208,25 +221,26 @@ describe('RegisterScreen', () => {
 
   // design โชว์ชิป +66 หน้าช่องเบอร์ และ placeholder เป็น "81 234 5678" (ไม่มี 0 นำ)
   // คนกรอกตามที่เห็นต้องผ่าน และต้องเก็บลงฟอร์มเป็นรูปแบบเดียวกับที่ repo ใช้ค้นบัญชี
-  it('กรอกเบอร์ตามรูปแบบที่ design โชว์ ("81 234 5678") → เก็บเป็น 0812345678', () => {
+  it('กรอกเบอร์ตามรูปแบบที่ design โชว์ ("89 123 4567") → เก็บเป็น 0891234567', async () => {
     const navigate = jest.fn();
     const goBack = jest.fn();
     const result = renderRegister({ navigate, goBack });
 
     act(() => {
       fillValidForm(result.root);
-      getFirstByTestId(result.root, 'input-phone').props.onChangeText('81 234 5678');
+      getFirstByTestId(result.root, 'input-phone').props.onChangeText('89 123 4567');
       acceptTerms(result.root);
     });
 
-    act(() => {
-      getFirstByTestId(result.root, 'btn-register').props.onPress();
+    // handleSubmit ขอรหัส OTP ก่อนเปลี่ยนจอ — เป็น async แล้ว ต้องรอให้จบก่อนตรวจ
+    await act(async () => {
+      await getFirstByTestId(result.root, 'btn-register').props.onPress();
     });
 
     expect(getErrorText(result.root)).toBeUndefined();
     expect(navigate).toHaveBeenCalledWith(
       'OtpVerify',
-      expect.objectContaining({ form: expect.objectContaining({ phone: '0812345678' }) }),
+      expect.objectContaining({ form: expect.objectContaining({ phone: FREE_PHONE }) }),
     );
   });
 

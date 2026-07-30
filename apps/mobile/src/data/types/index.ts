@@ -24,12 +24,19 @@ export interface Restaurant {
   isApproved: boolean;
   isOpen: boolean;
   cuisine: CuisineCategory;
-  /** mock ระยะทางจากผู้ใช้ (กม.) — density ตาม claude.md §1 */
-  distanceKm: number;
+  /**
+   * ระยะทางจากที่อยู่ของผู้ใช้ถึงร้าน (กม.) — density ตาม claude.md §1
+   * `null` = ยังไม่รู้ว่าผู้ใช้อยู่ไหน (ยังไม่ล็อกอิน หรือยังไม่มีที่อยู่) จอต้องซ่อนไป
+   * **ห้ามแทนด้วยเลขสมมติ** ระยะทางผิดทำให้ลูกค้าตัดสินใจผิดและไรเดอร์รับงานผิด
+   */
+  distanceKm: number | null;
   /** ค่าคงที่ที่ร้านตั้งเอง — seed cold-start ให้ dispatch (§6.3) */
   prepTimeMinutes: number;
-  /** คะแนนเฉลี่ย 0–5 (ยังไม่มีระบบรีวิว — ค่านี้มาจาก seed) */
-  rating: number;
+  /**
+   * คะแนนเฉลี่ย 0–5 · `null` = ยังไม่มีใครรีวิว (ระบบรีวิวอยู่คลื่นที่ 3)
+   * โชว์ ★ 4.8 ให้ร้านที่ไม่เคยมีรีวิวคือการหลอกลูกค้า ไม่ใช่ placeholder — จอต้องซ่อนไป
+   */
+  rating: number | null;
 }
 
 export interface OptionChoice {
@@ -72,6 +79,16 @@ export interface OrderItem {
   quantity: number;
 }
 
+/** claude.md §7 — ที่อยู่ต้องมีพิกัด เพราะระยะทางและการจ่ายงานคิดจากพิกัด ไม่ใช่จากข้อความ */
+export interface Address {
+  id: string;
+  label: string;
+  addressText: string;
+  note?: string;
+  lat: number;
+  lng: number;
+}
+
 /**
  * ช่องทางชำระเงิน (claude.md §6.5)
  * `card` มีในรายการแต่ยังเลือกไม่ได้ จนกว่าจะตัดสินใจเรื่อง payment gateway (§11 ข้อ 3)
@@ -83,6 +100,8 @@ export type PaymentStatus = 'pending' | 'paid';
 
 export interface Order {
   id: string;
+  /** เลขที่ที่ลูกค้าเห็นและใช้อ้างตอนแจ้งปัญหา (WD-XXXXXX) — ไม่ใช่ uuid ที่อ่านไม่ออก */
+  reference: string;
   customerId: string;
   restaurantId: string;
   riderId?: string;

@@ -47,4 +47,31 @@ jest.mock('expo-font', () => ({
   useFonts: () => [true, null],
 }));
 
+
+// @react-native-google-signin/google-signin เป็น native module — แค่ import ก็ throw
+// "TurboModuleRegistry.getEnforcing(...): 'RNGoogleSignin' could not be found"
+// เพราะไม่มี native binary ใน react-test-renderer เลย mock ที่จุดเดียวเหมือน MapLibre
+//
+// mock ให้ signIn() คืน type 'cancelled' เป็นค่าตั้งต้น = "ผู้ใช้กดยกเลิก" ซึ่งเป็นเส้นทาง
+// ที่ไม่ทำอะไรต่อ เทสต์ที่อยากลองเส้นทางสำเร็จให้ spyOn ทับเอง
+jest.mock('@react-native-google-signin/google-signin', () => ({
+  GoogleSignin: {
+    configure: jest.fn(),
+    hasPlayServices: jest.fn().mockResolvedValue(true),
+    signIn: jest.fn().mockResolvedValue({ type: 'cancelled', data: null }),
+    signOut: jest.fn().mockResolvedValue(null),
+  },
+}));
+
+// expo-secure-store คุยกับ Keychain/Keystore ซึ่งไม่มีใน jest — เก็บใน Map แทน
+// พฤติกรรมที่เทสต์สนใจคือ "เก็บแล้วอ่านกลับได้" ซึ่งเหมือนกันทั้งสองแบบ
+jest.mock('expo-secure-store', () => {
+  const store = new Map<string, string>();
+  return {
+    getItemAsync: async (k: string) => store.get(k) ?? null,
+    setItemAsync: async (k: string, v: string) => void store.set(k, v),
+    deleteItemAsync: async (k: string) => void store.delete(k),
+  };
+});
+
 export {};

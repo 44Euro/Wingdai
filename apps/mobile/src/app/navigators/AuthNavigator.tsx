@@ -15,11 +15,26 @@ import { ForgotPasswordScreen } from './ForgotPasswordScreen';
  * type-check ผ่าน — เมื่อสร้างหน้าจริงในงานถัดไป แค่เพิ่ม <Stack.Screen> ในไฟล์นี้ ไม่ต้องแก้
  * type ตรงนี้อีก
  */
+/**
+ * ผ่าน Google มาแล้วรออีกสองขั้น — ตั๋วนี้พิสูจน์ว่าคุยกับ Google สำเร็จ
+ * ต้องพากันไปตลอดทางจนถึงตอนสมัคร เพราะ Google **ไม่ทดแทน OTP** (claude.md §4.2)
+ */
+export type GoogleHandoff = {
+  googleToken: string;
+  prefill: { email: string | null; fullName: string | null };
+};
+
 export type AuthStackParamList = {
   Login: undefined;
-  Register: undefined;
-  OtpVerify: { form: RegisterFormValues };
-  ChooseAccountType: { form: RegisterFormValues };
+  /** มี `google` = มาจากปุ่ม Google จึงไม่ต้องตั้งรหัสผ่าน */
+  Register: { google: GoogleHandoff } | undefined;
+  OtpVerify: { form: RegisterFormValues; google?: GoogleHandoff };
+  ChooseAccountType: {
+    form: RegisterFormValues;
+    /** ตั๋วจาก verifyOtp — ต้องยื่นตอนสมัคร ไม่งั้นเซิร์ฟเวอร์ปฏิเสธ */
+    verificationToken: string;
+    google?: GoogleHandoff;
+  };
   ForgotPassword: undefined;
 };
 

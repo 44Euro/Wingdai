@@ -1,4 +1,6 @@
 import { useAuthStore } from '../../src/features/auth/authStore';
+import { requestOtp, verifyOtp } from '../../src/features/auth/otp';
+import { MOCK_VERIFICATION_TOKEN } from '../../src/data/mock';
 import { initI18n, i18n } from '../../src/i18n';
 
 beforeAll(async () => {
@@ -90,6 +92,7 @@ describe('authStore', () => {
       fullName: 'ผู้ใช้ใหม่',
       phone: '0899999999',
       accountType: 'user',
+      verificationToken: MOCK_VERIFICATION_TOKEN,
     });
     const s = useAuthStore.getState();
     expect(s.account?.username).toBe('freshuser');
@@ -104,6 +107,7 @@ describe('authStore', () => {
       fullName: 'ไรเดอร์ใหม่',
       phone: '0888888888',
       accountType: 'rider',
+      verificationToken: MOCK_VERIFICATION_TOKEN,
     });
     const s = useAuthStore.getState();
     expect(s.account?.username).toBe('freshrider');
@@ -119,14 +123,40 @@ describe('authStore', () => {
       fullName: 'สมชายปลอม',
       phone: '0811111111',
       accountType: 'user',
+      verificationToken: MOCK_VERIFICATION_TOKEN,
     });
     const s = useAuthStore.getState();
     expect(s.error).toBe('auth.register.usernameTaken');
     expect(s.account).toBeNull();
   });
 
-  it('verifyOtp รหัสถูกต้องคืน true, รหัสผิดคืน false', async () => {
-    await expect(useAuthStore.getState().verifyOtp('123456')).resolves.toBe(true);
-    await expect(useAuthStore.getState().verifyOtp('000000')).resolves.toBe(false);
+  it('สมัครโดยไม่มีตั๋วยืนยันเบอร์ → ไม่สำเร็จ (Google ก็ไม่ทดแทน OTP)', async () => {
+    await useAuthStore.getState().register({
+      username: 'noverify',
+      password: '1234',
+      fullName: 'ไม่ยืนยันเบอร์',
+      phone: '0877777777',
+      accountType: 'user',
+      verificationToken: 'ตั๋วปลอม',
+    });
+    expect(useAuthStore.getState().account).toBeNull();
+  });
+});
+
+/**
+ * การยืนยันเบอร์ไม่ใช่สถานะของแอป จึงอยู่นอก authStore
+ * ตั๋วที่ได้ถูกส่งต่อผ่าน route param ไปจนถึงจอสมัคร
+ */
+describe('การยืนยันเบอร์', () => {
+  it('รหัสถูกต้องได้ตั๋วกลับมา', async () => {
+    await expect(verifyOtp('0899999999', '123456')).resolves.toBe(MOCK_VERIFICATION_TOKEN);
+  });
+
+  it('รหัสผิดโยน error ไม่ใช่คืนค่าเงียบ ๆ', async () => {
+    await expect(verifyOtp('0899999999', '000000')).rejects.toThrow();
+  });
+
+  it('ขอรหัสให้เบอร์ที่สมัครแล้วถูกปฏิเสธ ไม่เสีย SMS ทิ้ง', async () => {
+    await expect(requestOtp('0812345678')).rejects.toThrow();
   });
 });

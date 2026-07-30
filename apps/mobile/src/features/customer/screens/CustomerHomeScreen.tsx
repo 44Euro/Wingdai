@@ -13,7 +13,7 @@ import { CUISINE_ICON } from '../cuisineIcon';
 import { TAB_BAR_CLEARANCE } from '../../../app/navigators/WingdaiTabBar';
 import { useAuthStore } from '../../auth/authStore';
 import { DELIVERY_FEE } from '../../cart/pricing';
-import { formatBaht } from '../../../lib/format';
+import { formatBaht, ratingLabel, joinMeta } from '../../../lib/format';
 import { useRestaurants, useNotifications } from '../hooks';
 import { countUnread } from '../notifications';
 import type { CustomerStackParamList, CustomerTabParamList } from '../../../app/navigators/CustomerStack';
@@ -275,8 +275,10 @@ function RestaurantCard({ r, onPress }: { r: Restaurant; onPress: () => void }) 
         <Text variant="body" bold numberOfLines={1}>{r.name}</Text>
         {/* C1 โชว์ "หมวด · ★ คะแนน" — ร้านที่ปิดอยู่บอกสถานะแทนคะแนน เพราะกดสั่งไม่ได้ */}
         <Text variant="caption" color="muted" numberOfLines={1}>
-          {t(`customer.cuisine.${r.cuisine}`)} ·{' '}
-          {r.isOpen ? `★ ${r.rating.toFixed(1)}` : t('customer.home.closed')}
+          {joinMeta(
+            t(`customer.cuisine.${r.cuisine}`),
+            r.isOpen ? ratingLabel(r.rating) : t('customer.home.closed'),
+          )}
         </Text>
         <View
           style={{

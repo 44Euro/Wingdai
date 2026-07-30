@@ -11,7 +11,7 @@ const shop: Restaurant = {
 };
 
 const order: Order = {
-  id: 'o1', customerId: 'u5', restaurantId: 'r1', status: 'accepted',
+  id: 'o1', reference: 'WD-TEST01', customerId: 'u5', restaurantId: 'r1', status: 'accepted',
   items: [], foodTotal: 15000, deliveryFee: 1500, serviceFee: 500,
   paymentMethod: 'promptpay', paymentStatus: 'paid',
   createdAt: '2026-07-21T10:00:00Z',

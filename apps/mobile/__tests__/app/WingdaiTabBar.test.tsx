@@ -32,6 +32,7 @@ const ROUTE_NAMES = ['CustomerHome', 'Categories', 'Orders', 'Profile'] as const
 
 const activeOrder: Order = {
   id: 'o-1',
+  reference: 'WD-TEST01',
   customerId: 'u-1',
   restaurantId: 'r-malee',
   status: 'preparing',

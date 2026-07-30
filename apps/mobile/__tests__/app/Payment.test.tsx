@@ -10,6 +10,7 @@ import { useCartStore } from '../../src/features/cart/cartStore';
 import { useAuthStore } from '../../src/features/auth/authStore';
 import { usePaymentStore, isPayable } from '../../src/features/payment/paymentStore';
 import type { MenuItem } from '../../src/data/types';
+import { repos } from '../../src/data';
 
 const item = (id: string, price: number): MenuItem => ({
   id,
@@ -38,6 +39,18 @@ afterEach(() => {
   });
   r = null;
 });
+
+/**
+ * ล็อกอินผ่าน repo จริง ไม่ใช่ยัด account ลง store ตรง ๆ
+ *
+ * orders.create อ่านว่าใครสั่งจาก repo เหมือนที่เซิร์ฟเวอร์อ่านจาก token
+ * — แอปไม่เคยส่ง customerId ไปให้ปลอมได้ การยัด store จึงไม่พอที่จะสั่งของได้
+ */
+async function signIn(username: string) {
+  const account = await repos.auth.login(username, '1234');
+  useAuthStore.setState({ account } as never);
+  return account;
+}
 
 function findAll(root: ReactTestRenderer.ReactTestInstance, id: string) {
   return root.findAll((n) => n.props?.testID === id);
@@ -125,9 +138,9 @@ describe('formatCountdown', () => {
 
 describe('PromptPayScreen (C5)', () => {
   it('กด "จ่ายแล้ว" → สร้างออร์เดอร์ แล้ว replace ไป OrderPlaced + ตะกร้าถูกล้าง', async () => {
-    useAuthStore.setState({ account: { id: 'u-somchai' } } as never);
+    await signIn('somchai');
     act(() => {
-      useCartStore.getState().addItem('r-malee', item('m-malee-1', 5000));
+      useCartStore.getState().addItem('r-malee', item('m-malee-4', 2500));
     });
     const nav = { replace: jest.fn(), goBack: jest.fn() };
     const result = render(

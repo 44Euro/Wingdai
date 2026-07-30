@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, TextInput, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +8,7 @@ import { useTheme } from '../../theme/ThemeProvider';
 import { Text } from '../../ui/Text';
 import { Button } from '../../ui/Button';
 import { ScreenHeader } from '../../ui/ScreenHeader';
-import { useAuthStore } from '../../features/auth/authStore';
+import { requestOtp, verifyOtp } from '../../features/auth/otp';
 import type { AuthStackParamList } from './AuthNavigator';
 
 type Props = {
@@ -17,25 +17,50 @@ type Props = {
 };
 
 const OTP_LENGTH = 6;
+/** ต้องตรงกับ RESEND_COOLDOWN_MS ฝั่งเซิร์ฟเวอร์ (services/core-api/src/auth/otp.policy.ts) */
+const RESEND_COOLDOWN_SECONDS = 60;
 
 export function OtpVerifyScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
-  const verifyOtp = useAuthStore((s) => s.verifyOtp);
-
-  const { form } = route.params;
+  const { form, google } = route.params;
   const inputRef = useRef<TextInput>(null);
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+  /** วินาทีที่เหลือก่อนขอรหัสใหม่ได้ — เซิร์ฟเวอร์บังคับ cooldown อยู่แล้ว อันนี้บอกผู้ใช้ให้รู้ตัว */
+  const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const id = setInterval(() => setCooldown((s) => (s <= 1 ? 0 : s - 1)), 1000);
+    return () => clearInterval(id);
+  }, [cooldown]);
+
+  async function handleResend() {
+    try {
+      await requestOtp(form.phone);
+      setCooldown(RESEND_COOLDOWN_SECONDS);
+      setCode('');
+      setError(null);
+    } catch {
+      setError('auth.otp.resendFailed');
+    }
+  }
 
   async function handleVerify() {
-    const ok = await verifyOtp(code);
-    if (!ok) {
+    setChecking(true);
+    try {
+      // ตั๋วที่ได้ต้องส่งต่อไปถึงจอสมัคร ไม่งั้นเซิร์ฟเวอร์ปฏิเสธเพราะยังไม่ยืนยันเบอร์
+      const verificationToken = await verifyOtp(form.phone, code);
+      setError(null);
+      navigation.navigate('ChooseAccountType', { form, verificationToken, google });
+    } catch {
+      // รหัสผิด หมดอายุ หรือกรอกผิดเกินกำหนด — ผู้ใช้ทำอย่างเดียวกันคือกรอกใหม่หรือขอรหัสใหม่
       setError('auth.otp.invalid');
-      return;
+    } finally {
+      setChecking(false);
     }
-    setError(null);
-    navigation.navigate('ChooseAccountType', { form });
   }
 
   return (
@@ -119,17 +144,24 @@ export function OtpVerifyScreen({ navigation, route }: Props) {
           testID="btn-resend"
           accessibilityRole="button"
           hitSlop={10}
-          onPress={() => {
-            // mock: ยังไม่มี backend ส่ง OTP จริง — ปุ่มนี้กดได้แต่ไม่ทำอะไรตอนนี้
-          }}
+          disabled={cooldown > 0}
+          onPress={handleResend}
           style={({ pressed }) => ({ alignSelf: 'flex-start', opacity: pressed ? 0.7 : 1 })}
         >
-          <Text variant="small" color="link" bold>{t('auth.otp.resend')}</Text>
+          {/* บอกเวลาที่เหลือ ไม่ใช่ปิดปุ่มเงียบ ๆ ให้ผู้ใช้กดซ้ำแล้วสงสัยว่าแอปเสีย */}
+          <Text variant="small" color={cooldown > 0 ? 'faint' : 'link'} bold>
+            {cooldown > 0 ? t('auth.otp.resendIn', { seconds: cooldown }) : t('auth.otp.resend')}
+          </Text>
         </Pressable>
       </View>
 
       <View style={{ paddingHorizontal: p.space.screen, paddingBottom: p.space.lg }}>
-        <Button testID="btn-verify-otp" label={t('common.continue')} onPress={handleVerify} />
+        <Button
+          testID="btn-verify-otp"
+          label={t('common.continue')}
+          disabled={checking || code.length < OTP_LENGTH}
+          onPress={handleVerify}
+        />
       </View>
     </SafeAreaView>
   );

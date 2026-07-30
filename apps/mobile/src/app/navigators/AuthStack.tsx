@@ -17,6 +17,7 @@ import { Button } from '../../ui/Button';
 import { Icon } from '../../ui/Icon';
 import { Input, Field } from '../../ui/Field';
 import { GoogleGIcon } from '../../ui/GoogleGIcon';
+import { signInWithGoogle, GoogleCancelled } from '../../features/auth/google';
 import { useAuthStore } from '../../features/auth/authStore';
 import type { AuthStackParamList } from './AuthNavigator';
 
@@ -27,12 +28,16 @@ type Props = {
 };
 
 /** ปุ่ม "เข้าสู่ระบบด้วย Google" — ทรงเดียวกับ ghost button ของ design + โลโก้ G ทางการ */
-function GoogleButton({ label, onPress, testID }: { label: string; onPress: () => void; testID?: string }) {
+function GoogleButton({
+  label, onPress, testID, disabled,
+}: { label: string; onPress: () => void; testID?: string; disabled?: boolean }) {
   const { tokens, primitives: p } = useTheme();
   return (
     <Pressable
       testID={testID}
       accessibilityRole="button"
+      accessibilityState={{ disabled: !!disabled }}
+      disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
         {
@@ -47,6 +52,8 @@ function GoogleButton({ label, onPress, testID }: { label: string; onPress: () =
           gap: p.space.md,
           paddingHorizontal: p.space.xl,
           transform: [{ scale: pressed ? 0.975 : 1 }],
+          // จางลงตอนกำลังคุยกับ Google เพื่อให้เห็นว่ากดติดแล้ว กำลังรออยู่
+          opacity: disabled ? 0.5 : 1,
         },
         p.shadow.card,
       ]}
@@ -63,12 +70,38 @@ export function LoginScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const login = useAuthStore((s) => s.login);
+  const signInWithGoogleAccount = useAuthStore((s) => s.signInWithGoogle);
   const error = useAuthStore((s) => s.error);
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [pwFocused, setPwFocused] = useState(false);
-  const [googleNote, setGoogleNote] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
+
+  async function handleGoogle() {
+    setGoogleBusy(true);
+    setGoogleError(null);
+    try {
+      const idToken = await signInWithGoogle();
+      const result = await signInWithGoogleAccount(idToken);
+      /**
+       * คนใหม่ยังเข้าแอปไม่ได้ทันที — Google ไม่ทดแทน OTP (claude.md §4.2)
+       * ยังต้องมี username กับเบอร์ที่ยืนยันแล้ว เพราะไรเดอร์และร้านต้องโทรหาลูกค้าได้จริง
+       * ส่วนคนที่ผูกบัญชีไว้แล้ว RootNavigator จะสลับ stack ให้เองเมื่อ account ถูกตั้ง
+       */
+      if (result.needsRegistration) {
+        navigation.navigate('Register', {
+          google: { googleToken: result.googleToken, prefill: result.prefill },
+        });
+      }
+    } catch (e) {
+      // กดยกเลิกเองไม่ใช่ข้อผิดพลาด — ไม่ต้องขึ้นข้อความอะไรให้รำคาญ
+      if (!(e instanceof GoogleCancelled)) setGoogleError('auth.login.googleFailed');
+    } finally {
+      setGoogleBusy(false);
+    }
+  }
 
   return (
     <SafeAreaView
@@ -215,17 +248,19 @@ export function LoginScreen({ navigation }: Props) {
             <GoogleButton
               testID="btn-google"
               label={t('auth.login.google')}
-              onPress={() => setGoogleNote(true)}
+              disabled={googleBusy}
+              onPress={handleGoogle}
             />
 
-            {googleNote ? (
+            {googleError ? (
               <Text
-                testID="google-note"
+                testID="google-error"
                 variant="caption"
-                color="muted"
+                color="danger"
+                bold
                 style={{ textAlign: 'center' }}
               >
-                {t('auth.login.googleSoon')}
+                {t(googleError)}
               </Text>
             ) : null}
           </View>

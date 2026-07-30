@@ -11,6 +11,7 @@ import { useAuthStore } from '../../src/features/auth/authStore';
 import { usePaymentStore } from '../../src/features/payment/paymentStore';
 import type { MenuItem } from '../../src/data/types';
 import type { CustomerStackParamList } from '../../src/app/navigators/CustomerStack';
+import { repos } from '../../src/data';
 
 const item = (id: string, price: number, rid = 'r-malee'): MenuItem => ({
   id,
@@ -36,6 +37,18 @@ afterEach(() => {
   });
   r = null;
 });
+/**
+ * ล็อกอินผ่าน repo จริง ไม่ใช่ยัด account ลง store ตรง ๆ
+ *
+ * orders.create อ่านว่าใครสั่งจาก repo เหมือนที่เซิร์ฟเวอร์อ่านจาก token
+ * — แอปไม่เคยส่ง customerId ไปให้ปลอมได้ การยัด store จึงไม่พอที่จะสั่งของได้
+ */
+async function signIn(username: string) {
+  const account = await repos.auth.login(username, '1234');
+  useAuthStore.setState({ account } as never);
+  return account;
+}
+
 function findAll(root: ReactTestRenderer.ReactTestInstance, id: string) {
   return root.findAll((n) => n.props?.testID === id);
 }
@@ -74,7 +87,7 @@ describe('CheckoutScreen (C17)', () => {
   it('จ่ายด้วยพร้อมเพย์ → ไปจอ QR ยังไม่สร้างออร์เดอร์', async () => {
     useAuthStore.setState({ account: { id: 'u-somchai' } } as never);
     act(() => {
-      useCartStore.getState().addItem('r-malee', item('m-malee-1', 5000));
+      useCartStore.getState().addItem('r-malee', item('m-malee-4', 2500));
     });
     const nav = { navigate: jest.fn(), replace: jest.fn(), popToTop: jest.fn() };
     const result = render(nav);
@@ -88,10 +101,10 @@ describe('CheckoutScreen (C17)', () => {
   });
 
   it('จ่ายเงินสด → สร้างออร์เดอร์เลยแล้ว replace ไป OrderPlaced + ตะกร้าถูกล้าง', async () => {
-    useAuthStore.setState({ account: { id: 'u-somchai' } } as never);
+    await signIn('somchai');
     usePaymentStore.setState({ method: 'cash' });
     act(() => {
-      useCartStore.getState().addItem('r-malee', item('m-malee-1', 5000));
+      useCartStore.getState().addItem('r-malee', item('m-malee-4', 2500));
     });
     const nav = { navigate: jest.fn(), replace: jest.fn(), popToTop: jest.fn() };
     const result = render(nav);
@@ -105,10 +118,10 @@ describe('CheckoutScreen (C17)', () => {
   });
 
   it('เจ้าของร้านสั่งร้านตัวเอง (เงินสด) → error โชว์ ไม่ replace', async () => {
-    useAuthStore.setState({ account: { id: 'u-malee' } } as never);
+    await signIn('malee');
     usePaymentStore.setState({ method: 'cash' });
     act(() => {
-      useCartStore.getState().addItem('r-malee', item('m-malee-1', 5000));
+      useCartStore.getState().addItem('r-malee', item('m-malee-4', 2500));
     });
     const nav = { navigate: jest.fn(), replace: jest.fn(), popToTop: jest.fn() };
     const result = render(nav);
@@ -124,7 +137,7 @@ describe('CheckoutScreen (C17)', () => {
   it('กดแถวช่องทางจ่ายเงิน → ไปจอเลือกช่องทาง (C18)', async () => {
     useAuthStore.setState({ account: { id: 'u-somchai' } } as never);
     act(() => {
-      useCartStore.getState().addItem('r-malee', item('m-malee-1', 5000));
+      useCartStore.getState().addItem('r-malee', item('m-malee-4', 2500));
     });
     const nav = { navigate: jest.fn(), replace: jest.fn(), popToTop: jest.fn() };
     const result = render(nav);

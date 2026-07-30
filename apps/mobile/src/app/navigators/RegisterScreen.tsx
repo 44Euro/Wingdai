@@ -3,15 +3,20 @@ import { View, TextInput, ScrollView, Pressable, KeyboardAvoidingView, Platform 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { Text } from '../../ui/Text';
 import { Button } from '../../ui/Button';
 import { Icon } from '../../ui/Icon';
 import { Checkbox } from '../../ui/Surface';
 import { Field, Input } from '../../ui/Field';
+import { requestOtp } from '../../features/auth/otp';
 import type { AuthStackParamList } from './AuthNavigator';
 
-/** ค่าที่กรอกในหน้าสมัครสมาชิก ส่งต่อไปหน้า OtpVerify เป็น route param (task ถัดไปค่อยเรียก register จริง) */
+/**
+ * ค่าที่กรอกในหน้าสมัครสมาชิก ส่งต่อไปหน้า OtpVerify แล้ว ChooseAccountType เป็น route param
+ * `password` เป็นสตริงว่างเมื่อมาจาก Google — บัญชีนั้นเข้าระบบด้วย Google ไม่มีรหัสผ่าน
+ */
 export type RegisterFormValues = {
   username: string;
   email?: string;
@@ -42,24 +47,30 @@ export function normalizePhone(raw: string): string {
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Register'>;
+  route: RouteProp<AuthStackParamList, 'Register'>;
 };
 
-export function RegisterScreen({ navigation }: Props) {
+export function RegisterScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
 
+  // มาจากปุ่ม Google = ไม่ต้องตั้งรหัสผ่าน และเติมชื่อ/อีเมลที่ Google ให้มาไว้ล่วงหน้า
+  const google = route.params?.google;
+
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(google?.prefill.email ?? '');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [fullName, setFullName] = useState(google?.prefill.fullName ?? '');
   const [showPassword, setShowPassword] = useState(false);
   const [pwFocused, setPwFocused] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
 
-  function handleSubmit() {
-    if (!username.trim() || !password.trim() || !phone.trim() || !fullName.trim()) {
+  async function handleSubmit() {
+    // มาจาก Google ไม่ต้องมีรหัสผ่าน — บัญชีนั้นเข้าระบบด้วย Google
+    if (!username.trim() || !phone.trim() || !fullName.trim() || (!google && !password.trim())) {
       setError('auth.register.required');
       return;
     }
@@ -68,7 +79,7 @@ export function RegisterScreen({ navigation }: Props) {
       setError('auth.register.phoneInvalid');
       return;
     }
-    if (password.length < PASSWORD_MIN_LENGTH) {
+    if (!google && password.length < PASSWORD_MIN_LENGTH) {
       setError('auth.register.passwordTooShort');
       return;
     }
@@ -90,8 +101,21 @@ export function RegisterScreen({ navigation }: Props) {
       phone: normalizedPhone,
       fullName: fullName.trim(),
     };
-    // ยังไม่เรียก register() ตรงนี้ — รอ OTP ยืนยันเบอร์ก่อน (task หน้าค่อยผูก authStore.register)
-    navigation.navigate('OtpVerify', { form });
+
+    /**
+     * ขอรหัส OTP ก่อนเปลี่ยนจอ ไม่ใช่ไปขอที่จอถัดไป
+     * เพราะเบอร์ที่สมัครไปแล้วจะถูกปฏิเสธตรงนี้ — ผู้ใช้ควรเห็นข้อความใต้ช่องเบอร์
+     * ไม่ใช่ถูกพาไปจอกรอกรหัสแล้วเจอ error ที่ไม่รู้ว่าต้องย้อนไปแก้ช่องไหน
+     */
+    setSending(true);
+    try {
+      await requestOtp(normalizedPhone);
+      navigation.navigate('OtpVerify', { form, google });
+    } catch {
+      setError('auth.register.phoneTaken');
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -193,7 +217,10 @@ export function RegisterScreen({ navigation }: Props) {
               />
             </Field>
 
-            {/* ช่องรหัสผ่าน + ปุ่มตาสลับแสดง/ซ่อน — ประกอบเองเพราะปุ่มต้องอยู่ในกรอบเดียวกัน */}
+            {/* บัญชีที่มาจาก Google ไม่มีรหัสผ่าน — ซ่อนช่องไปเลย ดีกว่าโชว์แล้วบอกว่าไม่ต้องกรอก
+                ตั้งรหัสผ่านทีหลังได้ผ่านเส้นทางลืมรหัสผ่าน (OTP ไปเบอร์ที่ยืนยันแล้ว)
+                ช่องรหัสผ่าน + ปุ่มตาสลับแสดง/ซ่อน — ประกอบเองเพราะปุ่มต้องอยู่ในกรอบเดียวกัน */}
+            {google ? null : (
             <Field label={t('auth.register.password')}>
               <View
                 style={[
@@ -247,6 +274,7 @@ export function RegisterScreen({ navigation }: Props) {
                 </Pressable>
               </View>
             </Field>
+            )}
           </View>
 
           <Checkbox
@@ -276,7 +304,12 @@ export function RegisterScreen({ navigation }: Props) {
             </Text>
           ) : null}
 
-          <Button testID="btn-register" label={t('auth.register.submit')} onPress={handleSubmit} />
+          <Button
+            testID="btn-register"
+            label={t('auth.register.submit')}
+            disabled={sending}
+            onPress={handleSubmit}
+          />
 
           <View
             style={{

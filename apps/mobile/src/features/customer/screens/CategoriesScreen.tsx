@@ -7,7 +7,7 @@ import { Text } from '../../../ui/Text';
 import { Card, IconChip } from '../../../ui/Surface';
 import { Icon, IconName } from '../../../ui/Icon';
 import { useRestaurants } from '../hooks';
-import { formatBaht } from '../../../lib/format';
+import { formatBaht, ratingLabel, joinMeta } from '../../../lib/format';
 import { DELIVERY_FEE } from '../../cart/pricing';
 import { TAB_BAR_CLEARANCE } from '../../../app/navigators/WingdaiTabBar';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
@@ -117,7 +117,7 @@ export function CategoriesScreen({ navigation }: Props) {
                     {r.name}
                   </Text>
                   <Text variant="caption" color="muted">
-                    {t(`customer.cuisine.${r.cuisine}`)} · ★ {r.rating.toFixed(1)}
+                    {joinMeta(t(`customer.cuisine.${r.cuisine}`), ratingLabel(r.rating))}
                   </Text>
                   <Text variant="caption" color="faint">
                     {r.prepTimeMinutes} min · {formatBaht(DELIVERY_FEE)}

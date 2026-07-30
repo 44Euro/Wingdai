@@ -7,6 +7,7 @@ import { ChooseAccountTypeScreen } from '../../src/app/navigators/ChooseAccountT
 import { ThemeProvider } from '../../src/theme/ThemeProvider';
 import { initI18n, i18n } from '../../src/i18n';
 import { useAuthStore } from '../../src/features/auth/authStore';
+import { MOCK_VERIFICATION_TOKEN } from '../../src/data/mock';
 import type { AuthStackParamList } from '../../src/app/navigators/AuthNavigator';
 import type { RegisterFormValues } from '../../src/app/navigators/RegisterScreen';
 
@@ -21,7 +22,7 @@ const sampleForm: RegisterFormValues = {
   username: 'newuser_otp',
   email: undefined,
   password: 'secret123',
-  phone: '0812345678',
+  phone: '0891234567',
   fullName: 'สมชาย ใจดี',
 };
 
@@ -94,7 +95,7 @@ function renderChooseAccountType(form: RegisterFormValues = sampleForm) {
             {
               key: 'ChooseAccountType',
               name: 'ChooseAccountType',
-              params: { form },
+              params: { form, verificationToken: MOCK_VERIFICATION_TOKEN },
             } as unknown as RouteProp<AuthStackParamList, 'ChooseAccountType'>
           }
         />
@@ -149,7 +150,12 @@ describe('OtpVerifyScreen', () => {
       await getFirstByTestId(result.root, 'btn-verify-otp').props.onPress();
     });
 
-    expect(navigate).toHaveBeenCalledWith('ChooseAccountType', { form: sampleForm });
+    // ตั๋วต้องถูกส่งต่อไปด้วย ไม่ใช่แค่ form — ไม่งั้นจอสมัครยื่นอะไรให้เซิร์ฟเวอร์ไม่ได้
+    expect(navigate).toHaveBeenCalledWith('ChooseAccountType', {
+      form: sampleForm,
+      verificationToken: MOCK_VERIFICATION_TOKEN,
+      google: undefined,
+    });
     expect(findAllByTestId(result.root, 'otp-error').length).toBe(0);
   });
 });

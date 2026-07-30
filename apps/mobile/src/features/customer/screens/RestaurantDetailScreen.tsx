@@ -11,7 +11,7 @@ import { Badge, Card, PhotoBlock, RoundButton } from '../../../ui/Surface';
 import { useRestaurant, useMenu } from '../hooks';
 import { useCartStore } from '../../cart/cartStore';
 import { DELIVERY_FEE } from '../../cart/pricing';
-import { formatBaht } from '../../../lib/format';
+import { formatBaht, ratingLabel, distanceLabel } from '../../../lib/format';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
 import type { MenuItem } from '../../../data/types';
 
@@ -76,7 +76,8 @@ export function RestaurantDetailScreen({ navigation, route }: Props) {
                 </Text>
               ) : null}
             </View>
-            {restaurant ? (
+            {/* ป้ายคะแนนหายไปทั้งชิ้นเมื่อยังไม่มีรีวิว — ไม่ใช่โชว์ป้ายเปล่า ๆ ที่อ่านไม่ได้ความ */}
+            {restaurant && ratingLabel(restaurant.rating) ? (
               <View
                 testID="restaurant-rating"
                 style={{
@@ -87,7 +88,7 @@ export function RestaurantDetailScreen({ navigation, route }: Props) {
                 }}
               >
                 <Text variant="caption" color="onTeal" bold>
-                  ★ {restaurant.rating.toFixed(1)}
+                  {ratingLabel(restaurant.rating)}
                 </Text>
               </View>
             ) : null}
@@ -98,7 +99,9 @@ export function RestaurantDetailScreen({ navigation, route }: Props) {
               <>
                 <Badge label={`${restaurant.prepTimeMinutes} ${t('customer.home.minutes')}`} tone="brand" />
                 <Badge label={`${t('customer.home.deliveryFee')} ${formatBaht(DELIVERY_FEE)}`} tone="teal" />
-                <Badge label={`${restaurant.distanceKm} ${t('customer.home.km')}`} tone="neutral" />
+                {distanceLabel(restaurant.distanceKm, t('customer.home.km')) ? (
+                  <Badge label={distanceLabel(restaurant.distanceKm, t('customer.home.km'))!} tone="neutral" />
+                ) : null}
               </>
             ) : null}
           </View>
@@ -113,18 +116,22 @@ export function RestaurantDetailScreen({ navigation, route }: Props) {
         </View>
 
         <View style={{ paddingHorizontal: p.space.screen, paddingTop: p.space.md, gap: p.space.lg }}>
-          {menu.map((item) => (
+          {menu.map((item) => {
+            // ของหมดยังโชว์อยู่ในเมนู เพราะลูกค้าควรรู้ว่าร้านมีจานนี้ แค่วันนี้ไม่มี
+            // แต่ต้องกดไม่ได้ ไม่งั้นเพิ่มลงตะกร้าได้แล้วไปเด้งตอนกดสั่ง
+            const canAdd = canOrder && item.isAvailable;
+            return (
             <Pressable
               key={item.id}
               testID={`add-${item.id}`}
               accessibilityRole="button"
-              disabled={!canOrder}
+              disabled={!canAdd}
               onPress={() => tryAdd(item)}
               style={({ pressed }) => ({
                 flexDirection: 'row',
                 alignItems: 'center',
                 gap: p.space.md,
-                opacity: pressed ? 0.85 : canOrder ? 1 : 0.5,
+                opacity: pressed ? 0.85 : canAdd ? 1 : 0.5,
               })}
             >
               <View style={{ flex: 1, gap: 3 }}>
@@ -132,6 +139,11 @@ export function RestaurantDetailScreen({ navigation, route }: Props) {
                 {item.description ? (
                   <Text variant="caption" color="muted" numberOfLines={2}>{item.description}</Text>
                 ) : null}
+                {item.isAvailable ? null : (
+                  <Text testID={`sold-out-${item.id}`} variant="caption" color="danger" bold>
+                    {t('customer.restaurant.soldOut')}
+                  </Text>
+                )}
                 <Text variant="small" color="onTealTint" bold style={{ marginTop: 3 }}>
                   {formatBaht(item.price)}
                 </Text>
@@ -149,19 +161,20 @@ export function RestaurantDetailScreen({ navigation, route }: Props) {
                       width: 32,
                       height: 32,
                       borderRadius: 12,
-                      backgroundColor: canOrder ? tokens.brandAccent : tokens.borderSubtle,
+                      backgroundColor: canAdd ? tokens.brandAccent : tokens.borderSubtle,
                       alignItems: 'center',
                       justifyContent: 'center',
                     },
                     // เงาต้องเล็กตามปุ่ม — shadow.brand ทำมาสำหรับ CTA เต็มความกว้าง ใส่ตรงนี้จะฟุ้งเป็นวงส้ม
-                    canOrder ? p.shadow.card : null,
+                    canAdd ? p.shadow.card : null,
                   ]}
                 >
-                  <Icon name="plus" color={canOrder ? '#FFFFFF' : tokens.textFaint} size={18} strokeWidth={2.8} />
+                  <Icon name="plus" color={canAdd ? '#FFFFFF' : tokens.textFaint} size={18} strokeWidth={2.8} />
                 </View>
               </View>
             </Pressable>
-          ))}
+            );
+          })}
         </View>
       </ScrollView>
 

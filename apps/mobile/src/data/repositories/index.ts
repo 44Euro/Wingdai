@@ -1,5 +1,5 @@
 import type {
-  Account, AccountType, MenuItem, Order, OrderItem, OrderStatus, PaymentMethod, Restaurant,
+  Account, AccountType, Address, MenuItem, Order, OrderStatus, PaymentMethod, Restaurant,
 } from '../types';
 
 export interface RegisterInput {
@@ -8,24 +8,56 @@ export interface RegisterInput {
   fullName: string;
   phone: string;
   accountType: AccountType;
-  /** login alias เสริม — optional เสมอ ไม่ต้อง OTP-verify */
+  /** ช่องทางรีเซ็ตรหัสผ่านเท่านั้น ไม่ใช่ identifier สำหรับล็อกอิน (claude.md §4.2) */
   email?: string;
+  /** ตั๋วจาก verifyOtp — พิสูจน์ว่าเบอร์นี้ยืนยันแล้ว */
+  verificationToken: string;
 }
 
+/** ฟอร์มสั้นหลังผ่าน Google — ไม่มีรหัสผ่าน เพราะเข้าด้วยบัญชี Google */
+export interface GoogleRegisterInput {
+  googleToken: string;
+  username: string;
+  fullName: string;
+  phone: string;
+  accountType: AccountType;
+  verificationToken: string;
+}
+
+export type GoogleSignInResult =
+  | { needsRegistration: false; account: Account }
+  | {
+      needsRegistration: true;
+      googleToken: string;
+      prefill: { email: string | null; fullName: string | null };
+    };
+
+/**
+ * แอปส่งมาแค่ "อยากได้อะไร" — **ไม่ส่งราคา**
+ * เซิร์ฟเวอร์ตีราคาจากเมนูในฐานเอง ไม่งั้นแอปที่ถูกแก้จะสั่งของแพงในราคาถูกได้
+ * และคอมมิชชัน 15% (claude.md §6.1) จะคิดจากยอดปลอมนั้น
+ */
 export interface CreateOrderInput {
-  customerId: string;
   restaurantId: string;
-  items: OrderItem[];
-  deliveryFee: number;
-  serviceFee: number;
+  items: { menuItemId: string; quantity: number; choiceIds: string[] }[];
   paymentMethod: PaymentMethod;
+  /** ไม่ระบุ = ใช้ที่อยู่แรกที่บันทึกไว้ */
+  deliveryAddressId?: string;
 }
 
 export interface AuthRepo {
-  /** identifier รับได้ทั้ง username หรือเบอร์โทร — อีเมลใช้ล็อกอินไม่ได้ เป็นแค่ช่องทางรีเซ็ตรหัส (claude.md §4.2) */
+  /** identifier รับได้ทั้ง username หรือเบอร์โทร — อีเมลใช้ล็อกอินไม่ได้ (claude.md §4.2) */
   login(identifier: string, password: string): Promise<Account>;
+  /** ขอรหัส OTP · `devCode` มีเฉพาะตอนเซิร์ฟเวอร์ไม่ใช่ production (ยังไม่มีผู้ให้บริการ SMS) */
+  requestOtp(phone: string): Promise<{ devCode?: string }>;
+  /** ตรวจรหัสแล้วคืนตั๋วยืนยันเบอร์ ที่ต้องยื่นตอนสมัคร */
+  verifyOtp(phone: string, code: string): Promise<string>;
   register(input: RegisterInput): Promise<Account>;
-  verifyOtp(accountId: string, code: string): Promise<boolean>;
+  /** ขั้นแรกของ Google sign-in — Google ไม่ทดแทน OTP คนใหม่ยังต้องยืนยันเบอร์ */
+  googleSignIn(idToken: string): Promise<GoogleSignInResult>;
+  googleRegister(input: GoogleRegisterInput): Promise<Account>;
+  /** เปิดแอปมาแล้วยังมีเซสชันค้างอยู่ไหม — null = ต้องล็อกอินใหม่ */
+  restore(): Promise<Account | null>;
   logout(): Promise<void>;
 }
 
@@ -57,8 +89,16 @@ export interface OrderRepo {
   payWithPromptPay(orderId: string): Promise<Order>;
 }
 
+export type NewAddressInput = Omit<Address, 'id'>;
+
+export interface AddressRepo {
+  list(): Promise<Address[]>;
+  add(input: NewAddressInput): Promise<Address>;
+}
+
 export interface Repos {
   auth: AuthRepo;
   catalog: CatalogRepo;
   orders: OrderRepo;
+  addresses: AddressRepo;
 }

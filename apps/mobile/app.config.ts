@@ -1,5 +1,14 @@
 import type { ExpoConfig } from 'expo/config';
 
+/**
+ * ที่อยู่ของ core-api — ไม่ตั้ง = แอปใช้ข้อมูลจำลองในเครื่อง เปิดได้เสมอ
+ *
+ * simulator iOS ใช้ localhost ได้เลย · **เครื่องจริงต้องใส่ IP ในวงแลน**
+ * ของเครื่องที่รันเซิร์ฟเวอร์ เพราะ localhost บนมือถือคือตัวมือถือเอง
+ *   WINGDAI_API_URL=http://192.168.1.42:3000/api npx expo start
+ */
+const apiBaseUrl = process.env.WINGDAI_API_URL;
+
 const config: ExpoConfig = {
   name: 'Wingdai',
   slug: 'wingdai',
@@ -25,6 +34,16 @@ const config: ExpoConfig = {
   plugins: [
     'expo-localization',
     '@maplibre/maplibre-react-native',
+    'expo-secure-store',
+    [
+      '@react-native-google-signin/google-signin',
+      {
+        // ต้องเป็น iOS client ID กลับด้าน — ค่านี้คือ URL scheme ที่ Google เรียกกลับเข้าแอป
+        // ผิดตัวเดียวจะกลับเข้าแอปไม่ได้ ค้างอยู่ที่หน้าเว็บของ Google
+        iosUrlScheme:
+          'com.googleusercontent.apps.604454119763-km1m49afqj081oin5tincocas48111o5',
+      },
+    ],
     [
       'expo-splash-screen',
       {
@@ -34,6 +53,7 @@ const config: ExpoConfig = {
       },
     ],
   ],
+  extra: { apiBaseUrl },
 };
 
 export default config;

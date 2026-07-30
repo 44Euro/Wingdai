@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuthStore } from '../features/auth/authStore';
 import { PendingApprovalScreen } from './navigators/AuthStack';
 import { AuthNavigator } from './navigators/AuthNavigator';
@@ -14,6 +14,20 @@ export function RootNavigator() {
   const account = useAuthStore((s) => s.account);
   const capabilities = useAuthStore((s) => s.capabilities);
   const active = useAuthStore((s) => s.activeCapability);
+  const isRestoring = useAuthStore((s) => s.isRestoring);
+  const restore = useAuthStore((s) => s.restore);
+
+  useEffect(() => {
+    // เช็คเซสชันที่ค้างอยู่ครั้งเดียวตอนเปิดแอป — token เก็บไว้ใน Keychain
+    void restore();
+  }, [restore]);
+
+  /**
+   * ยังไม่รู้ว่าล็อกอินอยู่ไหม — ยังไม่วาดอะไร
+   * ถ้าเผลอวาด AuthNavigator ไปก่อน จอล็อกอินจะแวบขึ้นมาแล้วหายไปเองทุกครั้งที่เปิดแอป
+   * ซึ่งดูเหมือนแอปเด้งออกมากกว่าดูเหมือนกำลังโหลด
+   */
+  if (isRestoring) return null;
 
   if (!account) return <AuthNavigator />;
 

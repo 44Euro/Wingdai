@@ -6,7 +6,7 @@ import { buildNotifications, type AppNotification } from './notifications';
 import { useNotificationStore } from './notificationStore';
 import { useCartStore } from '../cart/cartStore';
 import { usePaymentStore } from '../payment/paymentStore';
-import { orderTotals, orderItemName } from '../cart/pricing';
+import { orderTotals } from '../cart/pricing';
 import type { Order, Restaurant } from '../../data/types';
 import type { CreateOrderInput } from '../../data/repositories';
 
@@ -62,16 +62,17 @@ export function usePlaceOrder() {
     if (!cart.restaurantId || !account) return;
     createOrder.mutate(
       {
-        customerId: account.id,
         restaurantId: cart.restaurantId,
+        /**
+         * ส่งแค่ "อยากได้อะไร" ไม่ส่งราคาและไม่ส่ง customerId
+         * ราคาที่โชว์ในตะกร้าเป็นการคาดการณ์เพื่อความสะดวก — ยอดที่นับจริงมาจากเซิร์ฟเวอร์
+         * ถ้าสองค่าไม่ตรงกัน ให้เชื่อเซิร์ฟเวอร์ เพราะมันอ่านราคาจากเมนูในฐานตรง ๆ
+         */
         items: cart.lines.map((l) => ({
           menuItemId: l.menuItemId,
-          name: orderItemName(l.name, l.selectedChoices),
-          unitPrice: l.unitPrice,
           quantity: l.quantity,
+          choiceIds: l.selectedChoices.map((c) => c.choiceId),
         })),
-        deliveryFee: totals.deliveryFee,
-        serviceFee: totals.serviceFee,
         paymentMethod,
       },
       {
