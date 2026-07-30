@@ -43,6 +43,29 @@ export const RegisterSchema = z.object({
 });
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 
+export const GoogleSignInSchema = z.object({
+  /** id_token จาก GoogleSignin ฝั่งแอป — ตรวจลายเซ็นที่เซิร์ฟเวอร์เท่านั้น ห้ามเชื่อฝั่งแอป */
+  idToken: z.string().min(1),
+});
+export type GoogleSignInInput = z.infer<typeof GoogleSignInSchema>;
+
+/** ฟอร์มสั้นหลังผ่าน Google — ยังต้องมี username กับเบอร์ที่ยืนยันแล้ว (claude.md §4.2) */
+export const GoogleRegisterSchema = z.object({
+  googleToken: z.string().min(1),
+  username: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .min(3, 'ชื่อผู้ใช้ต้องยาวอย่างน้อย 3 ตัวอักษร')
+    .max(24)
+    .regex(/^[a-z0-9_]+$/, 'ชื่อผู้ใช้ใช้ได้เฉพาะ a-z, 0-9 และ _'),
+  fullName: z.string().trim().min(1, 'กรุณากรอกชื่อ-นามสกุล').max(120),
+  phone,
+  accountType: z.enum(['user', 'rider']),
+  verificationToken: z.string().min(1, 'ต้องยืนยันเบอร์โทรก่อนสมัคร'),
+});
+export type GoogleRegisterInput = z.infer<typeof GoogleRegisterSchema>;
+
 export const LoginSchema = z.object({
   /** username หรือเบอร์โทร — อีเมลใช้ล็อกอินไม่ได้ (claude.md §4.2) */
   identifier: z.string().trim().min(1, 'กรุณากรอกชื่อผู้ใช้หรือเบอร์โทร').max(64),

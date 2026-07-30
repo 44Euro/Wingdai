@@ -15,6 +15,13 @@
       "when": 1785346894325,
       "tag": "0001_bored_jocasta",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785349395530,
+      "tag": "0002_familiar_black_panther",
+      "breakpoints": true
     }
   ]
 }

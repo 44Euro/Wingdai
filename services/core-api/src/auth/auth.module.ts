@@ -5,7 +5,8 @@ import type { Env } from '../config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { OtpService } from './otp.service';
-import { JwtGuard } from './jwt.guard';
+import { JwtGuard, OptionalJwtGuard } from './jwt.guard';
+import { GoogleVerifier } from './google';
 import { SMS_SENDER, ConsoleSmsSender } from './sms';
 
 @Module({
@@ -26,9 +27,11 @@ import { SMS_SENDER, ConsoleSmsSender } from './sms';
     AuthService,
     OtpService,
     JwtGuard,
+    OptionalJwtGuard,
+    GoogleVerifier,
     // claude.md §11 ข้อ 3 ยังไม่เลือกผู้ให้บริการ SMS — สลับคลาสนี้ตัวเดียวเมื่อเลือกได้แล้ว
     { provide: SMS_SENDER, useClass: ConsoleSmsSender },
   ],
-  exports: [AuthService, JwtGuard],
+  exports: [AuthService, JwtGuard, OptionalJwtGuard, JwtModule],
 })
 export class AuthModule {}

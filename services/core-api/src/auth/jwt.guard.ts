@@ -53,6 +53,37 @@ export class JwtGuard implements CanActivate {
   }
 }
 
+/**
+ * ปล่อยผ่านเสมอ แต่ถ้ามี token ที่ใช้ได้ก็แนบข้อมูลบัญชีไปด้วย
+ *
+ * ใช้กับ endpoint ที่คนยังไม่ล็อกอินก็ดูได้ แต่ถ้ารู้ว่าเป็นใครจะตอบได้ดีกว่า
+ * เช่นรายชื่อร้าน — ไม่ล็อกอินก็เห็นร้าน แต่ล็อกอินแล้วคิดระยะทางจากที่อยู่ของคนนั้นให้ได้
+ */
+@Injectable()
+export class OptionalJwtGuard implements CanActivate {
+  constructor(private readonly jwt: JwtService) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const req = context.switchToHttp().getRequest<Request>();
+    const [scheme, token] = (req.headers.authorization ?? '').split(' ');
+    if (scheme !== 'Bearer' || !token) return true;
+
+    try {
+      const claims = await this.jwt.verifyAsync<SessionClaims>(token);
+      if (claims.typ === 'session') req.account = claims;
+    } catch {
+      // token เสียหรือหมดอายุ = ถือว่าไม่ได้ล็อกอิน ไม่ใช่ error
+      // ถ้าโยน 401 ตรงนี้ คนที่ token หมดอายุจะเปิดดูร้านไม่ได้เลย ทั้งที่ไม่จำเป็นต้องล็อกอิน
+    }
+    return true;
+  }
+}
+
 export const CurrentAccount = createParamDecorator((_: unknown, context: ExecutionContext) => {
   return context.switchToHttp().getRequest<Request>().account!;
+});
+
+/** คืน accountId หรือ null — คู่กับ OptionalJwtGuard */
+export const CurrentAccountId = createParamDecorator((_: unknown, context: ExecutionContext) => {
+  return context.switchToHttp().getRequest<Request>().account?.sub ?? null;
 });

@@ -2,6 +2,7 @@ import { Module, Controller, Get } from '@nestjs/common';
 import { ConfigModule } from './config.module';
 import { DbModule } from './db/db.module';
 import { AuthModule } from './auth/auth.module';
+import { CatalogModule } from './catalog/catalog.module';
 
 /** ให้ตัวโหลดบาลานเซอร์และสคริปต์ทดสอบเช็คได้ว่าเซิร์ฟเวอร์ขึ้นแล้ว */
 @Controller('health')
@@ -17,7 +18,7 @@ class HealthController {
  * แม็ปกับโมดูลของ NestJS หนึ่งต่อหนึ่ง แยกออกเป็นเซอร์วิสจริงค่อยว่ากันเมื่อโหลดบังคับ
  */
 @Module({
-  imports: [ConfigModule, DbModule, AuthModule],
+  imports: [ConfigModule, DbModule, AuthModule, CatalogModule],
   controllers: [HealthController],
 })
 export class AppModule {}

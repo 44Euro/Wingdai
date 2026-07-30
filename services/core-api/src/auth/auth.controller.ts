@@ -8,6 +8,8 @@ import {
   OtpVerifySchema, type OtpVerifyInput,
   RegisterSchema, type RegisterInput,
   LoginSchema, type LoginInput,
+  GoogleSignInSchema, type GoogleSignInInput,
+  GoogleRegisterSchema, type GoogleRegisterInput,
 } from './dto';
 
 /**
@@ -44,6 +46,21 @@ export class AuthController {
   @HttpCode(200)
   login(@Body(new ZodBody(LoginSchema)) body: LoginInput) {
     return this.auth.login(body);
+  }
+
+  /**
+   * Google sign-in ขั้นแรก — เคยผูกไว้แล้วได้ token เลย ยังไม่เคยได้ตั๋วไปเดินฟอร์มสั้นต่อ
+   * ตอบ 200 ทั้งสองกรณีเพราะทั้งคู่คือ "สำเร็จ" ต่างกันแค่ขั้นถัดไป
+   */
+  @Post('google')
+  @HttpCode(200)
+  google(@Body(new ZodBody(GoogleSignInSchema)) body: GoogleSignInInput) {
+    return this.auth.googleSignIn(body.idToken);
+  }
+
+  @Post('google/register')
+  googleRegister(@Body(new ZodBody(GoogleRegisterSchema)) body: GoogleRegisterInput) {
+    return this.auth.googleRegister(body);
   }
 
   @Get('me')

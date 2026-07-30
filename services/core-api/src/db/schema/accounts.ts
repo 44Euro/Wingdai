@@ -26,8 +26,20 @@ export const accounts = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     accountType: accountType('account_type').notNull(),
     username: text('username').notNull(),
-    /** argon2id — ห้ามเก็บรหัสผ่านดิบ และห้าม bcrypt (จำกัด 72 ไบต์ ตัดรหัสผ่านไทยยาว ๆ ทิ้ง) */
-    passwordHash: text('password_hash').notNull(),
+    /**
+     * argon2id — ห้ามเก็บรหัสผ่านดิบ และห้าม bcrypt (จำกัด 72 ไบต์ ตัดรหัสผ่านไทยยาว ๆ ทิ้ง)
+     *
+     * เป็น null ได้ = บัญชีที่สมัครผ่าน Google อย่างเดียว ยังไม่เคยตั้งรหัสผ่าน
+     * เก็บเป็น null ตรง ๆ ดีกว่าใส่ hash ปลอมไว้ เพราะ null บอกความจริงว่า
+     * "ล็อกอินด้วยรหัสผ่านไม่ได้" ส่วน hash ปลอมยังมีโอกาสถูกเดาตรงในทางทฤษฎี
+     * ถ้าอยากตั้งรหัสผ่านทีหลังให้ใช้เส้นทางลืมรหัสผ่าน (OTP ไปเบอร์ที่ยืนยันแล้ว)
+     */
+    passwordHash: text('password_hash'),
+    /**
+     * `sub` จาก Google id_token — เป็นตัวระบุตัวตนที่ Google การันตีว่าไม่เปลี่ยนและไม่ซ้ำ
+     * **ห้ามใช้อีเมลผูกบัญชีแทน** เพราะอีเมลใน Google เปลี่ยนได้ และอีเมลฝั่งเราไม่เคยยืนยัน (§4.2)
+     */
+    googleSub: text('google_sub'),
     fullName: text('full_name').notNull(),
     phone: text('phone').notNull(),
     /** ยืนยันเบอร์ครั้งเดียวตอนสมัคร ไม่ใช่ทุกครั้งที่ล็อกอิน (claude.md §4.2) */
@@ -40,9 +52,15 @@ export const accounts = pgTable(
   (t) => [
     uniqueIndex('accounts_username_key').on(t.username),
     uniqueIndex('accounts_phone_key').on(t.phone),
+    uniqueIndex('accounts_google_sub_key').on(t.googleSub),
     index('accounts_email_idx').on(t.email),
     // เบอร์มือถือไทย 10 หลักขึ้นต้น 0 แล้วตามด้วย 6/8/9 — ตรงกับที่แอปตรวจในจอสมัคร
     check('accounts_phone_format', sql`${t.phone} ~ '^0[689][0-9]{8}$'`),
+    // ต้องเข้าระบบได้อย่างน้อยหนึ่งทาง ไม่งั้นเป็นบัญชีที่สร้างแล้วเข้าไม่ได้ตลอดกาล
+    check(
+      'accounts_has_login_method',
+      sql`${t.passwordHash} is not null or ${t.googleSub} is not null`,
+    ),
   ],
 );
 
