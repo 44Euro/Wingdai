@@ -4,7 +4,7 @@ import type {
 } from '../repositories';
 import type { Account, Address, MenuItem, Order, OrderStatus, Restaurant } from '../types';
 import { createClient, ApiError } from './client';
-import { session } from './session';
+import type { TokenStore } from './tokenStore';
 
 export { ApiError } from './client';
 
@@ -17,7 +17,7 @@ type AuthOk = { token: string; account: Account };
  * จอไม่เคยรู้ว่าอยู่โหมดไหน เพราะทั้งสองตัว implement interface เดียวกัน (claude.md §9)
  * การสลับจึงเป็นการแก้ไฟล์เดียวที่ src/data/index.ts
  */
-export function createHttpRepos(baseUrl: string): Repos {
+export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
   const request = createClient(baseUrl);
   const auth = () => session.get();
 

@@ -1,4 +1,5 @@
 import { createHttpRepos, ApiError } from '../../src/data/http';
+import { createMemoryTokenStore } from '../../src/data/http/tokenStore';
 import { createMockRepos } from '../../src/data/mock';
 
 /**
@@ -9,7 +10,7 @@ import { createMockRepos } from '../../src/data/mock';
  * — ครอบด้วย services/core-api `npm run api:smoke` แทน
  */
 describe('HttpRepo กับ MockRepo มีหน้าตาเหมือนกัน', () => {
-  const http = createHttpRepos('https://example.invalid/api');
+  const http = createHttpRepos('https://example.invalid/api', createMemoryTokenStore());
   const mock = createMockRepos();
 
   it('มีกลุ่ม repo ครบทั้งสี่', () => {

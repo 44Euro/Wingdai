@@ -7,8 +7,8 @@ import { useNotificationStore } from './notificationStore';
 import { useCartStore } from '../cart/cartStore';
 import { usePaymentStore } from '../payment/paymentStore';
 import { orderTotals } from '../cart/pricing';
-import type { Order, Restaurant } from '../../data/types';
-import type { CreateOrderInput } from '../../data/repositories';
+import type { Address, Order, Restaurant } from '../../data/types';
+import type { CreateOrderInput, NewAddressInput } from '../../data/repositories';
 
 /** กรองเฉพาะร้านที่อนุมัติแล้ว — ลูกค้าไม่ควรเห็นร้านที่ยังรออนุมัติ (แยกเป็น pure fn เพื่อทดสอบ) */
 export function filterApproved(list: Restaurant[]): Restaurant[] {
@@ -132,6 +132,33 @@ export function usePayWithPromptPay() {
       queryClient.setQueryData(['order', order.id], order);
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
+  });
+}
+
+/**
+ * ที่อยู่จัดส่งของลูกค้า — ต้องมีอย่างน้อยหนึ่งที่ถึงจะสั่งอาหารได้
+ * (เซิร์ฟเวอร์ปฏิเสธออร์เดอร์ที่ไม่มีที่อยู่ เพราะไรเดอร์ต้องรู้ว่าจะไปส่งที่ไหน)
+ */
+export function useAddresses() {
+  const accountId = useAuthStore((s) => s.account?.id);
+  return useQuery({
+    queryKey: ['addresses', accountId],
+    queryFn: () => repos.addresses.list(),
+    enabled: !!accountId,
+  });
+}
+
+/** ที่อยู่ตั้งต้น = ที่บันทึกไว้ก่อนสุด ตรงกับที่เซิร์ฟเวอร์เลือกเมื่อออร์เดอร์ไม่ระบุมา */
+export function useDefaultAddress(): Address | undefined {
+  const { data } = useAddresses();
+  return data?.[0];
+}
+
+export function useAddAddress() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: NewAddressInput) => repos.addresses.add(input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['addresses'] }),
   });
 }
 

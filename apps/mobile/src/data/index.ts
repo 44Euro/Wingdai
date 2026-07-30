@@ -2,6 +2,7 @@ import Constants from 'expo-constants';
 import type { Repos } from './repositories';
 import { createMockRepos } from './mock';
 import { createHttpRepos } from './http';
+import { session } from './http/session';
 
 /**
  * จุดเดียวในโปรเจกต์ที่ตัดสินว่าใช้ mock หรือ API จริง (claude.md §9)
@@ -16,6 +17,8 @@ const apiBaseUrl = (Constants.expoConfig?.extra as { apiBaseUrl?: string } | und
 
 export const usingRealApi = !!apiBaseUrl;
 
-export const repos: Repos = apiBaseUrl ? createHttpRepos(apiBaseUrl) : createMockRepos();
+export const repos: Repos = apiBaseUrl
+  ? createHttpRepos(apiBaseUrl, session)
+  : createMockRepos();
 
 export type { Repos } from './repositories';

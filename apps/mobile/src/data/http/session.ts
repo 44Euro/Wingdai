@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import type { TokenStore } from './tokenStore';
 
 const KEY = 'wingdai.session.token';
 
@@ -13,7 +14,7 @@ const KEY = 'wingdai.session.token';
  */
 let cached: string | null = null;
 
-export const session = {
+export const session: TokenStore = {
   /** อ่านจากที่เก็บถาวรครั้งแรกตอนเปิดแอป */
   async load(): Promise<string | null> {
     cached = await SecureStore.getItemAsync(KEY);
