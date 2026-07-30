@@ -104,6 +104,34 @@ describe('postOrderDelivered', () => {
     }
   });
 
+  /**
+   * ตาราง ledger_entries มี CHECK ว่าแต่ละแถวต้องเป็นเดบิตหรือเครดิตอย่างใดอย่างหนึ่ง และ > 0
+   * แถวที่เป็น 0 ทั้งสองข้างจะถูกฐานปฏิเสธ แล้วพาทรานแซกชันทั้งก้อนล้ม
+   * = เปลี่ยนสถานะเป็น delivered ไม่ได้เลย ทั้งที่ดูเหมือนเรื่องเล็ก
+   */
+  it('ไม่มีแถวที่ยอดเป็นศูนย์ทั้งสองข้าง ต่อให้ไรเดอร์ยังไม่ถูกจ่ายงาน', () => {
+    for (const riderPaySatang of [0, 3000]) {
+      for (const paymentFeeSatang of [0, 250]) {
+        const lines = postOrderDelivered({
+          foodTotalSatang: 13000,
+          deliveryFeeSatang: 1500,
+          serviceFeeSatang: 500,
+          riderPaySatang,
+          paymentFeeSatang,
+          method: 'promptpay',
+        });
+        for (const l of lines) {
+          expect(
+            l.debitSatang > 0 !== l.creditSatang > 0,
+            `${l.account} เดบิต ${l.debitSatang} เครดิต ${l.creditSatang}`,
+          ).toBe(true);
+        }
+        const { debit, credit } = totalsOf(lines);
+        expect(debit).toBe(credit);
+      }
+    }
+  });
+
   it('ทุกยอดต้องเป็นจำนวนเต็มสตางค์ ใส่ทศนิยมแล้วต้องโยน error', () => {
     expect(() =>
       postOrderDelivered({

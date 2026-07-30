@@ -66,19 +66,31 @@ export function postOrderDelivered(a: OrderAmounts): LedgerLine[] {
   const receivedSatang = grossSatang - a.paymentFeeSatang;
   const collected: LedgerLine['account'] = a.method === 'cash' ? 'rider_cash_held' : 'cash';
 
+  /**
+   * ข้ามบรรทัดที่ยอดเป็นศูนย์ ไม่ใช่ใส่ไว้ให้ครบรูปแบบ
+   *
+   * ตาราง ledger_entries มี CHECK ว่าแต่ละแถวต้องเป็นเดบิตหรือเครดิตอย่างใดอย่างหนึ่ง
+   * และต้องมากกว่าศูนย์ — แถวที่เป็น 0 ทั้งสองข้างจะถูกฐานปฏิเสธ แล้วพาทั้งทรานแซกชันล้ม
+   * ซึ่งหมายถึงเปลี่ยนสถานะเป็น delivered ไม่ได้เลย
+   *
+   * เจอตอนออร์เดอร์ที่ยังไม่มีไรเดอร์ (คลื่นที่ 4 ยังไม่มา) ซึ่ง rider_payable = 0
+   */
   const lines: LedgerLine[] = [
     { account: collected, debitSatang: receivedSatang, creditSatang: 0 },
     { account: 'restaurant_payable', debitSatang: 0, creditSatang: restaurantPayable },
-    { account: 'rider_payable', debitSatang: 0, creditSatang: a.riderPaySatang },
   ];
+
+  if (a.riderPaySatang > 0) {
+    lines.push({ account: 'rider_payable', debitSatang: 0, creditSatang: a.riderPaySatang });
+  }
 
   if (a.paymentFeeSatang > 0) {
     lines.push({ account: 'payment_fee_expense', debitSatang: a.paymentFeeSatang, creditSatang: 0 });
   }
 
-  if (platformRevenue >= 0) {
+  if (platformRevenue > 0) {
     lines.push({ account: 'platform_revenue', debitSatang: 0, creditSatang: platformRevenue });
-  } else {
+  } else if (platformRevenue < 0) {
     // ออร์เดอร์ที่ขาดทุน (ค่าส่งที่เก็บน้อยกว่าที่จ่ายไรเดอร์) ยังต้องลงบัญชีให้ครบ
     // claude.md §8 บอกว่า contribution margin ต้องเป็นบวกทุกใบ — ถ้าติดลบคือสัญญาณให้แก้ราคา ไม่ใช่ให้ซ่อน
     lines.push({ account: 'platform_revenue', debitSatang: -platformRevenue, creditSatang: 0 });

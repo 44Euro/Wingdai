@@ -42,6 +42,55 @@ async function call(method: string, path: string, body?: unknown, token?: string
   return { status: res.status, body: text ? JSON.parse(text) : null };
 }
 
+/** ออร์เดอร์ที่สร้างระหว่างทดสอบ — ต้องลบทิ้งตอนจบ ไม่ทิ้งขยะไว้ในฐาน */
+const createdOrderIds: string[] = [];
+
+/**
+ * อ่าน ledger ที่เขียนลงฐานจริงแล้วเทียบกับตัวเลขที่คำนวณมือ
+ *
+ * ผ่าน API แล้วเชื่อว่า 200 = ถูก ไม่พอสำหรับโค้ดที่เกี่ยวกับเงิน (claude.md §6.2)
+ * ต้องเปิดดูว่าเขียนอะไรลงไปจริง ๆ และเดบิตเท่ากับเครดิตไหม
+ */
+async function checkLedger(orderId: string) {
+  const sql = postgres(process.env.DATABASE_URL!, { max: 1, ssl: 'require', onnotice: () => {} });
+  try {
+    const rows = await sql<{ account: string; debit_satang: number; credit_satang: number }[]>`
+      select account, debit_satang, credit_satang from ledger_entries where order_id = ${orderId}`;
+
+    check('ส่งถึงแล้วมีรายการบัญชีเกิดขึ้น', rows.length > 0, `ได้ ${rows.length} แถว`);
+
+    const debit = rows.reduce((s, r) => s + r.debit_satang, 0);
+    const credit = rows.reduce((s, r) => s + r.credit_satang, 0);
+    check(`เดบิต = เครดิต (${debit} = ${credit})`, debit === credit);
+
+    /*
+     * ออร์เดอร์นี้: ค่าอาหาร ฿130 + ค่าส่ง ฿15 + ค่าบริการ ฿5 = ฿150
+     * คอมมิชชัน 15% ของ ฿130 = ฿19.50 → ร้านได้ ฿110.50
+     * ไม่มีไรเดอร์ (คลื่นที่ 4 ยังไม่มา) จึงจ่ายไรเดอร์ ฿0 และไม่มีค่าธรรมเนียมเกตเวย์
+     * รายได้แพลตฟอร์ม = 15000 − 11050 − 0 = ฿39.50
+     */
+    const by = (a: string) =>
+      rows.filter((r) => r.account === a).reduce((s, r) => s + r.debit_satang + r.credit_satang, 0);
+
+    check(`เงินเข้าบริษัท ฿150 (ได้ ${by('cash') / 100})`, by('cash') === 15000);
+    check(`ยอดค้างจ่ายร้าน ฿110.50 (ได้ ${by('restaurant_payable') / 100})`, by('restaurant_payable') === 11050);
+    check(`รายได้แพลตฟอร์ม ฿39.50 (ได้ ${by('platform_revenue') / 100})`, by('platform_revenue') === 3950);
+    check('ยังไม่มีไรเดอร์ จึงไม่มีบรรทัดค้างจ่ายไรเดอร์', by('rider_payable') === 0);
+    check('ไม่มีแถวที่เป็นศูนย์ทั้งสองข้าง', rows.every((r) => (r.debit_satang > 0) !== (r.credit_satang > 0)));
+
+    // §6.2 เขียนอย่างเดียว — แก้ยอดผิดด้วยรายการกลับทางเท่านั้น
+    let updateRejected = false;
+    try {
+      await sql`update ledger_entries set debit_satang = 1 where order_id = ${orderId}`;
+    } catch {
+      updateRejected = true;
+    }
+    check('แก้ ledger ที่เขียนไปแล้วไม่ได้', updateRejected);
+  } finally {
+    await sql.end();
+  }
+}
+
 /** เบอร์และชื่อผู้ใช้ที่ไม่ชนของเดิม เพื่อให้รันซ้ำได้โดยไม่ติด cooldown ของเบอร์เดิม */
 const suffix = String(randomInt(0, 100_000_000)).padStart(8, '0');
 const SMOKE_PHONE = `09${suffix}`;
@@ -247,6 +296,124 @@ async function main() {
   check('ราคาเป็นสตางค์จำนวนเต็ม', Number.isInteger(kaphrao?.price) && kaphrao.price === 5000);
   check('กลุ่มตัวเลือกติดมาด้วย', kaphrao?.optionGroups?.length === 2);
 
+  console.log('\nสั่งอาหาร — เซิร์ฟเวอร์ต้องเป็นคนคิดเงิน');
+
+  const kaphraoId = kaphrao.id as string;
+  const spicyMid = kaphrao.optionGroups[0].choices[1].id as string; // เผ็ดกลาง +0
+  const egg = kaphrao.optionGroups[1].choices[0].id as string; // ไข่ดาว +฿15
+
+  const placed = await call('POST', '/orders', {
+    restaurantId: malee.id,
+    items: [{ menuItemId: kaphraoId, quantity: 2, choiceIds: [spicyMid, egg] }],
+    paymentMethod: 'cash',
+  }, token);
+  check('สั่งได้', placed.status === 201, JSON.stringify(placed.body));
+  createdOrderIds.push(placed.body?.id);
+
+  // ข้าวกะเพรา ฿50 + ไข่ดาว ฿15 = ฿65 ต่อจาน × 2 = ฿130
+  check('ราคาต่อหน่วยรวมตัวเลือกที่เลือก', placed.body?.items?.[0]?.unitPrice === 6500, `ได้ ${placed.body?.items?.[0]?.unitPrice}`);
+  check('ค่าอาหารคิดจากเมนูในฐาน ไม่ใช่จากที่แอปส่ง', placed.body?.foodTotal === 13000, `ได้ ${placed.body?.foodTotal}`);
+  check('ค่าส่งกับค่าบริการแยกบรรทัด', placed.body?.deliveryFee === 1500 && placed.body?.serviceFee === 500);
+  check('ชื่อรายการมีตัวเลือกต่อท้ายให้ร้านเห็น', /ไข่ดาว/.test(placed.body?.items?.[0]?.name ?? ''));
+  check('เลขที่ออร์เดอร์อ่านออก ไม่ใช่ uuid', /^WD-[23456789A-HJ-NP-Z]{6}$/.test(placed.body?.reference ?? ''));
+  check('สั่งเงินสด = ยังไม่จ่าย', placed.body?.paymentStatus === 'pending');
+
+  // แอปที่ถูกแก้ส่งราคาปลอมมาต้องไม่มีผล เพราะเซิร์ฟเวอร์ไม่เคยอ่านช่องราคาจาก body
+  const cheated = await call('POST', '/orders', {
+    restaurantId: malee.id,
+    items: [{ menuItemId: kaphraoId, quantity: 1, choiceIds: [spicyMid], unitPrice: 1, price: 1 }],
+    paymentMethod: 'cash',
+  }, token);
+  createdOrderIds.push(cheated.body?.id);
+  check('ส่งราคาปลอมมาก็ยังคิดราคาจริง', cheated.body?.foodTotal === 5000, `ได้ ${cheated.body?.foodTotal}`);
+
+  const missingRequired = await call('POST', '/orders', {
+    restaurantId: malee.id,
+    items: [{ menuItemId: kaphraoId, quantity: 1, choiceIds: [] }],
+    paymentMethod: 'cash',
+  }, token);
+  check('ไม่เลือกกลุ่มที่ร้านบังคับ สั่งไม่ได้', missingRequired.status === 400, `ได้ ${missingRequired.status}`);
+
+  const closedShop = withAuth.body.find((r: any) => r.name === 'ก๋วยเตี๋ยวเรือ');
+  const closedMenu = await call('GET', `/catalog/restaurants/${closedShop.id}/menu`);
+  const fromClosed = await call('POST', '/orders', {
+    restaurantId: closedShop.id,
+    items: [{ menuItemId: closedMenu.body[1].id, quantity: 1, choiceIds: [] }],
+    paymentMethod: 'cash',
+  }, token);
+  check('ร้านปิดสั่งไม่ได้', fromClosed.status === 400, `ได้ ${fromClosed.status}`);
+
+  // claude.md §4.3 — มาลีเป็นเจ้าของครัวมาลี สั่งร้านตัวเองไม่ได้
+  const maleeToken = maleeLogin.body.token as string;
+  const selfOrder = await call('POST', '/orders', {
+    restaurantId: malee.id,
+    items: [{ menuItemId: kaphraoId, quantity: 1, choiceIds: [spicyMid] }],
+    paymentMethod: 'cash',
+  }, maleeToken);
+  check('เจ้าของร้านสั่งร้านตัวเองไม่ได้', selfOrder.status === 403, `ได้ ${selfOrder.status}`);
+
+  // มาลีเป็นเจ้าของครัวมาลี จึง **ต้อง** เห็นออร์เดอร์ที่เข้าร้านตัวเอง (คิวออร์เดอร์ของร้าน)
+  const ownerPeek = await call('GET', `/orders/${placed.body.id}`, undefined, maleeToken);
+  check('เจ้าของร้านเห็นออร์เดอร์ที่เข้าร้านตัวเอง', ownerPeek.status === 200, `ได้ ${ownerPeek.status}`);
+
+  // ส่วนคนที่ไม่เกี่ยวอะไรเลยต้องไม่เห็น และตอบ 404 ไม่ใช่ 403 — 403 เป็นการยืนยันว่ามีออร์เดอร์นี้อยู่
+  const strangerToken = riderLogin.body.token as string;
+  const strangerPeek = await call('GET', `/orders/${placed.body.id}`, undefined, strangerToken);
+  check('คนที่ไม่เกี่ยวข้องเปิดดูไม่ได้', strangerPeek.status === 404, `ได้ ${strangerPeek.status}`);
+
+  console.log('\nเปลี่ยนสถานะและลง ledger');
+
+  const skip = await call('PATCH', `/orders/${placed.body.id}/status`, { status: 'delivered' }, token);
+  check('ข้ามขั้นสถานะไม่ได้ (created → delivered)', skip.status === 400, `ได้ ${skip.status}`);
+
+  for (const s of ['accepted', 'preparing', 'picked_up'] as const) {
+    const r = await call('PATCH', `/orders/${placed.body.id}/status`, { status: s }, token);
+    check(`เปลี่ยนเป็น ${s} ได้`, r.status === 200, JSON.stringify(r.body));
+  }
+
+  const switched = await call('POST', `/orders/${placed.body.id}/pay-promptpay`, undefined, token);
+  check('เงินสดไม่พอ → เปลี่ยนเป็นพร้อมเพย์ได้', switched.status === 200, JSON.stringify(switched.body));
+  check('เปลี่ยนแล้วถือว่าจ่ายแล้ว', switched.body?.paymentStatus === 'paid');
+
+  const twice = await call('POST', `/orders/${placed.body.id}/pay-promptpay`, undefined, token);
+  check('กดจ่ายซ้ำไม่ได้', twice.status === 409, `ได้ ${twice.status}`);
+
+  const done = await call('PATCH', `/orders/${placed.body.id}/status`, { status: 'delivered' }, token);
+  check('ส่งถึงแล้ว', done.status === 200);
+
+  const after = await call('POST', `/orders/${placed.body.id}/pay-promptpay`, undefined, token);
+  check('ส่งถึงแล้วเปลี่ยนวิธีจ่ายไม่ได้', after.status === 409, `ได้ ${after.status}`);
+
+  console.log('\nledger ที่เขียนลงฐานจริง (claude.md §6.2)');
+  await checkLedger(placed.body.id);
+
+  console.log('\nที่อยู่จัดส่ง');
+
+  const addrs = await call('GET', '/addresses', undefined, token);
+  check('ดึงที่อยู่ของตัวเองได้', addrs.status === 200 && addrs.body.length === 2);
+  check('ที่อยู่มีพิกัดติดมาด้วย', typeof addrs.body?.[0]?.lat === 'number' && typeof addrs.body?.[0]?.lng === 'number');
+
+  const newAccountToken = registered.body?.token as string;
+  const noAddress = await call('POST', '/orders', {
+    restaurantId: malee.id,
+    items: [{ menuItemId: kaphraoId, quantity: 1, choiceIds: [spicyMid] }],
+    paymentMethod: 'cash',
+  }, newAccountToken);
+  check('บัญชีใหม่ที่ยังไม่มีที่อยู่ สั่งไม่ได้และบอกเหตุผลชัด', noAddress.status === 400 && !!noAddress.body?.fields?.deliveryAddressId);
+
+  const added = await call('POST', '/addresses', {
+    label: 'หอพัก', addressText: 'ซอยอารีย์ 5', lat: 13.7808, lng: 100.5441,
+  }, newAccountToken);
+  check('เพิ่มที่อยู่แล้วสั่งได้', added.status === 201);
+  const nowCanOrder = await call('POST', '/orders', {
+    restaurantId: malee.id,
+    items: [{ menuItemId: kaphraoId, quantity: 1, choiceIds: [spicyMid] }],
+    paymentMethod: 'promptpay',
+  }, newAccountToken);
+  createdOrderIds.push(nowCanOrder.body?.id);
+  check('บัญชีใหม่สั่งได้หลังเพิ่มที่อยู่', nowCanOrder.status === 201, JSON.stringify(nowCanOrder.body));
+  check('พร้อมเพย์ = จ่ายแล้วตั้งแต่สั่ง', nowCanOrder.body?.paymentStatus === 'paid');
+
   console.log('\nGoogle sign-in — เส้นทางที่ต้องถูกปฏิเสธ');
 
   /*
@@ -291,6 +458,18 @@ async function main() {
 async function cleanup() {
   const sql = postgres(process.env.DATABASE_URL!, { max: 1, ssl: 'require', onnotice: () => {} });
   try {
+    const ids = createdOrderIds.filter(Boolean);
+    if (ids.length > 0) {
+      /*
+       * ledger เป็น append-only มี trigger ห้าม DELETE — ปิดชั่วคราวเฉพาะตอนเก็บกวาดข้อมูลทดสอบ
+       * ยอมทำตรงนี้เพราะเป็นสคริปต์ทดสอบที่รู้ว่าแถวไหนของตัวเอง **ห้ามทำแบบนี้ในโค้ดจริง**
+       * การแก้ยอดผิดในระบบจริงคือเขียนรายการกลับทาง ไม่ใช่ลบของเก่า (claude.md §6.2)
+       */
+      await sql`alter table ledger_entries disable trigger ledger_entries_no_delete`;
+      await sql`delete from ledger_entries where order_id in ${sql(ids)}`;
+      await sql`alter table ledger_entries enable trigger ledger_entries_no_delete`;
+      await sql`delete from orders where id in ${sql(ids)}`;
+    }
     await sql`delete from accounts where username = ${SMOKE_USERNAME}`;
     await sql`delete from phone_verifications where phone = ${SMOKE_PHONE}`;
   } finally {
