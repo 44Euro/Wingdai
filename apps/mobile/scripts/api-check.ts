@@ -132,6 +132,17 @@ async function main() {
   const mine = await repos.orders.listForCustomer(account.id);
   check('ออร์เดอร์อยู่ในประวัติของตัวเอง', mine.some((o) => o.id === order.id));
 
+  /*
+   * การกด delivered เขียน ledger จริง — ลูกค้าทำเองได้เท่ากับสร้างรายการบัญชีปลอม
+   * ลูกค้ายกเลิกได้อย่างเดียว · ร้านรับ/กำลังทำ · ไรเดอร์ที่รับงานแล้วรับของ/ส่งถึง
+   */
+  await mustReject('ลูกค้ากดส่งถึงแล้วเองไม่ได้', () =>
+    repos.orders.updateStatus(order.id, 'delivered'),
+  );
+  await mustReject('ลูกค้ารับออร์เดอร์แทนร้านไม่ได้', () =>
+    repos.orders.updateStatus(order.id, 'accepted'),
+  );
+
   console.log('\nที่อยู่จัดส่ง');
 
   const addresses = await repos.addresses.list();

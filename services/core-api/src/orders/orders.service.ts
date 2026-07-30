@@ -9,8 +9,9 @@ import {
 } from '@nestjs/common';
 import { and, eq, inArray, asc, desc } from 'drizzle-orm';
 import { DB, type Db } from '../db/db.module';
-import { orders, orderItems, restaurants, menuItems, addresses, ledgerEntries } from '../db/schema';
+import { orders, orderItems, restaurants, menuItems, addresses, accounts, ledgerEntries } from '../db/schema';
 import { assertTransition, isActiveStatus, type OrderStatus } from './stateMachine';
+import { assertCanSetStatus, type Actor } from './authorize';
 import { postOrderDelivered } from '../ledger/postOrder';
 import { priceOrder, paymentFeeOf, orderReference, type PricedItem } from './pricing';
 import type { CreateOrderInput, CreateAddressInput } from './dto';
@@ -193,30 +194,60 @@ export class OrdersService {
     return Promise.all(rows.map((r) => this.publicOrder(r.id)));
   }
 
-  async getForAccount(orderId: string, accountId: string): Promise<PublicOrder> {
-    const order = await this.publicOrder(orderId);
-    // ลูกค้าเจ้าของออร์เดอร์ ไรเดอร์ที่รับงาน และเจ้าของร้านเท่านั้นที่ดูได้
-    const [owner] = await this.db
+  /**
+   * ความสัมพันธ์ของบัญชีนี้กับออร์เดอร์ใบนั้น — ใช้ตัดสินทั้งการอ่านและการเปลี่ยนสถานะ
+   * อ่านจากฐานทุกครั้ง ไม่เชื่อสิ่งที่ client ส่งมาบอกว่าตัวเองเป็นใคร
+   */
+  private async actorFor(
+    order: { customerId: string; restaurantId: string; riderId: string | null },
+    accountId: string,
+  ): Promise<Actor> {
+    const [me] = await this.db
+      .select({ accountType: accounts.accountType })
+      .from(accounts)
+      .where(eq(accounts.id, accountId))
+      .limit(1);
+
+    if (me?.accountType === 'admin') return 'admin';
+    if (order.riderId === accountId) return 'rider';
+    if (order.customerId === accountId) return 'customer';
+
+    const [shop] = await this.db
       .select({ ownerUserId: restaurants.ownerUserId })
       .from(restaurants)
       .where(eq(restaurants.id, order.restaurantId))
       .limit(1);
 
-    const allowed = [order.customerId, order.riderId, owner?.ownerUserId].filter(Boolean);
-    if (!allowed.includes(accountId)) {
-      throw new NotFoundException({ message: 'ไม่พบออร์เดอร์นี้' });
-    }
+    return shop?.ownerUserId === accountId ? 'restaurantOwner' : 'stranger';
+  }
+
+  async getForAccount(orderId: string, accountId: string): Promise<PublicOrder> {
+    const order = await this.publicOrder(orderId);
+    const actor = await this.actorFor(
+      { customerId: order.customerId, restaurantId: order.restaurantId, riderId: order.riderId ?? null },
+      accountId,
+    );
+    // ตอบ 404 ไม่ใช่ 403 — 403 เป็นการยืนยันว่าออร์เดอร์รหัสนี้มีอยู่จริง
+    if (actor === 'stranger') throw new NotFoundException({ message: 'ไม่พบออร์เดอร์นี้' });
     return order;
   }
 
   /**
    * เปลี่ยนสถานะ และถ้าถึง delivered ให้ลง ledger **ในทรานแซกชันเดียวกัน**
    * (claude.md §5 กติกาข้อ 2 — ไม่มีข้อยกเว้น ไม่มี "เดี๋ยวค่อยกระทบยอด")
+   *
+   * ต้องรู้ว่าใครสั่ง เพราะ `delivered` เขียนรายการบัญชีจริง — ปล่อยให้ใครก็กดได้
+   * เท่ากับเปิดให้สร้างรายการบัญชีของออร์เดอร์คนอื่น ดูกติกาที่ authorize.ts
    */
-  async updateStatus(orderId: string, next: OrderStatus): Promise<PublicOrder> {
+  async updateStatus(orderId: string, next: OrderStatus, accountId: string): Promise<PublicOrder> {
     await this.db.transaction(async (tx) => {
       const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1).for('update');
       if (!order) throw new NotFoundException({ message: 'ไม่พบออร์เดอร์นี้' });
+
+      const actor = await this.actorFor(order, accountId);
+      // คนนอกไม่ควรรู้ด้วยซ้ำว่าออร์เดอร์นี้มีอยู่
+      if (actor === 'stranger') throw new NotFoundException({ message: 'ไม่พบออร์เดอร์นี้' });
+      assertCanSetStatus(actor, next);
 
       assertTransition(order.status, next);
 

@@ -37,8 +37,9 @@ export class OrdersController {
   updateStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(new ZodBody(UpdateStatusSchema)) body: UpdateStatusInput,
+    @CurrentAccount() me: SessionClaims,
   ) {
-    return this.orders.updateStatus(id, body.status);
+    return this.orders.updateStatus(id, body.status, me.sub);
   }
 
   /** claude.md §6.5 — เงินสดไม่พอแล้วจ่ายพร้อมเพย์แทน ไรเดอร์ไม่ต้องออกเงิน */

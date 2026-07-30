@@ -361,15 +361,46 @@ async function main() {
   const strangerPeek = await call('GET', `/orders/${placed.body.id}`, undefined, strangerToken);
   check('คนที่ไม่เกี่ยวข้องเปิดดูไม่ได้', strangerPeek.status === 404, `ได้ ${strangerPeek.status}`);
 
+  console.log('\nสิทธิ์การเปลี่ยนสถานะ (กันสร้างรายการบัญชีของคนอื่น)');
+
+  /*
+   * `delivered` เขียน ledger จริง — ถ้าใครก็กดได้ จะสร้างรายการบัญชีของออร์เดอร์คนอื่นได้
+   * ลูกค้าจึงกดได้แค่ยกเลิก · ร้านรับ/กำลังทำ · ไรเดอร์ที่รับงานแล้วรับของ/ส่งถึง
+   */
+  const byCustomer = await call('PATCH', `/orders/${placed.body.id}/status`, { status: 'accepted' }, token);
+  check('ลูกค้ารับออร์เดอร์แทนร้านไม่ได้', byCustomer.status === 403, `ได้ ${byCustomer.status}`);
+
+  const byStranger = await call(
+    'PATCH', `/orders/${placed.body.id}/status`, { status: 'accepted' }, strangerToken,
+  );
+  check('คนที่ไม่เกี่ยวข้องเปลี่ยนสถานะไม่ได้ (404 ไม่ใช่ 403)', byStranger.status === 404, `ได้ ${byStranger.status}`);
+
   console.log('\nเปลี่ยนสถานะและลง ledger');
 
-  const skip = await call('PATCH', `/orders/${placed.body.id}/status`, { status: 'delivered' }, token);
-  check('ข้ามขั้นสถานะไม่ได้ (created → delivered)', skip.status === 400, `ได้ ${skip.status}`);
+  /*
+   * แอดมินมีสิทธิ์ทุกสถานะตาม §6.3 (ทางแทรกมือเมื่อระบบจ่ายงานพลาด)
+   * ใช้ทดสอบกฎ "ข้ามขั้นไม่ได้" เพราะต้องเป็นคนที่ผ่านด่านสิทธิ์แล้วจริง ๆ
+   * ไม่งั้นจะได้ 403 ก่อนถึงการเช็คลำดับ แล้วเข้าใจผิดว่ากฎลำดับทำงาน
+   */
+  const adminLogin = await call('POST', '/auth/login', { identifier: 'admin_root', password: 'wingdai1234' });
+  const adminToken = adminLogin.body.token as string;
+  check('แอดมินล็อกอินได้', adminLogin.status === 200);
 
-  for (const s of ['accepted', 'preparing', 'picked_up'] as const) {
-    const r = await call('PATCH', `/orders/${placed.body.id}/status`, { status: s }, token);
-    check(`เปลี่ยนเป็น ${s} ได้`, r.status === 200, JSON.stringify(r.body));
+  const skip = await call('PATCH', `/orders/${placed.body.id}/status`, { status: 'delivered' }, adminToken);
+  check('ข้ามขั้นสถานะไม่ได้ แม้เป็นแอดมิน (created → delivered)', skip.status === 400, `ได้ ${skip.status}`);
+
+  // ร้านรับออร์เดอร์แล้วบอกว่ากำลังทำ — เป็นคิวออร์เดอร์ของร้าน
+  for (const s of ['accepted', 'preparing'] as const) {
+    const r = await call('PATCH', `/orders/${placed.body.id}/status`, { status: s }, maleeToken);
+    check(`ร้านเปลี่ยนเป็น ${s} ได้`, r.status === 200, JSON.stringify(r.body));
   }
+
+  const pickupByShop = await call('PATCH', `/orders/${placed.body.id}/status`, { status: 'picked_up' }, maleeToken);
+  check('ร้านกดรับของแทนไรเดอร์ไม่ได้', pickupByShop.status === 403, `ได้ ${pickupByShop.status}`);
+
+  // ยังไม่มีระบบจ่ายงานไรเดอร์ (คลื่นที่ 4) จึงยังไม่มีไรเดอร์ผูกกับออร์เดอร์ — แอดมินเดินต่อให้
+  const pickedUp = await call('PATCH', `/orders/${placed.body.id}/status`, { status: 'picked_up' }, adminToken);
+  check('แอดมินแทรกมือเปลี่ยนสถานะได้ (§6.3)', pickedUp.status === 200, JSON.stringify(pickedUp.body));
 
   const switched = await call('POST', `/orders/${placed.body.id}/pay-promptpay`, undefined, token);
   check('เงินสดไม่พอ → เปลี่ยนเป็นพร้อมเพย์ได้', switched.status === 200, JSON.stringify(switched.body));
@@ -378,8 +409,14 @@ async function main() {
   const twice = await call('POST', `/orders/${placed.body.id}/pay-promptpay`, undefined, token);
   check('กดจ่ายซ้ำไม่ได้', twice.status === 409, `ได้ ${twice.status}`);
 
-  const done = await call('PATCH', `/orders/${placed.body.id}/status`, { status: 'delivered' }, token);
-  check('ส่งถึงแล้ว', done.status === 200);
+  const deliveredByCustomer = await call(
+    'PATCH', `/orders/${placed.body.id}/status`, { status: 'delivered' }, token,
+  );
+  // ข้อสำคัญที่สุด — ลูกค้ากด delivered เองได้ = สร้างรายการบัญชีปลอมของตัวเองได้
+  check('ลูกค้ากดส่งถึงแล้วเองไม่ได้', deliveredByCustomer.status === 403, `ได้ ${deliveredByCustomer.status}`);
+
+  const done = await call('PATCH', `/orders/${placed.body.id}/status`, { status: 'delivered' }, adminToken);
+  check('ส่งถึงแล้ว (แอดมิน)', done.status === 200, JSON.stringify(done.body));
 
   const after = await call('POST', `/orders/${placed.body.id}/pay-promptpay`, undefined, token);
   check('ส่งถึงแล้วเปลี่ยนวิธีจ่ายไม่ได้', after.status === 409, `ได้ ${after.status}`);
