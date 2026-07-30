@@ -31,13 +31,19 @@ async function flush() {
     });
   }
 }
+const navigate = jest.fn();
+
 function render() {
+  navigate.mockClear();
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   act(() => {
     r = ReactTestRenderer.create(
       <QueryClientProvider client={qc}>
         <ThemeProvider forceScheme="light">
-          <OrderHistoryScreen />
+          <OrderHistoryScreen
+            navigation={{ navigate } as never}
+            route={{ key: 'k', name: 'Orders' } as never}
+          />
         </ThemeProvider>
       </QueryClientProvider>,
     );
@@ -59,6 +65,54 @@ describe('OrderHistoryScreen', () => {
     const result = render();
     await flush();
     expect(findAll(result.root, `order-${order.id}`).length).toBeGreaterThanOrEqual(1);
+  });
+
+  /**
+   * ออร์เดอร์ที่ยังเดินอยู่ ลูกค้าอยากรู้ว่าอาหารถึงไหน — ไม่ใช่อยากดูยอดเงิน
+   * ส่วนที่จบแล้วกลับกัน จึงพาไปคนละจอตามสถานะ
+   */
+  it('กดออร์เดอร์ที่ยังไม่จบ → ไปจอติดตาม', async () => {
+    const account = await repos.auth.login('somchai', '1234');
+    useAuthStore.setState({ account });
+    const order = await repos.orders.create({
+      restaurantId: 'r-malee',
+      items: [{ menuItemId: 'm-malee-4', quantity: 1, choiceIds: [] }],
+      paymentMethod: 'promptpay',
+    });
+    const result = render();
+    await flush();
+
+    const card = result.root.findAll(
+      (n) => n.props?.testID === `order-${order.id}` && typeof n.props?.onPress === 'function',
+    )[0]!;
+    await act(async () => {
+      card.props.onPress();
+    });
+    expect(navigate).toHaveBeenCalledWith('OrderTracking', { orderId: order.id });
+  });
+
+  it('กดออร์เดอร์ที่จบแล้ว → ไปใบเสร็จ', async () => {
+    const account = await repos.auth.login('somchai', '1234');
+    useAuthStore.setState({ account });
+    const order = await repos.orders.create({
+      restaurantId: 'r-malee',
+      items: [{ menuItemId: 'm-malee-4', quantity: 1, choiceIds: [] }],
+      paymentMethod: 'promptpay',
+    });
+    for (const st of ['accepted', 'preparing', 'picked_up', 'delivered'] as const) {
+      // eslint-disable-next-line no-await-in-loop
+      await repos.orders.updateStatus(order.id, st);
+    }
+    const result = render();
+    await flush();
+
+    const card = result.root.findAll(
+      (n) => n.props?.testID === `order-${order.id}` && typeof n.props?.onPress === 'function',
+    )[0]!;
+    await act(async () => {
+      card.props.onPress();
+    });
+    expect(navigate).toHaveBeenCalledWith('Receipt', { orderId: order.id });
   });
 
   it('ลูกค้าที่ยังไม่มีออร์เดอร์ → empty state', async () => {
