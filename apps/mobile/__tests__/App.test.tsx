@@ -35,14 +35,20 @@ describe('App', () => {
       currentRenderer = ReactTestRenderer.create(<App />);
     });
 
-    // initI18n().then(setReady) ต้องรอ microtask เพิ่มอีกสองสามรอบกว่าจะ resolve
-    // จบ (คล้าย waitFor ของ testing-library แต่ทำเองด้วย react-test-renderer)
+    /*
+     * ต้องรอถึงระดับ timer ไม่ใช่แค่ microtask เพราะมีสองอย่างที่ต้องเสร็จก่อนจอแรกจะโผล่:
+     *   1. initI18n().then(setReady) — microtask
+     *   2. RootNavigator เช็คว่ามีเซสชันค้างอยู่ไหม ซึ่งวิ่งผ่าน repo (มี setTimeout ข้างใน)
+     *
+     * ข้อสองเป็นของใหม่ และตั้งใจให้ไม่วาดอะไรเลยระหว่างรอ — ถ้าวาดจอล็อกอินไปก่อน
+     * มันจะแวบขึ้นมาแล้วหายไปเองทุกครั้งที่เปิดแอปของคนที่ล็อกอินอยู่
+     */
     for (let i = 0; i < 10; i += 1) {
       const found = findAllByTestId(currentRenderer!.root, 'screen-login');
       if (found.length > 0) break;
       // eslint-disable-next-line no-await-in-loop
       await act(async () => {
-        await Promise.resolve();
+        await new Promise((res) => setTimeout(res, 5));
       });
     }
 

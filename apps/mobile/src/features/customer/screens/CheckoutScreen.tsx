@@ -11,7 +11,7 @@ import { ScreenHeader } from '../../../ui/ScreenHeader';
 import type { IconName } from '../../../ui/Icon';
 import { useCartStore } from '../../cart/cartStore';
 import { formatBaht } from '../../../lib/format';
-import { usePlaceOrder } from '../hooks';
+import { usePlaceOrder, useDefaultAddress } from '../hooks';
 import { usePaymentStore, PAYMENT_ICON } from '../../payment/paymentStore';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
 
@@ -19,6 +19,7 @@ type Props = NativeStackScreenProps<CustomerStackParamList, 'Checkout'>;
 
 /** C17 — ทวนออร์เดอร์ก่อนจ่าย: ที่อยู่ + ช่องทางจ่าย + ยอดแยกบรรทัด */
 export function CheckoutScreen({ navigation }: Props) {
+  const address = useDefaultAddress();
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const lineCount = useCartStore((s) => s.lines.reduce((n, l) => n + l.quantity, 0));
@@ -47,13 +48,18 @@ export function CheckoutScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: p.space.screen, paddingBottom: p.space.lg, gap: p.space.md }}
       >
-        {/* ที่อยู่ยังแก้ไม่ได้จนกว่าจะทำจอจัดการที่อยู่ (C9/C29) — ไม่ใส่ปุ่ม "เปลี่ยน" ที่กดแล้วไม่เกิดอะไร */}
+        {/*
+          ยังไม่มีที่อยู่ = สั่งไม่ได้ (เซิร์ฟเวอร์ปฏิเสธอยู่แล้ว) — บอกตรงนี้ตั้งแต่ก่อนกดสั่ง
+          และพาไปเพิ่มได้เลย ดีกว่าปล่อยให้กดแล้วเจอ error ที่ไม่รู้ว่าต้องไปแก้ที่ไหน
+        */}
         <SummaryRow
           testID="row-address"
           icon="mapPin"
           tone="teal"
           kicker={t('customer.checkout.deliverTo')}
-          value={t('customer.home.defaultAddress')}
+          value={address ? address.addressText : t('customer.addresses.emptyTitle')}
+          actionLabel={address ? t('customer.checkout.change') : t('customer.addresses.add')}
+          onPress={() => navigation.navigate(address ? 'Addresses' : 'AddAddress')}
         />
 
         <SummaryRow
@@ -113,7 +119,7 @@ export function CheckoutScreen({ navigation }: Props) {
           testID="btn-place-order"
           label={t('customer.cart.placeOrder')}
           trailingLabel={formatBaht(totals.grandTotal)}
-          disabled={isPending || !canPlace}
+          disabled={isPending || !canPlace || !address}
           onPress={handlePlaceOrder}
         />
       </View>

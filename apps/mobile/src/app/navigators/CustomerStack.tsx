@@ -17,6 +17,8 @@ import { CartScreen } from '../../features/customer/screens/CartScreen';
 import { CheckoutScreen } from '../../features/customer/screens/CheckoutScreen';
 import { OrderPlacedScreen } from '../../features/customer/screens/OrderPlacedScreen';
 import { SearchScreen } from '../../features/customer/screens/SearchScreen';
+import { AddressesScreen } from '../../features/customer/screens/AddressesScreen';
+import { AddAddressScreen } from '../../features/customer/screens/AddAddressScreen';
 import { PaymentMethodScreen } from '../../features/customer/screens/PaymentMethodScreen';
 import { PromptPayScreen } from '../../features/customer/screens/PromptPayScreen';
 
@@ -44,6 +46,10 @@ export type CustomerStackParamList = {
   Notifications: undefined;
   OrderTracking: { orderId: string };
   Search: undefined;
+  /** C9 — ที่อยู่จัดส่งที่บันทึกไว้ */
+  Addresses: undefined;
+  /** C29 — เพิ่มที่อยู่ */
+  AddAddress: undefined;
 };
 
 const Tab = createBottomTabNavigator<CustomerTabParamList>();
@@ -89,6 +95,8 @@ export function CustomerStack() {
       <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
       {/* C2 เปิดจากแถบค้นหาบนหน้าแรก — ไม่มีแอนิเมชันสไลด์เพื่อให้รู้สึกเหมือนช่องค้นหาขยายขึ้นมา */}
       <Stack.Screen name="Search" component={SearchScreen} options={{ animation: 'fade' }} />
+      <Stack.Screen name="Addresses" component={AddressesScreen} />
+      <Stack.Screen name="AddAddress" component={AddAddressScreen} />
     </Stack.Navigator>
   );
 }

@@ -296,6 +296,30 @@
       "expired": "QR expired",
       "paid": "I've paid — check status",
       "mockNote": "This QR is a mock — no real payment gateway is connected yet."
+    },
+    "addresses": {
+      "title": "Delivery addresses",
+      "add": "Add address",
+      "addTitle": "Add delivery address",
+      "defaultTag": "Default",
+      "emptyTitle": "No delivery address yet",
+      "emptyHint": "You need at least one address before ordering, so the rider knows where to go.",
+      "label": "Name this address",
+      "labelPlaceholder": "Home / Work / Dorm",
+      "addressText": "Address",
+      "addressHint": "The rider reads this — the more detail, the easier to find",
+      "note": "Note for the rider",
+      "notePlaceholder": "Leave with reception / Call on arrival",
+      "pinTitle": "Pinned location",
+      "pinMissing": "Not set - used for distance and rider dispatch",
+      "pinSet": "Saved ({{lat}}, {{lng}})",
+      "useLocation": "Use current location",
+      "locating": "Finding location...",
+      "locationDenied": "Location permission is required so the rider can find your address",
+      "locationFailed": "Could not get your location, please try again",
+      "required": "Please fill in the name and address",
+      "needLocation": "Tap \"Use current location\" before saving",
+      "saveFailed": "Could not save the address, please try again"
     }
   },
   "order": {

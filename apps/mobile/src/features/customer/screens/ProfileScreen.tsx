@@ -12,7 +12,7 @@ import { Card, IconChip } from '../../../ui/Surface';
 import { TAB_BAR_CLEARANCE } from '../../../app/navigators/WingdaiTabBar';
 import { RoleSwitcher } from '../../../app/RoleSwitcher';
 import { useAuthStore } from '../../auth/authStore';
-import { useCustomerOrders } from '../hooks';
+import { useCustomerOrders, useAddresses } from '../hooks';
 import { usePaymentStore, PAYMENT_ICON } from '../../payment/paymentStore';
 import type { CustomerStackParamList, CustomerTabParamList } from '../../../app/navigators/CustomerStack';
 
@@ -23,6 +23,7 @@ type Props = CompositeScreenProps<
 >;
 
 export function ProfileScreen({ navigation }: Props) {
+  const { data: addresses = [] } = useAddresses();
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const account = useAuthStore((s) => s.account);
@@ -105,6 +106,35 @@ export function ProfileScreen({ navigation }: Props) {
                 </Text>
                 <Text variant="caption" color="muted" numberOfLines={1}>
                   {t(`customer.payment.method.${method}.title`)}
+                </Text>
+              </View>
+              <Icon name="chevronRight" color={tokens.textFaint} size={18} strokeWidth={2.4} />
+            </Pressable>
+
+            <View style={{ height: 1, backgroundColor: tokens.borderSubtle, marginLeft: 66 }} />
+
+            <Pressable
+              testID="btn-addresses"
+              accessibilityRole="button"
+              onPress={() => navigation.navigate('Addresses')}
+              style={({ pressed }) => ({
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: p.space.lg,
+                paddingHorizontal: p.space.card,
+                paddingVertical: 15,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <IconChip name="mapPin" tone="teal" size={36} />
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text variant="small" bold>
+                  {t('customer.addresses.title')}
+                </Text>
+                <Text variant="caption" color="muted" numberOfLines={1}>
+                  {addresses.length > 0
+                    ? addresses[0]!.addressText
+                    : t('customer.addresses.emptyTitle')}
                 </Text>
               </View>
               <Icon name="chevronRight" color={tokens.textFaint} size={18} strokeWidth={2.4} />

@@ -74,4 +74,14 @@ jest.mock('expo-secure-store', () => {
   };
 });
 
+// expo-location คุยกับ native GPS ซึ่งไม่มีใน jest — mock ที่จุดเดียวเหมือน MapLibre
+// ค่าตั้งต้นคือ "อนุญาตแล้ว" และคืนพิกัดกลางโซนอารีย์ เทสต์ที่อยากลองเคสปฏิเสธให้ spyOn ทับ
+jest.mock('expo-location', () => ({
+  Accuracy: { Balanced: 3 },
+  requestForegroundPermissionsAsync: jest.fn().mockResolvedValue({ status: 'granted' }),
+  getCurrentPositionAsync: jest
+    .fn()
+    .mockResolvedValue({ coords: { latitude: 13.7797, longitude: 100.5418 } }),
+}));
+
 export {};
