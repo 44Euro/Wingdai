@@ -320,6 +320,16 @@
       "required": "Please fill in the name and address",
       "needLocation": "Tap \"Use current location\" before saving",
       "saveFailed": "Could not save the address, please try again"
+    },
+    "receipt": {
+      "title": "Receipt",
+      "orderNumber": "Order number",
+      "paymentStatus": {
+        "pending": "Not paid yet",
+        "paid": "Paid",
+        "failed": "Payment failed",
+        "refunded": "Refunded"
+      }
     }
   },
   "order": {

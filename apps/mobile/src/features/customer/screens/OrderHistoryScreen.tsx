@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Badge, Card, Chip, PhotoBlock } from '../../../ui/Surface';
@@ -9,11 +12,18 @@ import { TAB_BAR_CLEARANCE } from '../../../app/navigators/WingdaiTabBar';
 import { useCustomerOrders, useRestaurants } from '../hooks';
 import { formatBaht } from '../../../lib/format';
 import type { Order, OrderStatus } from '../../../data/types';
+import type { CustomerStackParamList, CustomerTabParamList } from '../../../app/navigators/CustomerStack';
+
+// อยู่ในแท็บ แต่ต้อง navigate ไปจอที่อยู่ใน stack แม่ (ใบเสร็จ/ติดตาม) → composite
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<CustomerTabParamList, 'Orders'>,
+  NativeStackScreenProps<CustomerStackParamList>
+>;
 
 type Filter = 'all' | 'active' | 'past';
 const DONE: OrderStatus[] = ['delivered', 'cancelled'];
 
-export function OrderHistoryScreen() {
+export function OrderHistoryScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const { data: orders = [] } = useCustomerOrders();
@@ -56,7 +66,22 @@ export function OrderHistoryScreen() {
           {shown.length === 0 ? (
             <Text testID="orders-empty" variant="body" color="muted">{t('customer.orders.empty')}</Text>
           ) : (
-            shown.map((o) => <OrderCard key={o.id} order={o} restaurantName={nameOf(o.restaurantId)} />)
+            shown.map((o) => (
+              <OrderCard
+                key={o.id}
+                order={o}
+                restaurantName={nameOf(o.restaurantId)}
+                /*
+                 * จบแล้วไปใบเสร็จ · ยังไม่จบไปจอติดตาม
+                 * ออร์เดอร์ที่ยังเดินอยู่ ลูกค้าอยากรู้ว่าอาหารถึงไหน ไม่ใช่อยากดูยอดเงิน
+                 */
+                onPress={() =>
+                  DONE.includes(o.status)
+                    ? navigation.navigate('Receipt', { orderId: o.id })
+                    : navigation.navigate('OrderTracking', { orderId: o.id })
+                }
+              />
+            ))
           )}
         </View>
       </ScrollView>
@@ -64,7 +89,15 @@ export function OrderHistoryScreen() {
   );
 }
 
-function OrderCard({ order, restaurantName }: { order: Order; restaurantName: string }) {
+function OrderCard({
+  order,
+  restaurantName,
+  onPress,
+}: {
+  order: Order;
+  restaurantName: string;
+  onPress: () => void;
+}) {
   const { t } = useTranslation();
   const { primitives: p } = useTheme();
   const grandTotal = order.foodTotal + order.deliveryFee + order.serviceFee;
@@ -72,7 +105,13 @@ function OrderCard({ order, restaurantName }: { order: Order; restaurantName: st
   const done = DONE.includes(order.status);
 
   return (
-    <Card testID={`order-${order.id}`} style={{ flexDirection: 'row', alignItems: 'center', gap: p.space.md }}>
+    <Pressable
+      testID={`order-${order.id}`}
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
+    >
+    <Card style={{ flexDirection: 'row', alignItems: 'center', gap: p.space.md }}>
       <PhotoBlock size={48} radius={p.radius.sm} />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text variant="small" bold numberOfLines={1}>{restaurantName}</Text>
@@ -82,5 +121,6 @@ function OrderCard({ order, restaurantName }: { order: Order; restaurantName: st
       </View>
       <Badge label={t(`customer.orders.status.${order.status}`)} tone={done ? 'teal' : 'brand'} />
     </Card>
+    </Pressable>
   );
 }

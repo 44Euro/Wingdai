@@ -19,6 +19,7 @@ import { OrderPlacedScreen } from '../../features/customer/screens/OrderPlacedSc
 import { SearchScreen } from '../../features/customer/screens/SearchScreen';
 import { AddressesScreen } from '../../features/customer/screens/AddressesScreen';
 import { AddAddressScreen } from '../../features/customer/screens/AddAddressScreen';
+import { ReceiptScreen } from '../../features/customer/screens/ReceiptScreen';
 import { PaymentMethodScreen } from '../../features/customer/screens/PaymentMethodScreen';
 import { PromptPayScreen } from '../../features/customer/screens/PromptPayScreen';
 
@@ -50,6 +51,8 @@ export type CustomerStackParamList = {
   Addresses: undefined;
   /** C29 — เพิ่มที่อยู่ */
   AddAddress: undefined;
+  /** C14 — ใบเสร็จของออร์เดอร์ที่จบแล้ว */
+  Receipt: { orderId: string };
 };
 
 const Tab = createBottomTabNavigator<CustomerTabParamList>();
@@ -97,6 +100,7 @@ export function CustomerStack() {
       <Stack.Screen name="Search" component={SearchScreen} options={{ animation: 'fade' }} />
       <Stack.Screen name="Addresses" component={AddressesScreen} />
       <Stack.Screen name="AddAddress" component={AddAddressScreen} />
+      <Stack.Screen name="Receipt" component={ReceiptScreen} />
     </Stack.Navigator>
   );
 }
