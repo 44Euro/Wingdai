@@ -80,7 +80,8 @@ describe('ตรวจอัตโนมัติแล้วเสนอคำ�
       const r = recommendRefund(facts({
         reason: 'not_delivered', orderStatus: 'picked_up', deliveredAt: null,
       }));
-      expect(r.verdict).not.toBe('not_eligible');
+      // รับเรื่องได้ แต่ต้องให้คนตัดสิน — ระบบตรวจเองไม่ได้ว่าของถึงมือหรือไม่
+      expect(r.verdict).toBe('needs_review');
     });
   });
 
@@ -132,9 +133,24 @@ describe('ตรวจอัตโนมัติแล้วเสนอคำ�
       expect(r.reasoning.some((s) => s.includes('ขัดกับที่ลูกค้าแจ้ง'))).toBe(true);
     });
 
-    it('ไม่มีรูปยืนยันการส่ง แจ้งว่าไม่ได้รับ → เสนอคืนได้', () => {
-      expect(recommendRefund(facts({ reason: 'not_delivered', hasDeliveryPhoto: false })).verdict)
-        .toBe('suggest_full');
+    /**
+     * ช่องโกงตรง ๆ ถ้าปล่อยผ่าน: อ้างว่าไม่ได้รับของทุกใบแล้วได้เงินคืนอัตโนมัติ
+     * ไม่มีหลักฐานฝั่งไหนเลย = ระบบไม่มีอะไรให้ตรวจ ต้องให้คนตัดสิน
+     */
+    it('ไม่มีรูปยืนยันการส่ง แจ้งว่าไม่ได้รับ → ก็ยังต้องให้คนตัดสิน', () => {
+      const r = recommendRefund(facts({ reason: 'not_delivered', hasDeliveryPhoto: false }));
+      expect(r.verdict).toBe('needs_review');
+      expect(r.suggestedAmountSatang).toBeNull();
+    });
+
+    it('"ไม่ได้รับของ" ไม่มีทางถูกเสนอคืนอัตโนมัติ ไม่ว่าเงื่อนไขอื่นจะสวยแค่ไหน', () => {
+      for (const hasDeliveryPhoto of [true, false]) {
+        const r = recommendRefund(facts({
+          reason: 'not_delivered', hasDeliveryPhoto,
+          orderTotalSatang: 1_000, customerOrderCount: 100, customerDisputeCount: 0,
+        }));
+        expect(r.verdict, String(hasDeliveryPhoto)).toBe('needs_review');
+      }
     });
 
     it('บันทึกไว้เสมอว่าลูกค้าแนบรูปมาหรือไม่', () => {

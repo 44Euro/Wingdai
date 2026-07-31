@@ -133,11 +133,23 @@ export function recommendRefund(f: RefundFacts): RefundRecommendation {
   if (f.hasCustomerPhoto) reasoning.push('ลูกค้าแนบรูปประกอบมาด้วย');
   else reasoning.push('ลูกค้าไม่ได้แนบรูป');
 
-  if (f.reason === 'not_delivered') {
+  /*
+   * "ไม่ได้รับของ" คือการโต้แย้งว่าสถานะที่ระบบบันทึกไว้นั่นแหละผิด
+   * **ต้องให้คนตัดสินเสมอ ไม่ว่าจะมีรูปหรือไม่มี**
+   *
+   * มีรูป = ขัดกับที่ลูกค้าแจ้ง ต้องมีคนเทียบ
+   * ไม่มีรูป = ไม่มีหลักฐานฝั่งไหนเลย ระบบไม่มีอะไรให้ตรวจ — เสนอคืนเต็มตรงนี้
+   * เท่ากับใครก็กดอ้างว่าไม่ได้รับของทุกใบแล้วได้เงินคืนอัตโนมัติ ซึ่งเป็นช่องโกงตรง ๆ
+   *
+   * ตอนนี้ยังไม่มีที่ไหนเซ็ต orders.delivery_photo_path เลย จึงตกกรณีหลังทุกใบ
+   * พอไรเดอร์ถ่ายรูปตอนส่งได้จริงแล้ว กติกาสองทางนี้ถึงจะเริ่มแยกกันจริง ๆ
+   */
+  const unverifiableClaim = f.reason === 'not_delivered';
+  if (unverifiableClaim) {
     reasoning.push(
       f.hasDeliveryPhoto
         ? 'ไรเดอร์มีรูปยืนยันการส่ง — ขัดกับที่ลูกค้าแจ้ง ต้องเทียบรูปก่อนตัดสิน'
-        : 'ไรเดอร์ไม่มีรูปยืนยันการส่ง',
+        : 'ไม่มีรูปยืนยันการส่งจากไรเดอร์ ระบบตรวจเองไม่ได้ว่าเกิดอะไรขึ้น',
     );
   }
 
@@ -153,8 +165,7 @@ export function recommendRefund(f: RefundFacts): RefundRecommendation {
    * เสนอคืนเต็มได้ก็ต่อเมื่อ **ทุกข้อผ่านหมด** — ข้อเดียวสะดุดก็ส่งให้คนดู
    * เพราะข้อเสนอคืนเงินคือสิ่งที่แอดมินจะกดยืนยันแบบแทบไม่อ่าน ถ้าระบบเสนอถี่เกินไป
    */
-  const rejectingPhoto = f.reason === 'not_delivered' && f.hasDeliveryPhoto;
-  const canSuggestFull = fault !== null && !suspicious && !overCeiling && !rejectingPhoto;
+  const canSuggestFull = fault !== null && !suspicious && !overCeiling && !unverifiableClaim;
 
   if (canSuggestFull) {
     reasoning.push('ตรวจอัตโนมัติผ่านทุกข้อ — เสนอคืนเต็มจำนวน');

@@ -13,6 +13,7 @@ import { useTicker } from '../../merchant/hooks';
 import { getCurrentCoords } from '../../customer/currentLocation';
 import { useRiderStatus, useSetRiderOnline, useRespondToOffer, useRiderStats } from '../hooks';
 import { secondsLeftToRespond } from '../offerWindow';
+import { useLocationPing } from '../locationPing';
 import type { RiderJob, RiderOffer } from '../../../data/types';
 import type { RiderStackParamList } from '../../../app/navigators/RiderStack';
 
@@ -36,6 +37,12 @@ export function RiderHomeScreen({ navigation }: Props) {
   const [locationError, setLocationError] = React.useState(false);
   const offer = status?.offer ?? null;
   const now = useTicker(!!offer);
+
+  /*
+   * ส่งพิกัดตามจังหวะที่ §5 กำหนด — ผูกกับ "เปิดรับงานอยู่ไหม" ไม่ใช่กับจอนี้
+   * ปิดรับงานแล้วหยุดส่งทันที และไม่ตามตอนไรเดอร์สลับไปสั่งอาหารเป็นลูกค้า (§4.3)
+   */
+  useLocationPing(status?.isOnline ?? false, status?.activeJobs ?? []);
 
   async function toggleOnline(next: boolean) {
     if (!next) {
