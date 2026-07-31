@@ -330,6 +330,25 @@
         "failed": "Payment failed",
         "refunded": "Refunded"
       }
+    },
+    "report": {
+      "title": "Report a problem",
+      "reason": "What happened",
+      "detail": "Tell us more",
+      "detailPlaceholder": "e.g. got fried rice instead of basil pork",
+      "submit": "Send",
+      "sentTitle": "Sent",
+      "sentBody": "We will review and get back to you. Refunds are reviewed by a person, not approved automatically.",
+      "reasons": {
+        "wrong_item": "Wrong item",
+        "missing_item": "Missing item",
+        "food_quality": "Food problem",
+        "damaged": "Spilled or damaged",
+        "not_delivered": "Never arrived",
+        "late": "Very late",
+        "other": "Something else"
+      },
+      "entry": "Something wrong with this order"
     }
   },
   "order": {

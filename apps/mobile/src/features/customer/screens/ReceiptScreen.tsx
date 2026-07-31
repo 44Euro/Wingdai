@@ -6,6 +6,7 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Badge, Card } from '../../../ui/Surface';
 import { ScreenHeader } from '../../../ui/ScreenHeader';
+import { Button } from '../../../ui/Button';
 import { formatBaht } from '../../../lib/format';
 import { useOrder, useRestaurant } from '../hooks';
 import { PAYMENT_ICON } from '../../payment/paymentStore';
@@ -123,6 +124,19 @@ export function ReceiptScreen({ navigation, route }: Props) {
             </Text>
           </View>
         </Card>
+        {/*
+          ทางเข้าเดียวของการแจ้งปัญหา (§6.4) — ไม่มีปุ่มนี้ = เซิร์ฟเวอร์รับเรื่องได้
+          แต่ในแอปไม่มีใครแจ้งได้เลย
+          §6.5 เลยจุดที่ส่งถึงแล้ว ปัญหาทุกอย่างไปทางคืนเงิน ไม่ใช่การเปลี่ยนวิธีจ่าย
+        */}
+        {order.status === 'delivered' ? (
+          <Button
+            testID="btn-report-problem"
+            variant="secondary"
+            label={t('customer.report.entry')}
+            onPress={() => navigation.navigate('ReportProblem', { orderId: order.id })}
+          />
+        ) : null}
       </ScrollView>
     </View>
   );

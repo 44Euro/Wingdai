@@ -19,6 +19,7 @@ import { OrderPlacedScreen } from '../../features/customer/screens/OrderPlacedSc
 import { SearchScreen } from '../../features/customer/screens/SearchScreen';
 import { AddressesScreen } from '../../features/customer/screens/AddressesScreen';
 import { AddAddressScreen } from '../../features/customer/screens/AddAddressScreen';
+import { ReportProblemScreen } from '../../features/customer/screens/ReportProblemScreen';
 import { ReceiptScreen } from '../../features/customer/screens/ReceiptScreen';
 import { PaymentMethodScreen } from '../../features/customer/screens/PaymentMethodScreen';
 import { PromptPayScreen } from '../../features/customer/screens/PromptPayScreen';
@@ -46,6 +47,8 @@ export type CustomerStackParamList = {
   /** design ไม่มีแท็บแจ้งเตือน — เข้าจากกระดิ่งบนหัวจอ Home แทน (C20) */
   Notifications: undefined;
   OrderTracking: { orderId: string };
+  /** แจ้งปัญหาออร์เดอร์ที่ส่งถึงแล้ว (§6.4) — เข้าจากใบเสร็จ */
+  ReportProblem: { orderId: string };
   Search: undefined;
   /** C9 — ที่อยู่จัดส่งที่บันทึกไว้ */
   Addresses: undefined;
@@ -101,6 +104,7 @@ export function CustomerStack() {
       <Stack.Screen name="Addresses" component={AddressesScreen} />
       <Stack.Screen name="AddAddress" component={AddAddressScreen} />
       <Stack.Screen name="Receipt" component={ReceiptScreen} />
+      <Stack.Screen name="ReportProblem" component={ReportProblemScreen} />
     </Stack.Navigator>
   );
 }
