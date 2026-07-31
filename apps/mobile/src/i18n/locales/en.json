@@ -426,6 +426,29 @@
         "preparing": "Start cooking",
         "reject": "Reject order"
       }
+    },
+    "open": {
+      "title": "Open your restaurant",
+      "name": "Restaurant name",
+      "cuisine": "Cuisine",
+      "address": "Restaurant address",
+      "location": "Restaurant location",
+      "locationHint": "No coordinates yet — tap below while you are at the shop",
+      "locationSet": "Location saved ({{lat}}, {{lng}})",
+      "useLocation": "Use current location",
+      "locationDenied": "Location permission is required — we need to check the shop is inside a served zone",
+      "prepTime": "Average cooking time (minutes)",
+      "prepTimeError": "Enter 1–120 minutes",
+      "payout": "Payout account",
+      "bankName": "Bank",
+      "bankNumber": "Account number",
+      "bankHolder": "Account holder",
+      "bankNote": "The account holder should match the owner name — we check this at approval",
+      "submit": "Submit application",
+      "sentTitle": "Application sent",
+      "sentBody": "Your restaurant is in the {{zone}} zone. We will review and get back to you.",
+      "nextStep": "Meanwhile you can add at least 3 menu items. The shop stays closed until it is approved.",
+      "entry": "Open your restaurant"
     }
   },
   "payment": {
@@ -510,6 +533,10 @@
       "acceptRate": "Restaurant accept rate",
       "refundRate": "Refund rate",
       "autoDispatchRate": "Auto-dispatch success"
-    }
+    },
+    "pendingShops": "{{count}} restaurants awaiting approval",
+    "noPendingShops": "No restaurants awaiting approval",
+    "shopMenuCount": "{{count}} menu items (needs at least 3)",
+    "approveShop": "Approve restaurant"
   }
 }

@@ -19,6 +19,7 @@ import { OrderPlacedScreen } from '../../features/customer/screens/OrderPlacedSc
 import { SearchScreen } from '../../features/customer/screens/SearchScreen';
 import { AddressesScreen } from '../../features/customer/screens/AddressesScreen';
 import { AddAddressScreen } from '../../features/customer/screens/AddAddressScreen';
+import { OpenRestaurantScreen } from '../../features/merchant/screens/OpenRestaurantScreen';
 import { ReportProblemScreen } from '../../features/customer/screens/ReportProblemScreen';
 import { ReceiptScreen } from '../../features/customer/screens/ReceiptScreen';
 import { PaymentMethodScreen } from '../../features/customer/screens/PaymentMethodScreen';
@@ -49,6 +50,8 @@ export type CustomerStackParamList = {
   OrderTracking: { orderId: string };
   /** แจ้งปัญหาออร์เดอร์ที่ส่งถึงแล้ว (§6.4) — เข้าจากใบเสร็จ */
   ReportProblem: { orderId: string };
+  /** §4.3 ร้านเป็นความสามารถบนบัญชีเดิม จอนี้จึงอยู่ใน stack ลูกค้า ไม่ใช่ stack แยก */
+  OpenRestaurant: undefined;
   Search: undefined;
   /** C9 — ที่อยู่จัดส่งที่บันทึกไว้ */
   Addresses: undefined;
@@ -105,6 +108,7 @@ export function CustomerStack() {
       <Stack.Screen name="AddAddress" component={AddAddressScreen} />
       <Stack.Screen name="Receipt" component={ReceiptScreen} />
       <Stack.Screen name="ReportProblem" component={ReportProblemScreen} />
+      <Stack.Screen name="OpenRestaurant" component={OpenRestaurantScreen} />
     </Stack.Navigator>
   );
 }

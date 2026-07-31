@@ -142,6 +142,39 @@ export function ProfileScreen({ navigation }: Props) {
 
             <View style={{ height: 1, backgroundColor: tokens.borderSubtle, marginLeft: 66 }} />
 
+            {/*
+              §4.3 — ร้านเป็น "ความสามารถ" ที่งอกบนบัญชี user ทางเข้าจึงอยู่ในโปรไฟล์
+              ไม่ใช่หน้าสมัครแยก และซ่อนไปเมื่อบัญชีนี้มีร้านแล้ว (สลับโหมดที่ role switcher แทน)
+            */}
+            {account?.accountType === 'user' && (account?.ownedRestaurantIds.length ?? 0) === 0 ? (
+              <>
+                <Pressable
+                  testID="btn-open-restaurant"
+                  accessibilityRole="button"
+                  onPress={() => navigation.navigate('OpenRestaurant')}
+                  style={({ pressed }) => ({
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: p.space.lg,
+                    paddingHorizontal: p.space.card,
+                    paddingVertical: 15,
+                    opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  <IconChip name="store" tone="brand" size={36} />
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text variant="small" bold>{t('merchant.open.entry')}</Text>
+                    <Text variant="caption" color="muted" numberOfLines={1}>
+                      {t('merchant.open.title')}
+                    </Text>
+                  </View>
+                  <Icon name="chevronRight" color={tokens.textFaint} size={18} strokeWidth={2.4} />
+                </Pressable>
+
+                <View style={{ height: 1, backgroundColor: tokens.borderSubtle, marginLeft: 66 }} />
+              </>
+            ) : null}
+
             <Pressable
               testID="btn-logout"
               accessibilityRole="button"

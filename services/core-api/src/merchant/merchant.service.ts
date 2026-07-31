@@ -1,9 +1,20 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
-import { and, eq, inArray, asc, desc } from 'drizzle-orm';
+import {
+  Injectable, Inject, NotFoundException, ForbiddenException,
+  BadRequestException, ConflictException,
+} from '@nestjs/common';
+import { and, eq, inArray, asc, desc, sql } from 'drizzle-orm';
 import { DB, type Db } from '../db/db.module';
 import { orders, orderItems, restaurants, menuItems, accounts } from '../db/schema';
 import type { OrderStatus } from '../orders/stateMachine';
-import type { CreateMenuItemInput, UpdateMenuItemInput } from './dto';
+import type {
+  CreateMenuItemInput, UpdateMenuItemInput, RegisterRestaurantInput,
+} from './dto';
+
+/**
+ * §7 "ต้องมีเมนูตั้งต้นก่อนถึงจะส่งให้ตรวจได้" — ตัวเลขนี้เลือกเอง claude.md ไม่ได้ระบุ
+ * 3 รายการคือน้อยสุดที่ยังดูเหมือนร้านจริง ไม่ใช่ร้านที่เปิดมาลองเล่น
+ */
+const MIN_STARTER_MENU_ITEMS = 3;
 
 /**
  * สิ่งที่ครัวต้องเห็นเพื่อทำอาหารและตัดสินใจรับงาน — มากกว่าที่ลูกค้าเห็นในบางช่อง
@@ -183,6 +194,154 @@ export class MerchantService {
       isApproved: row!.isApproved,
       isOpen: row!.isOpen,
       prepTimeMinutes: row!.prepTimeMinutes,
+    };
+  }
+
+  /**
+   * เปิดร้าน — claude.md §4.3 บัญชี `user` ที่ล็อกอินอยู่กรอกฟอร์มแล้วส่งให้แอดมินอนุมัติ
+   *
+   * สร้างเป็นร้านที่ยัง **ไม่อนุมัติและปิดอยู่** เสมอ ไม่มีทางลัดให้เปิดขายได้เอง
+   * เพราะร้านที่โผล่ให้ลูกค้าเห็นโดยไม่มีใครตรวจ คือความเสี่ยงทั้งเรื่องอาหารและเรื่องเงิน
+   *
+   * **ตีความจาก §4.1: เฉพาะบัญชีชนิด `user` เท่านั้น** ตารางในนั้นเขียนว่าร้านเป็น
+   * "การอัปเกรดบนบัญชี user ที่มีอยู่" ไรเดอร์จึงเปิดร้านไม่ได้ — ทบทวนได้ถ้าไม่ตั้งใจแบบนั้น
+   */
+  async registerRestaurant(accountId: string, input: RegisterRestaurantInput) {
+    const [me] = await this.db
+      .select({ accountType: accounts.accountType })
+      .from(accounts)
+      .where(eq(accounts.id, accountId))
+      .limit(1);
+
+    if (me?.accountType !== 'user') {
+      throw new ForbiddenException({ message: 'เปิดร้านได้เฉพาะบัญชีลูกค้าเท่านั้น' });
+    }
+
+    /*
+     * §7 · §1 — พิกัดร้านต้องอยู่ในโซนที่เปิดให้บริการ
+     * ปล่อยร้านนอกโซนเข้ามาเท่ากับทำลายสมมติฐานเรื่องความหนาแน่นที่โมเดลทั้งหมดยืนอยู่
+     * (ระยะส่ง 1–1.5 กม. คือเหตุผลเดียวที่ GP 15% เป็นไปได้)
+     */
+    const [zone] = await this.db.execute<{ id: string; name: string }>(sql`
+      select id, name from zones
+       where is_active = true
+         and st_contains(
+               st_setsrid(st_geomfromgeojson(boundary_geojson::text), 4326),
+               st_setsrid(st_makepoint(${input.lng}, ${input.lat}), 4326)
+             )
+       limit 1
+    `);
+
+    if (!zone) {
+      throw new BadRequestException({
+        message: 'ที่ตั้งร้านอยู่นอกโซนที่เปิดให้บริการ',
+        fields: { addressText: 'ยังไม่เปิดให้บริการย่านนี้' },
+      });
+    }
+
+    const [row] = await this.db
+      .insert(restaurants)
+      .values({
+        ownerUserId: accountId,
+        zoneId: zone.id,
+        name: input.name,
+        cuisine: input.cuisine,
+        addressText: input.addressText,
+        location: { x: input.lng, y: input.lat },
+        prepTimeMinutes: input.prepTimeMinutes,
+        openingHours: input.openingHours ?? {},
+        bankName: input.bankName,
+        bankAccountNumber: input.bankAccountNumber,
+        bankAccountName: input.bankAccountName,
+        isApproved: false,
+        isOpen: false,
+      })
+      .returning();
+
+    return { ...this.toPublicRestaurant(row!), zoneName: zone.name };
+  }
+
+  /**
+   * ส่งร้านให้แอดมินตรวจ — §7 กำหนดว่าต้องมี "เมนูตั้งต้น" ก่อนถึงจะส่งได้
+   *
+   * ร้านที่อนุมัติแล้วแต่ไม่มีเมนู = ร้านที่ลูกค้ากดเข้าไปแล้วเจอหน้าว่าง
+   * ซึ่งเสียลูกค้าคนนั้นไปเลย และเสียความน่าเชื่อถือของทั้งรายการร้าน
+   */
+  async submitForApproval(accountId: string, restaurantId: string) {
+    const shop = await this.assertOwns(accountId, restaurantId);
+    if (shop.isApproved) {
+      throw new ConflictException({ message: 'ร้านนี้อนุมัติแล้ว' });
+    }
+
+    const [count] = await this.db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(menuItems)
+      .where(eq(menuItems.restaurantId, restaurantId));
+
+    if ((count?.n ?? 0) < MIN_STARTER_MENU_ITEMS) {
+      throw new BadRequestException({
+        message: `ต้องมีเมนูอย่างน้อย ${MIN_STARTER_MENU_ITEMS} รายการก่อนส่งให้ตรวจ`,
+        fields: { menu: `ตอนนี้มี ${count?.n ?? 0} รายการ` },
+      });
+    }
+
+    /*
+     * ยังไม่มีการอัปโหลดรูปหน้าร้าน/เอกสารจริง เพราะยังไม่ได้ต่อ Supabase Storage
+     * §7 ระบุว่าต้องเก็บทั้งสองอย่าง — **ต้องบังคับให้ครบก่อนเปิดใช้จริง**
+     * ตอนนี้ปล่อยผ่านโดยตั้งใจ ไม่ใช่ลืม จะได้ทดสอบเส้นทางที่เหลือได้
+     */
+    return { submitted: true, awaitingReview: true };
+  }
+
+  /** ร้านที่รอตรวจ — คิวของแอดมิน */
+  async pendingRestaurants() {
+    const rows = await this.db
+      .select({ shop: restaurants, ownerName: accounts.fullName, ownerPhone: accounts.phone })
+      .from(restaurants)
+      .innerJoin(accounts, eq(accounts.id, restaurants.ownerUserId))
+      .where(eq(restaurants.isApproved, false))
+      .orderBy(asc(restaurants.createdAt));
+
+    return Promise.all(
+      rows.map(async (r) => {
+        const [count] = await this.db
+          .select({ n: sql<number>`count(*)::int` })
+          .from(menuItems)
+          .where(eq(menuItems.restaurantId, r.shop.id));
+        return {
+          ...this.toPublicRestaurant(r.shop),
+          ownerName: r.ownerName,
+          ownerPhone: r.ownerPhone,
+          addressText: r.shop.addressText,
+          menuItemCount: count?.n ?? 0,
+          createdAt: r.shop.createdAt.toISOString(),
+        };
+      }),
+    );
+  }
+
+  /**
+   * แอดมินอนุมัติ — จุดเดียวที่ร้านโผล่ให้ลูกค้าเห็น
+   * อนุมัติแล้ว **ยังไม่เปิดขาย** ร้านต้องกดเปิดเอง เพราะเจ้าของรู้ดีกว่าว่าพร้อมเมื่อไหร่
+   */
+  async setApproval(adminAccountId: string, restaurantId: string, approve: boolean) {
+    const [row] = await this.db
+      .update(restaurants)
+      .set({ isApproved: approve, approvedAt: approve ? new Date() : null })
+      .where(eq(restaurants.id, restaurantId))
+      .returning();
+
+    if (!row) throw new NotFoundException({ message: 'ไม่พบร้านนี้' });
+    return this.toPublicRestaurant(row);
+  }
+
+  private toPublicRestaurant(r: typeof restaurants.$inferSelect): MerchantRestaurant {
+    return {
+      id: r.id,
+      name: r.name,
+      isApproved: r.isApproved,
+      isOpen: r.isOpen,
+      prepTimeMinutes: r.prepTimeMinutes,
     };
   }
 

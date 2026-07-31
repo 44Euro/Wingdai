@@ -45,6 +45,7 @@ async function call(method: string, path: string, body?: unknown, token?: string
 /** ออร์เดอร์ที่สร้างระหว่างทดสอบ — ต้องลบทิ้งตอนจบ ไม่ทิ้งขยะไว้ในฐาน */
 const createdOrderIds: string[] = [];
 const createdMenuItemIds: string[] = [];
+const createdRestaurantIds: string[] = [];
 
 /**
  * อ่าน ledger ที่เขียนลงฐานจริงแล้วเทียบกับตัวเลขที่คำนวณมือ
@@ -300,11 +301,90 @@ async function checkRefundLedger(orderId: string, amount: number) {
   }
 }
 
+/**
+ * เปิดร้านเอง (claude.md §4.3) — ลูกค้ากรอกฟอร์ม → เพิ่มเมนูตั้งต้น → ส่งตรวจ → แอดมินอนุมัติ
+ */
+async function openRestaurantChecks(customerToken: string, riderToken: string, adminToken: string) {
+  const outsideZone = await call('POST', '/merchant/restaurants', {
+    name: 'ร้านนอกโซน', cuisine: 'rice', addressText: 'เชียงใหม่',
+    lat: 18.7883, lng: 98.9853, prepTimeMinutes: 10,
+    bankName: 'กสิกรไทย', bankAccountNumber: '1234567890', bankAccountName: 'ทดสอบ',
+  }, customerToken);
+  // §1 ปล่อยร้านนอกโซนเข้ามา = ทำลายสมมติฐานความหนาแน่นที่ GP 15% ยืนอยู่
+  check('เปิดร้านนอกโซนที่ให้บริการไม่ได้', outsideZone.status === 400, `ได้ ${outsideZone.status}`);
+
+  const byRider = await call('POST', '/merchant/restaurants', {
+    name: 'ร้านของไรเดอร์', cuisine: 'rice', addressText: 'ซอยอารีย์ 1',
+    lat: 13.7802, lng: 100.5432, prepTimeMinutes: 10,
+    bankName: 'กสิกรไทย', bankAccountNumber: '1234567890', bankAccountName: 'ทดสอบ',
+  }, riderToken);
+  // §4.1 ร้านเป็นการอัปเกรดบนบัญชี user — ไรเดอร์เปิดร้านไม่ได้
+  check('บัญชีไรเดอร์เปิดร้านไม่ได้', byRider.status === 403, `ได้ ${byRider.status}`);
+
+  const created = await call('POST', '/merchant/restaurants', {
+    name: SMOKE_SHOP_NAME, cuisine: 'noodle', addressText: 'ซอยอารีย์ 2 พหลโยธิน',
+    lat: 13.7805, lng: 100.5435, prepTimeMinutes: 15,
+    bankName: 'กสิกรไทย', bankAccountNumber: '9876543210', bankAccountName: 'สมชาย ใจดี',
+  }, customerToken);
+  check('เปิดร้านในโซนได้', created.status === 201, JSON.stringify(created.body));
+  createdRestaurantIds.push(created.body?.id);
+  check('ร้านใหม่ยังไม่อนุมัติและยังไม่เปิดขาย', created.body?.isApproved === false && created.body?.isOpen === false);
+  check('บอกว่าอยู่โซนไหน', typeof created.body?.zoneName === 'string');
+
+  const shopId = created.body.id as string;
+
+  const listed = await call('GET', '/catalog/restaurants');
+  check('ร้านที่ยังไม่อนุมัติไม่โผล่ให้ลูกค้าเห็น', !listed.body?.some((r: any) => r.id === shopId));
+
+  const earlySubmit = await call('POST', `/merchant/restaurants/${shopId}/submit`, undefined, customerToken);
+  // §7 ร้านที่อนุมัติแล้วแต่ไม่มีเมนู = ลูกค้ากดเข้าไปเจอหน้าว่าง เสียลูกค้าคนนั้นไปเลย
+  check('ยังไม่มีเมนูตั้งต้น ส่งตรวจไม่ได้', earlySubmit.status === 400, `ได้ ${earlySubmit.status}`);
+
+  for (const dish of ['ก๋วยเตี๋ยวต้มยำ', 'เย็นตาโฟ', 'บะหมี่เกี๊ยว']) {
+    const item = await call('POST', '/merchant/menu', {
+      restaurantId: shopId, name: dish, price: 5500, category: 'noodle',
+    }, customerToken);
+    createdMenuItemIds.push(item.body?.id);
+  }
+
+  const submitted = await call('POST', `/merchant/restaurants/${shopId}/submit`, undefined, customerToken);
+  check('มีเมนูครบแล้วส่งตรวจได้', submitted.status === 200 && submitted.body?.submitted === true);
+
+  const pending = await call('GET', '/admin/restaurants/pending', undefined, adminToken);
+  const mine = pending.body?.find((r: any) => r.id === shopId);
+  check('ร้านโผล่ในคิวอนุมัติของแอดมิน', !!mine);
+  check('แอดมินเห็นว่ามีกี่เมนูและใครเป็นเจ้าของ', mine?.menuItemCount === 3 && !!mine?.ownerName);
+
+  const selfApprove = await call('POST', `/admin/restaurants/${shopId}/approval`, { approve: true }, customerToken);
+  check('เจ้าของร้านอนุมัติร้านตัวเองไม่ได้', selfApprove.status === 403, `ได้ ${selfApprove.status}`);
+
+  const approved = await call('POST', `/admin/restaurants/${shopId}/approval`, { approve: true }, adminToken);
+  check('แอดมินอนุมัติร้านได้', approved.status === 200 && approved.body?.isApproved === true);
+  // อนุมัติแล้วยังไม่เปิดขาย — เจ้าของรู้ดีกว่าว่าพร้อมเมื่อไหร่
+  check('อนุมัติแล้วยังไม่เปิดขายเอง', approved.body?.isOpen === false);
+
+  const opened = await call('PATCH', `/merchant/restaurants/${shopId}/open`, { isOpen: true }, customerToken);
+  check('อนุมัติแล้วเจ้าของเปิดขายได้', opened.status === 200 && opened.body?.isOpen === true);
+
+  const nowListed = await call('GET', '/catalog/restaurants');
+  check('เปิดแล้วโผล่ให้ลูกค้าเห็น', nowListed.body?.some((r: any) => r.id === shopId));
+
+  // §4.3 สั่งร้านตัวเองไม่ได้ — กติกาเดิมต้องยังทำงานกับร้านที่เพิ่งเปิด
+  const menu = await call('GET', `/catalog/restaurants/${shopId}/menu`);
+  const selfOrder = await call('POST', '/orders', {
+    restaurantId: shopId,
+    items: [{ menuItemId: menu.body[0].id, quantity: 1, choiceIds: [] }],
+    paymentMethod: 'cash',
+  }, customerToken);
+  check('เจ้าของสั่งอาหารจากร้านที่เพิ่งเปิดเองไม่ได้', selfOrder.status === 403, `ได้ ${selfOrder.status}`);
+}
+
 /** เบอร์และชื่อผู้ใช้ที่ไม่ชนของเดิม เพื่อให้รันซ้ำได้โดยไม่ติด cooldown ของเบอร์เดิม */
 const suffix = String(randomInt(0, 100_000_000)).padStart(8, '0');
 const SMOKE_PHONE = `09${suffix}`;
 const SMOKE_USERNAME = `smoke_${suffix}`;
 const SMOKE_PASSWORD = 'wingdai-smoke-1234';
+const SMOKE_SHOP_NAME = `ร้านทดสอบ ${suffix}`;
 
 async function main() {
   console.log(`\nเซิร์ฟเวอร์ ${BASE}`);
@@ -733,6 +813,9 @@ async function main() {
   console.log('\nคืนเงินกึ่งอัตโนมัติ + จอ exception ของแอดมิน (§6.4 · §7)');
   await refundChecks(token, adminToken, placed.body.id);
 
+  console.log('\nเปิดร้านเอง (§4.3)');
+  await openRestaurantChecks(token, riderLogin.body.token as string, adminToken);
+
   console.log('\nที่อยู่จัดส่ง');
 
   const addrs = await call('GET', '/addresses', undefined, token);
@@ -820,6 +903,8 @@ async function cleanup() {
     }
     const menuIds = createdMenuItemIds.filter(Boolean);
     if (menuIds.length > 0) await sql`delete from menu_items where id in ${sql(menuIds)}`;
+    const shopIds = createdRestaurantIds.filter(Boolean);
+    if (shopIds.length > 0) await sql`delete from restaurants where id in ${sql(shopIds)}`;
     await sql`delete from accounts where username = ${SMOKE_USERNAME}`;
     await sql`delete from phone_verifications where phone = ${SMOKE_PHONE}`;
   } finally {

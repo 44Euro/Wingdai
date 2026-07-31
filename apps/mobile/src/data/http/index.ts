@@ -1,10 +1,11 @@
 import type {
   Repos, RegisterInput, GoogleRegisterInput, GoogleSignInResult,
-  CreateOrderInput, NewMenuItemInput, NewAddressInput,
+  CreateOrderInput, NewMenuItemInput, NewAddressInput, RegisterRestaurantInput,
 } from '../repositories';
 import type {
   Account, Address, MenuItem, MerchantOrder, MerchantRestaurant, Order, OrderStatus,
   Restaurant, RiderJob, RiderStatus, RefundCase, OrderException, AdminMetrics,
+  PendingRestaurant,
 } from '../types';
 import { createClient, ApiError } from './client';
 import type { TokenStore } from './tokenStore';
@@ -176,6 +177,18 @@ export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
         return request<MerchantRestaurant[]>('/merchant/restaurants', { token: auth() });
       },
 
+      async registerRestaurant(input: RegisterRestaurantInput) {
+        return request<MerchantRestaurant & { zoneName: string }>('/merchant/restaurants', {
+          method: 'POST', body: input, token: auth(),
+        });
+      },
+
+      async submitForApproval(restaurantId) {
+        return request<{ submitted: boolean }>(`/merchant/restaurants/${restaurantId}/submit`, {
+          method: 'POST', token: auth(),
+        });
+      },
+
       async listOrders(opts): Promise<MerchantOrder[]> {
         const q = new URLSearchParams({ scope: opts?.scope ?? 'queue' });
         if (opts?.restaurantId) q.set('restaurantId', opts.restaurantId);
@@ -265,6 +278,16 @@ export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
           `/admin/dispatch/orders/${orderId}`,
           { method: 'POST', token: auth() },
         );
+      },
+
+      async pendingRestaurants(): Promise<PendingRestaurant[]> {
+        return request<PendingRestaurant[]>('/admin/restaurants/pending', { token: auth() });
+      },
+
+      async decideRestaurant(restaurantId, approve): Promise<MerchantRestaurant> {
+        return request<MerchantRestaurant>(`/admin/restaurants/${restaurantId}/approval`, {
+          method: 'POST', body: { approve }, token: auth(),
+        });
       },
     },
   };

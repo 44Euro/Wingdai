@@ -1,9 +1,14 @@
-import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Controller, Get, Post, Patch, Body, Param, Query, UseGuards, ParseUUIDPipe, HttpCode,
+} from '@nestjs/common';
 import { ZodBody } from '../common/zod.pipe';
 import { JwtGuard, CurrentAccount } from '../auth/jwt.guard';
 import type { SessionClaims } from '../auth/auth.service';
 import { MerchantService } from './merchant.service';
+import { AdminGuard } from '../auth/admin.guard';
 import {
+  RegisterRestaurantSchema, type RegisterRestaurantInput,
+  SetApprovalSchema, type SetApprovalInput,
   ListOrdersQuerySchema, type ListOrdersQuery,
   SetOpenSchema, type SetOpenInput,
   CreateMenuItemSchema, type CreateMenuItemInput,
@@ -23,6 +28,21 @@ export class MerchantController {
   @Get('restaurants')
   myRestaurants(@CurrentAccount() me: SessionClaims) {
     return this.merchant.myRestaurants(me.sub);
+  }
+
+  /** §4.3 "เปิดร้านของคุณ" — สร้างเป็นร้านที่ยังไม่อนุมัติเสมอ */
+  @Post('restaurants')
+  register(
+    @CurrentAccount() me: SessionClaims,
+    @Body(new ZodBody(RegisterRestaurantSchema)) body: RegisterRestaurantInput,
+  ) {
+    return this.merchant.registerRestaurant(me.sub, body);
+  }
+
+  @Post('restaurants/:id/submit')
+  @HttpCode(200)
+  submit(@Param('id', ParseUUIDPipe) id: string, @CurrentAccount() me: SessionClaims) {
+    return this.merchant.submitForApproval(me.sub, id);
   }
 
   @Get('orders')
@@ -57,5 +77,27 @@ export class MerchantController {
     @CurrentAccount() me: SessionClaims,
   ) {
     return this.merchant.updateMenuItem(me.sub, id, body);
+  }
+}
+
+/** คิวอนุมัติร้านของแอดมิน (§4.3 · §7) */
+@Controller('admin/restaurants')
+@UseGuards(JwtGuard, AdminGuard)
+export class AdminRestaurantsController {
+  constructor(private readonly merchant: MerchantService) {}
+
+  @Get('pending')
+  pending() {
+    return this.merchant.pendingRestaurants();
+  }
+
+  @Post(':id/approval')
+  @HttpCode(200)
+  decide(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body(new ZodBody(SetApprovalSchema)) body: SetApprovalInput,
+    @CurrentAccount() me: SessionClaims,
+  ) {
+    return this.merchant.setApproval(me.sub, id, body.approve);
   }
 }

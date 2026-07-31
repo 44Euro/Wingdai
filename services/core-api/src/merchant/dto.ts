@@ -53,3 +53,32 @@ export const UpdateMenuItemSchema = z
   .partial()
   .refine((v) => Object.keys(v).length > 0, { message: 'ไม่มีอะไรให้แก้' });
 export type UpdateMenuItemInput = z.infer<typeof UpdateMenuItemSchema>;
+
+/**
+ * ฟอร์มเปิดร้าน (claude.md §4.3 · §7)
+ *
+ * รูปหน้าร้านกับเอกสารธุรกิจยังไม่อยู่ในนี้ เพราะยังไม่ได้ต่อ Supabase Storage
+ * §7 ระบุว่าต้องเก็บทั้งสองอย่าง — **ต้องเพิ่มให้ครบก่อนเปิดใช้จริง**
+ */
+export const RegisterRestaurantSchema = z.object({
+  name: z.string().trim().min(1, 'กรุณาตั้งชื่อร้าน').max(80),
+  cuisine: z.enum(['rice', 'noodle', 'somtam', 'drink', 'dessert']),
+  addressText: z.string().trim().min(1, 'กรุณากรอกที่อยู่ร้าน').max(300),
+  /** ต้องอยู่ในโซนที่เปิดให้บริการ — เซิร์ฟเวอร์เช็คด้วย PostGIS ไม่ใช่เชื่อแอป */
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+  /** §6.3 ใช้ seed การจ่ายงานตอนยังไม่มีข้อมูลย้อนหลัง ฐานมี CHECK ว่าอยู่ระหว่าง 1–120 */
+  prepTimeMinutes: z.number().int().min(1).max(120),
+  openingHours: z.record(z.string(), z.unknown()).optional(),
+  /**
+   * §7 ชื่อบัญชีควรตรงกับชื่อเจ้าของ เป็นด่านกันบัญชีม้าเบื้องต้น
+   * ยังไม่บังคับเทียบอัตโนมัติตรงนี้ — แอดมินเป็นคนตรวจตอนอนุมัติ
+   */
+  bankName: z.string().trim().min(1, 'กรุณากรอกธนาคาร').max(60),
+  bankAccountNumber: z.string().trim().regex(/^[0-9-]{8,20}$/, 'เลขบัญชีไม่ถูกต้อง'),
+  bankAccountName: z.string().trim().min(1, 'กรุณากรอกชื่อบัญชี').max(120),
+});
+export type RegisterRestaurantInput = z.infer<typeof RegisterRestaurantSchema>;
+
+export const SetApprovalSchema = z.object({ approve: z.boolean() });
+export type SetApprovalInput = z.infer<typeof SetApprovalSchema>;

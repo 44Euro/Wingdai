@@ -140,6 +140,16 @@ export interface MerchantOrder {
   acceptedAt: string | null;
 }
 
+/** ร้านที่รอแอดมินตรวจ (§4.3 · §7) */
+export interface PendingRestaurant extends MerchantRestaurant {
+  ownerName: string;
+  ownerPhone: string;
+  addressText: string;
+  /** §7 ต้องมีเมนูตั้งต้นก่อนถึงจะส่งตรวจได้ — แอดมินต้องเห็นว่ามีกี่รายการ */
+  menuItemCount: number;
+  createdAt: string;
+}
+
 /** งานหนึ่งใบตามที่ไรเดอร์เห็น — มีทั้งจุดรับและจุดส่ง เพราะต้องนำทางไปทั้งสองที่ */
 export interface RiderJob {
   orderId: string;

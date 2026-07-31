@@ -296,6 +296,49 @@ export function createMockRepos(): Repos {
     },
 
     merchant: {
+      async registerRestaurant(input) {
+        await delay();
+        const me = requireLogin();
+        // §4.1 ร้านเป็นการอัปเกรดบนบัญชี user — ไรเดอร์เปิดร้านไม่ได้
+        if (me.accountType !== 'user') throw new Error('เปิดร้านได้เฉพาะบัญชีลูกค้าเท่านั้น');
+
+        /*
+         * ของจริงเช็คด้วย PostGIS ว่าพิกัดอยู่ใน polygon ของโซนที่เปิดให้บริการ
+         * mock เช็คหยาบ ๆ ด้วยกล่องรอบย่านอารีย์ พอให้จอเจอเคส "นอกโซน" ได้
+         */
+        const inZone =
+          input.lat > 13.77 && input.lat < 13.79 && input.lng > 100.53 && input.lng < 100.56;
+        if (!inZone) throw new Error('ที่ตั้งร้านอยู่นอกโซนที่เปิดให้บริการ');
+
+        const shop: Restaurant = {
+          id: `r-${++seq}`,
+          ownerUserId: me.id,
+          name: input.name,
+          isApproved: false,
+          isOpen: false,
+          cuisine: input.cuisine,
+          distanceKm: null,
+          prepTimeMinutes: input.prepTimeMinutes,
+          rating: null,
+        };
+        restaurants.push(shop);
+        return {
+          id: shop.id, name: shop.name, isApproved: false, isOpen: false,
+          prepTimeMinutes: shop.prepTimeMinutes, zoneName: 'อารีย์',
+        };
+      },
+
+      async submitForApproval(restaurantId) {
+        await delay();
+        const me = requireLogin();
+        const shop = restaurants.find((r) => r.id === restaurantId && r.ownerUserId === me.id);
+        if (!shop) throw new Error('ไม่พบร้านนี้');
+        // §7 ร้านที่อนุมัติแล้วแต่ไม่มีเมนู = ลูกค้ากดเข้าไปเจอหน้าว่าง
+        const count = menuItems.filter((m) => m.restaurantId === restaurantId).length;
+        if (count < 3) throw new Error(`ต้องมีเมนูอย่างน้อย 3 รายการก่อนส่งให้ตรวจ (ตอนนี้มี ${count})`);
+        return { submitted: true };
+      },
+
       async myRestaurants() {
         await delay();
         const me = requireLogin();
@@ -609,6 +652,40 @@ export function createMockRepos(): Repos {
         requireLogin();
         // mock ไม่มีเครื่องจ่ายงาน — ของจริงอยู่ที่ dispatch/dispatch.service.ts
         return { offered: false, reason: 'โหมดจำลองไม่มีเครื่องจ่ายงาน' };
+      },
+
+      async pendingRestaurants() {
+        await delay();
+        requireLogin();
+        return restaurants
+          .filter((r) => !r.isApproved)
+          .map((r) => {
+            const owner = accounts.find((a) => a.id === r.ownerUserId);
+            return {
+              id: r.id,
+              name: r.name,
+              isApproved: r.isApproved,
+              isOpen: r.isOpen,
+              prepTimeMinutes: r.prepTimeMinutes,
+              ownerName: owner?.fullName ?? '',
+              ownerPhone: owner?.phone ?? '',
+              addressText: r.name,
+              menuItemCount: menuItems.filter((m) => m.restaurantId === r.id).length,
+              createdAt: new Date().toISOString(),
+            };
+          });
+      },
+
+      async decideRestaurant(restaurantId, approve) {
+        await delay();
+        requireLogin();
+        const shop = restaurants.find((r) => r.id === restaurantId);
+        if (!shop) throw new Error('ไม่พบร้านนี้');
+        shop.isApproved = approve;
+        return {
+          id: shop.id, name: shop.name, isApproved: shop.isApproved,
+          isOpen: shop.isOpen, prepTimeMinutes: shop.prepTimeMinutes,
+        };
       },
     },
 

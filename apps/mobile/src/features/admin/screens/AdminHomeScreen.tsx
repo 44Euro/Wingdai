@@ -10,8 +10,11 @@ import { formatBaht } from '../../../lib/format';
 import { useAuthStore } from '../../auth/authStore';
 import {
   useExceptions, useAdminMetrics, useOpenRefunds, useDecideRefund, useForceDispatch,
+  usePendingRestaurants, useDecideRestaurant,
 } from '../hooks';
-import type { AdminMetrics, OrderException, RefundCase } from '../../../data/types';
+import type {
+  AdminMetrics, OrderException, RefundCase, PendingRestaurant,
+} from '../../../data/types';
 
 /**
  * จอแอดมิน — claude.md §7 กำหนดให้เป็นแบบ **exception-based ตั้งแต่ต้น**
@@ -27,6 +30,7 @@ export function AdminHomeScreen() {
   const { data: exceptions = [] } = useExceptions();
   const { data: metrics } = useAdminMetrics();
   const { data: refunds = [] } = useOpenRefunds();
+  const { data: pendingShops = [] } = usePendingRestaurants();
   const logout = useAuthStore((s) => s.logout);
 
   return (
@@ -74,6 +78,19 @@ export function AdminHomeScreen() {
             </Text>
           ) : (
             refunds.map((c) => <RefundCard key={c.id} refundCase={c} />)
+          )}
+        </View>
+
+        <View style={{ paddingHorizontal: p.space.screen, gap: p.space.md }}>
+          <Text variant="kicker" color="muted">
+            {t('admin.pendingShops', { count: pendingShops.length })}
+          </Text>
+          {pendingShops.length === 0 ? (
+            <Text testID="admin-no-shops" variant="body" color="muted">
+              {t('admin.noPendingShops')}
+            </Text>
+          ) : (
+            pendingShops.map((s) => <ShopCard key={s.id} shop={s} />)
           )}
         </View>
 
@@ -244,6 +261,54 @@ function RefundCard({ refundCase }: { refundCase: RefundCase }) {
 
         {decide.isError ? (
           <Text testID="refund-decide-error" variant="small" color="danger">
+            {(decide.error as Error).message}
+          </Text>
+        ) : null}
+      </View>
+    </Card>
+  );
+}
+
+/**
+ * ร้านที่รอตรวจ (claude.md §4.3 · §7)
+ *
+ * §7 บอกให้เก็บรูปหน้าร้านกับเอกสารธุรกิจด้วย — ยังไม่มีเพราะยังไม่ได้ต่อ Storage
+ * จอนี้จึงยังตรวจได้ไม่ครบตามสเปค **ต้องเพิ่มก่อนอนุมัติร้านจริง**
+ */
+function ShopCard({ shop }: { shop: PendingRestaurant }) {
+  const { t } = useTranslation();
+  const { primitives: p } = useTheme();
+  const decide = useDecideRestaurant();
+
+  // §7 ร้านที่ไม่มีเมนูตั้งต้นอนุมัติไปก็เป็นหน้าว่างสำหรับลูกค้า
+  const hasMenu = shop.menuItemCount >= 3;
+
+  return (
+    <Card testID={`pending-shop-${shop.id}`}>
+      <View style={{ gap: p.space.sm }}>
+        <View>
+          <Text variant="h3">{shop.name}</Text>
+          <Text variant="small" color="muted">{shop.addressText}</Text>
+          <Text variant="small" color="muted">
+            {shop.ownerName} · {shop.ownerPhone}
+          </Text>
+        </View>
+
+        <Text variant="small" color={hasMenu ? 'muted' : 'danger'}>
+          {t('admin.shopMenuCount', { count: shop.menuItemCount })}
+        </Text>
+
+        <View style={{ gap: p.space.sm }}>
+          <Button
+            testID={`btn-approve-shop-${shop.id}`}
+            label={t('admin.approveShop')}
+            disabled={decide.isPending || !hasMenu}
+            onPress={() => decide.mutate({ restaurantId: shop.id, approve: true })}
+          />
+        </View>
+
+        {decide.isError ? (
+          <Text testID="shop-decide-error" variant="small" color="danger">
             {(decide.error as Error).message}
           </Text>
         ) : null}

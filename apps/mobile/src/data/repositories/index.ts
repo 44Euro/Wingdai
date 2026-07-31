@@ -1,8 +1,22 @@
 import type {
   Account, AccountType, Address, MenuItem, MerchantOrder, MerchantRestaurant,
   Order, OrderStatus, PaymentMethod, Restaurant, RiderJob, RiderStatus,
-  RefundCase, RefundReason, RefundFault, OrderException, AdminMetrics,
+  RefundCase, RefundReason, RefundFault, OrderException, AdminMetrics, PendingRestaurant,
 } from '../types';
+
+/** ฟอร์มเปิดร้าน (claude.md §4.3) — รูปหน้าร้าน/เอกสารยังไม่มี เพราะยังไม่ได้ต่อ Storage */
+export interface RegisterRestaurantInput {
+  name: string;
+  cuisine: MenuItem['category'];
+  addressText: string;
+  /** ต้องอยู่ในโซนที่เปิดให้บริการ — เซิร์ฟเวอร์เช็คด้วย PostGIS ไม่ใช่เชื่อแอป */
+  lat: number;
+  lng: number;
+  prepTimeMinutes: number;
+  bankName: string;
+  bankAccountNumber: string;
+  bankAccountName: string;
+}
 
 export interface RegisterInput {
   username: string;
@@ -104,6 +118,12 @@ export interface AddressRepo {
  */
 export interface MerchantRepo {
   myRestaurants(): Promise<MerchantRestaurant[]>;
+  /** §4.3 "เปิดร้านของคุณ" — ได้ร้านที่ยังไม่อนุมัติกลับมาเสมอ */
+  registerRestaurant(
+    input: RegisterRestaurantInput,
+  ): Promise<MerchantRestaurant & { zoneName: string }>;
+  /** ส่งให้แอดมินตรวจ — §7 ต้องมีเมนูตั้งต้นก่อน */
+  submitForApproval(restaurantId: string): Promise<{ submitted: boolean }>;
   /** `queue` = ใบที่ครัวยังต้องทำต่อ · `history` = ใบที่ออกจากมือร้านไปแล้ว */
   listOrders(opts?: { restaurantId?: string; scope?: 'queue' | 'history' }): Promise<MerchantOrder[]>;
   setOpen(restaurantId: string, isOpen: boolean): Promise<MerchantRestaurant>;
@@ -156,6 +176,8 @@ export interface AdminRepo {
   ): Promise<RefundCase>;
   /** §6.3 ทางแทรกมือเมื่อระบบจ่ายงานไม่สำเร็จ */
   forceDispatch(orderId: string): Promise<{ offered: boolean; reason: string | null }>;
+  pendingRestaurants(): Promise<PendingRestaurant[]>;
+  decideRestaurant(restaurantId: string, approve: boolean): Promise<MerchantRestaurant>;
 }
 
 export interface Repos {

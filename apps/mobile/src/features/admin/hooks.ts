@@ -39,3 +39,20 @@ export function useForceDispatch() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'exceptions'] }),
   });
 }
+
+/** คิวอนุมัติร้าน (§4.3 · §7) */
+export function usePendingRestaurants() {
+  return useQuery({
+    queryKey: ['admin', 'restaurants'],
+    queryFn: () => repos.admin.pendingRestaurants(),
+  });
+}
+
+export function useDecideRestaurant() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ restaurantId, approve }: { restaurantId: string; approve: boolean }) =>
+      repos.admin.decideRestaurant(restaurantId, approve),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin'] }),
+  });
+}
