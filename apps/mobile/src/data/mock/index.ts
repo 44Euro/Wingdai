@@ -39,6 +39,46 @@ export function createMockRepos(): Repos {
     return current;
   };
 
+  /** สถานะไรเดอร์ในหน่วยความจำ — ของจริงอยู่ที่ตาราง rider_status */
+  const riderStates = new Map<
+    string,
+    { isOnline: boolean; onlineSince: string | null; cashHeld: number; declined: Set<string> }
+  >();
+  const riderState = (accountId: string) => {
+    let s = riderStates.get(accountId);
+    if (!s) {
+      s = { isOnline: false, onlineSince: null, cashHeld: 0, declined: new Set() };
+      riderStates.set(accountId, s);
+    }
+    return s;
+  };
+
+  /** แปลงออร์เดอร์เป็นงานตามที่ไรเดอร์เห็น — พิกัดร้าน/ปลายทางมาจาก seed */
+  function toRiderJob(order: Order) {
+    const shop = restaurants.find((r) => r.id === order.restaurantId);
+    const drop = addresses.find((a) => a.accountId === order.customerId);
+    return {
+      orderId: order.id,
+      reference: order.reference,
+      status: order.status as 'accepted' | 'preparing' | 'picked_up',
+      restaurantName: shop?.name ?? '',
+      restaurantAddress: shop?.name ?? '',
+      restaurantLat: 13.7802,
+      restaurantLng: 100.5432,
+      dropoffAddress: drop?.addressText ?? '',
+      dropoffNote: drop?.note ?? null,
+      dropoffLat: drop?.lat ?? 13.78,
+      dropoffLng: drop?.lng ?? 100.543,
+      items: order.items.map((i) => ({ name: i.name, quantity: i.quantity })),
+      riderPaySatang: order.deliveryFee,
+      // ต้องอ่านจาก paymentStatus ปัจจุบันเสมอ — ลูกค้าเปลี่ยนไปจ่ายพร้อมเพย์กลางทางได้ (§6.5)
+      collectCashSatang:
+        order.paymentMethod === 'cash' && order.paymentStatus === 'pending'
+          ? order.foodTotal + order.deliveryFee + order.serviceFee
+          : 0,
+    };
+  }
+
   function createAccount(input: {
     username: string; fullName: string; phone: string;
     accountType: Account['accountType']; email?: string;
@@ -334,6 +374,109 @@ export function createMockRepos(): Repos {
         if (!item || shop?.ownerUserId !== me.id) throw new Error('ไม่พบเมนูนี้');
         Object.assign(item, patch);
         return { ...item };
+      },
+    },
+
+    rider: {
+      async status() {
+        await delay();
+        const me = requireLogin();
+        const state = riderState(me.id);
+
+        /*
+         * mock ไม่มีเครื่องจ่ายงานจริง — จำลองว่า "ออนไลน์อยู่และมีออร์เดอร์ที่ร้านรับแล้ว
+         * แต่ยังไม่มีไรเดอร์" = ถูกเสนองานใบนั้น ซึ่งพอให้จอนับถอยหลังทำงานได้เหมือนของจริง
+         * กติกาจริงทั้งหมด (คะแนน จังหวะเวลา คุณสมบัติ) อยู่ฝั่งเซิร์ฟเวอร์
+         */
+        const candidate = state.isOnline
+          ? orders.find(
+              (o) =>
+                !o.riderId &&
+                (o.status === 'accepted' || o.status === 'preparing') &&
+                // §4.3 ไม่เสนอออร์เดอร์ที่ไรเดอร์คนนี้สั่งเอง
+                o.customerId !== me.id &&
+                // ผ่านไปแล้วให้ "ข้ามไปใบถัดไป" ไม่ใช่หยุดเสนอทั้งหมด (ตรงกับ tick() ฝั่งเซิร์ฟเวอร์)
+                !state.declined.has(o.id),
+            )
+          : undefined;
+
+        const offer = candidate
+          ? {
+              ...toRiderJob(candidate),
+              offerId: `offer-${candidate.id}`,
+              expiresAt: new Date(Date.now() + 15_000).toISOString(),
+            }
+          : null;
+
+        return {
+          approval: me.riderApproval ?? 'approved',
+          isOnline: state.isOnline,
+          onlineSince: state.onlineSince,
+          cashHeldSatang: state.cashHeld,
+          cashLimitSatang: 150_000,
+          activeJobs: orders.filter((o) => o.riderId === me.id && o.status !== 'delivered' && o.status !== 'cancelled')
+            .map(toRiderJob),
+          offer,
+        };
+      },
+
+      async setOnline(isOnline, at) {
+        await delay();
+        const me = requireLogin();
+        if ((me.riderApproval ?? 'approved') !== 'approved') throw new Error('บัญชีไรเดอร์ยังรออนุมัติ');
+        // ตรงกับเซิร์ฟเวอร์: ไม่รู้พิกัดก็ให้คะแนนระยะทางไม่ได้ จึงออนไลน์ไม่ได้
+        if (isOnline && !at) throw new Error('ต้องเปิดตำแหน่งก่อนเริ่มรับงาน');
+        const state = riderState(me.id);
+        state.isOnline = isOnline;
+        state.onlineSince = isOnline ? (state.onlineSince ?? new Date().toISOString()) : null;
+        return this.status();
+      },
+
+      async ping() {
+        await delay();
+        requireLogin();
+      },
+
+      async jobs() {
+        await delay();
+        const me = requireLogin();
+        return orders
+          .filter((o) => o.riderId === me.id && o.status !== 'delivered' && o.status !== 'cancelled')
+          .map(toRiderJob);
+      },
+
+      async acceptOffer(orderId) {
+        await delay();
+        const me = requireLogin();
+        const order = orders.find((o) => o.id === orderId);
+        if (!order) throw new Error('ไม่พบงานนี้');
+        if (order.riderId) throw new Error('งานนี้มีคนรับไปแล้ว');
+        // claude.md §4.3 — ไรเดอร์รับงานออร์เดอร์ที่ตัวเองสั่งไม่ได้
+        if (order.customerId === me.id) throw new Error('รับงานออร์เดอร์ที่ตัวเองสั่งไม่ได้');
+        order.riderId = me.id;
+        return toRiderJob(order);
+      },
+
+      async declineOffer(orderId) {
+        await delay();
+        const me = requireLogin();
+        riderState(me.id).declined.add(orderId);
+      },
+
+      async stats() {
+        await delay();
+        const me = requireLogin();
+        const delivered = orders.filter((o) => o.riderId === me.id && o.status === 'delivered').length;
+        const state = riderState(me.id);
+        const hours = state.onlineSince
+          ? (Date.now() - new Date(state.onlineSince).getTime()) / 3_600_000
+          : 0;
+        // ยังไม่เคยออนไลน์ = ยังไม่มีค่านี้ ไม่ใช่ 0 (0 อ่านเหมือน "ทำได้แย่")
+        return {
+          hours: Number(hours.toFixed(2)),
+          delivered,
+          ordersPerHour: hours > 0 ? Number((delivered / hours).toFixed(2)) : null,
+        };
       },
     },
 

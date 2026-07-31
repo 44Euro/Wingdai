@@ -3,7 +3,8 @@ import type {
   CreateOrderInput, NewMenuItemInput, NewAddressInput,
 } from '../repositories';
 import type {
-  Account, Address, MenuItem, MerchantOrder, MerchantRestaurant, Order, OrderStatus, Restaurant,
+  Account, Address, MenuItem, MerchantOrder, MerchantRestaurant, Order, OrderStatus,
+  Restaurant, RiderJob, RiderStatus,
 } from '../types';
 import { createClient, ApiError } from './client';
 import type { TokenStore } from './tokenStore';
@@ -195,6 +196,43 @@ export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
           body: patch,
           token: auth(),
         });
+      },
+    },
+
+    rider: {
+      async status(): Promise<RiderStatus> {
+        return request<RiderStatus>('/rider/status', { token: auth() });
+      },
+
+      async setOnline(isOnline, at): Promise<RiderStatus> {
+        return request<RiderStatus>('/rider/online', {
+          method: 'POST',
+          body: { isOnline, ...(at ?? {}) },
+          token: auth(),
+        });
+      },
+
+      async ping(lat, lng): Promise<void> {
+        await request('/rider/ping', { method: 'POST', body: { lat, lng }, token: auth() });
+      },
+
+      async jobs(): Promise<RiderJob[]> {
+        return request<RiderJob[]>('/rider/jobs', { token: auth() });
+      },
+
+      async acceptOffer(orderId): Promise<RiderJob> {
+        return request<RiderJob>(`/rider/jobs/${orderId}/accept`, { method: 'POST', token: auth() });
+      },
+
+      async declineOffer(orderId): Promise<void> {
+        await request(`/rider/jobs/${orderId}/decline`, { method: 'POST', token: auth() });
+      },
+
+      async stats() {
+        return request<{ hours: number; delivered: number; ordersPerHour: number | null }>(
+          '/rider/stats',
+          { token: auth() },
+        );
       },
     },
   };

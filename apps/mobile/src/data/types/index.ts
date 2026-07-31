@@ -136,6 +136,46 @@ export interface MerchantOrder {
   acceptedAt: string | null;
 }
 
+/** งานหนึ่งใบตามที่ไรเดอร์เห็น — มีทั้งจุดรับและจุดส่ง เพราะต้องนำทางไปทั้งสองที่ */
+export interface RiderJob {
+  orderId: string;
+  reference: string;
+  status: 'accepted' | 'preparing' | 'picked_up';
+  restaurantName: string;
+  restaurantAddress: string;
+  restaurantLat: number;
+  restaurantLng: number;
+  dropoffAddress: string;
+  dropoffNote: string | null;
+  dropoffLat: number;
+  dropoffLng: number;
+  items: { name: string; quantity: number }[];
+  /** ค่าตอบแทนของไรเดอร์ใบนี้ = ค่าส่ง ไม่ใช่ยอดที่ลูกค้าจ่าย */
+  riderPaySatang: number;
+  /** ต้องเก็บเงินสดกี่สตางค์ · 0 = ลูกค้าจ่ายมาแล้ว (รวมกรณีเปลี่ยนเป็นพร้อมเพย์กลางทาง §6.5) */
+  collectCashSatang: number;
+}
+
+/** งานที่ถูกเสนอให้ตอบภายใน 15 วินาที (claude.md §6.3) */
+export interface RiderOffer extends RiderJob {
+  offerId: string;
+  expiresAt: string;
+}
+
+export interface RiderStatus {
+  approval: RiderApprovalStatus;
+  isOnline: boolean;
+  onlineSince: string | null;
+  /**
+   * §6.2 เงินสดในมือกับเพดาน — จอต้องบอกล่วงหน้าว่าใกล้เต็มแล้ว
+   * ไม่ใช่ปล่อยให้ไรเดอร์งงว่าทำไมอยู่ ๆ ไม่มีงานเงินสดเข้ามา
+   */
+  cashHeldSatang: number;
+  cashLimitSatang: number;
+  activeJobs: RiderJob[];
+  offer: RiderOffer | null;
+}
+
 export interface Order {
   id: string;
   /** เลขที่ที่ลูกค้าเห็นและใช้อ้างตอนแจ้งปัญหา (WD-XXXXXX) — ไม่ใช่ uuid ที่อ่านไม่ออก */

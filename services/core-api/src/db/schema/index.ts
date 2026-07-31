@@ -6,3 +6,4 @@ export * from './catalog';
 export * from './orders';
 export * from './ledger';
 export * from './verification';
+export * from './dispatch';

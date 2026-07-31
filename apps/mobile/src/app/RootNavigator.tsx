@@ -3,6 +3,7 @@ import { useAuthStore } from '../features/auth/authStore';
 import { PendingApprovalScreen } from './navigators/AuthStack';
 import { AuthNavigator } from './navigators/AuthNavigator';
 import { PlaceholderStack } from './navigators/PlaceholderStack';
+import { RiderStack } from './navigators/RiderStack';
 import { CustomerStack } from './navigators/CustomerStack';
 import { MerchantStack } from './navigators/MerchantStack';
 
@@ -38,7 +39,7 @@ export function RootNavigator() {
     case 'admin':
       return <PlaceholderStack name="Admin" testID="stack-admin" />;
     case 'rider':
-      return <PlaceholderStack name="Rider" testID="stack-rider" />;
+      return <RiderStack />;
     case 'merchant':
       return <MerchantStack />;
     case 'customer':

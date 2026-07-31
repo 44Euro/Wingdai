@@ -92,6 +92,119 @@ async function checkLedger(orderId: string) {
   }
 }
 
+/**
+ * เส้นทางจ่ายงานทั้งเส้น — ไรเดอร์ออนไลน์ → ถูกเสนองาน → รับ → ส่งถึง
+ *
+ * ใช้ทางแทรกมือของแอดมิน (§6.3) สั่งจ่ายทันที เพราะกติกาจังหวะเวลาที่ถูกต้อง
+ * คือ "อย่าจ่ายก่อนอาหารใกล้เสร็จ" ซึ่งกับร้านที่ตั้งเวลาทำ 12 นาที
+ * แปลว่าต้องรอ 11 นาทีจริง ๆ — เทสต์ที่รอนานขนาดนั้นไม่มีใครรัน
+ * ส่วนกติกาเวลาเองมีเทสต์บริสุทธิ์อยู่แล้วที่ dispatch/scoring.test.ts
+ */
+async function dispatchChecks(
+  customerToken: string,
+  maleeToken: string,
+  adminToken: string,
+  restaurantId: string,
+  menuItemId: string,
+  choiceId: string,
+) {
+  const annLogin = await call('POST', '/auth/login', { identifier: 'rider_ann', password: 'wingdai1234' });
+  const annToken = annLogin.body.token as string;
+  const annId = annLogin.body.account.id as string;
+
+  const newbieLogin = await call('POST', '/auth/login', { identifier: 'rider_new', password: 'wingdai1234' });
+  const newbieToken = newbieLogin.body.token as string;
+
+  // ไรเดอร์ที่ยังรออนุมัติต้องเปิดรับงานไม่ได้เลย (§4.3 จอ "รอการอนุมัติ" อย่างเดียว)
+  const newbieOnline = await call('POST', '/rider/online', { isOnline: true, lat: 13.78, lng: 100.543 }, newbieToken);
+  check('ไรเดอร์ที่ยังไม่อนุมัติเปิดรับงานไม่ได้', newbieOnline.status === 403, `ได้ ${newbieOnline.status}`);
+
+  const noCoords = await call('POST', '/rider/online', { isOnline: true }, annToken);
+  // ไม่รู้พิกัด = ให้คะแนนระยะทางไม่ได้ = จ่ายงานให้ไม่ได้
+  check('เปิดรับงานโดยไม่ส่งพิกัดไม่ได้', noCoords.status === 409, `ได้ ${noCoords.status}`);
+
+  const online = await call('POST', '/rider/online', { isOnline: true, lat: 13.7805, lng: 100.5435 }, annToken);
+  check('ไรเดอร์เปิดรับงานได้', online.status === 200 && online.body?.isOnline === true, JSON.stringify(online.body));
+  check('บันทึกเวลาที่เริ่มออนไลน์ (§8 ตัวหารของ Orders per Rider Hour)', !!online.body?.onlineSince);
+
+  // ออร์เดอร์ใหม่ที่ร้านรับแล้ว → พร้อมให้จ่ายงาน
+  const job = await call('POST', '/orders', {
+    restaurantId,
+    items: [{ menuItemId, quantity: 1, choiceIds: [choiceId] }],
+    paymentMethod: 'cash',
+  }, customerToken);
+  check('สร้างออร์เดอร์สำหรับทดสอบการจ่ายงานได้', job.status === 201, JSON.stringify(job.body));
+  createdOrderIds.push(job.body?.id);
+  await call('PATCH', `/orders/${job.body.id}/status`, { status: 'accepted' }, maleeToken);
+
+  const forced = await call('POST', `/admin/dispatch/orders/${job.body.id}`, undefined, adminToken);
+  check('แอดมินสั่งจ่ายงานทันทีได้ (§6.3 ทางแทรกมือ)', forced.status === 200 && forced.body?.offered === true, JSON.stringify(forced.body));
+
+  const byRider = await call('POST', `/admin/dispatch/orders/${job.body.id}`, undefined, annToken);
+  check('ไรเดอร์สั่งจ่ายงานเองไม่ได้', byRider.status === 403, `ได้ ${byRider.status}`);
+
+  const annStatus = await call('GET', '/rider/status', undefined, annToken);
+  check('ไรเดอร์เห็นงานที่ถูกเสนอ', annStatus.body?.offer?.orderId === job.body.id, JSON.stringify(annStatus.body?.offer));
+  check('งานที่เสนอมีที่อยู่ร้านและที่อยู่ลูกค้าครบ', !!annStatus.body?.offer?.restaurantAddress && !!annStatus.body?.offer?.dropoffAddress);
+  check('บอกว่าต้องเก็บเงินสดเท่าไหร่', annStatus.body?.offer?.collectCashSatang === 7000, `ได้ ${annStatus.body?.offer?.collectCashSatang}`);
+  check('ค่าตอบแทนไรเดอร์ = ค่าส่ง ไม่ใช่ยอดที่ลูกค้าจ่าย', annStatus.body?.offer?.riderPaySatang === 1500);
+  check('มีเวลาหมดอายุของข้อเสนอ (15 วินาที)', !!annStatus.body?.offer?.expiresAt);
+
+  const accepted = await call('POST', `/rider/jobs/${job.body.id}/accept`, undefined, annToken);
+  check('ไรเดอร์กดรับงานได้', accepted.status === 200, JSON.stringify(accepted.body));
+
+  const twiceAccept = await call('POST', `/rider/jobs/${job.body.id}/accept`, undefined, annToken);
+  check('กดรับซ้ำไม่ได้', twiceAccept.status === 409, `ได้ ${twiceAccept.status}`);
+
+  const stolen = await call('POST', `/rider/jobs/${job.body.id}/accept`, undefined, newbieToken);
+  check('ไรเดอร์ที่ไม่ได้ถูกเสนอแย่งรับไม่ได้', stolen.status === 404 || stolen.status === 403, `ได้ ${stolen.status}`);
+
+  const again = await call('POST', `/admin/dispatch/orders/${job.body.id}`, undefined, adminToken);
+  check('ออร์เดอร์ที่มีไรเดอร์แล้วสั่งจ่ายซ้ำไม่ได้', again.body?.offered === false);
+
+  const jobs = await call('GET', '/rider/jobs', undefined, annToken);
+  check('งานโผล่ในรายการงานของไรเดอร์', jobs.body?.some((j: any) => j.orderId === job.body.id));
+
+  const ping = await call('POST', '/rider/ping', { lat: 13.7808, lng: 100.5439 }, annToken);
+  check('ส่งพิกัดระหว่างทางได้', ping.status === 200);
+
+  // ครัวต้องบอกว่ากำลังทำก่อน ไรเดอร์ถึงจะกดรับของได้ — ข้ามขั้นไม่ได้ (orders/stateMachine.ts)
+  const tooEarly = await call('PATCH', `/orders/${job.body.id}/status`, { status: 'picked_up' }, annToken);
+  check('อาหารยังไม่เริ่มทำ ไรเดอร์กดรับของไม่ได้', tooEarly.status === 400, `ได้ ${tooEarly.status}`);
+  await call('PATCH', `/orders/${job.body.id}/status`, { status: 'preparing' }, maleeToken);
+
+  // §6.3 ไรเดอร์ที่รับงานแล้วเท่านั้นที่กดรับของ/ส่งถึงได้
+  const pickedUp = await call('PATCH', `/orders/${job.body.id}/status`, { status: 'picked_up' }, annToken);
+  check('ไรเดอร์กดรับของได้', pickedUp.status === 200, JSON.stringify(pickedUp.body));
+
+  const delivered = await call('PATCH', `/orders/${job.body.id}/status`, { status: 'delivered' }, annToken);
+  check('ไรเดอร์กดส่งถึงได้', delivered.status === 200, JSON.stringify(delivered.body));
+  // §6.5 ส่งถึงแล้วถือว่าเก็บเงินสดครบ
+  check('ออร์เดอร์เงินสดที่ส่งถึงแล้วเปลี่ยนเป็นจ่ายแล้ว', delivered.body?.paymentStatus === 'paid');
+
+  const afterStatus = await call('GET', '/rider/status', undefined, annToken);
+  /*
+   * §6.2 — เงินสดที่ไรเดอร์เก็บคือเงินของบริษัทที่เขาถือไว้ ต้องบวกเข้ายอดในมือทันที
+   * ถ้าไม่บวก เพดาน cash_limit จะไม่มีวันถูกแตะ แล้วไรเดอร์จะถือเงินบริษัทได้ไม่จำกัด
+   */
+  check('เงินสดที่เก็บมาเข้าไปอยู่ในยอดเงินในมือของไรเดอร์', afterStatus.body?.cashHeldSatang >= 7000, `ได้ ${afterStatus.body?.cashHeldSatang}`);
+  check('ไม่มีงานค้างอยู่แล้ว', afterStatus.body?.activeJobs?.length === 0);
+
+  const stats = await call('GET', '/rider/stats', undefined, annToken);
+  check('มีตัวเลข Orders per Rider Hour ให้ดู (§8 North Star)', stats.status === 200 && typeof stats.body?.hours === 'number');
+
+  const offline = await call('POST', '/rider/online', { isOnline: false }, annToken);
+  check('ปิดรับงานได้', offline.status === 200 && offline.body?.isOnline === false);
+
+  // เก็บกวาดยอดเงินสดที่เทสต์ทำให้เพิ่ม ไม่ให้สะสมจนชนเพดานในรอบถัด ๆ ไป
+  const cleanupSql = createScriptClient();
+  try {
+    await cleanupSql`update rider_profiles set cash_held_satang = 0 where account_id = ${annId}`;
+  } finally {
+    await cleanupSql.end();
+  }
+}
+
 /** เบอร์และชื่อผู้ใช้ที่ไม่ชนของเดิม เพื่อให้รันซ้ำได้โดยไม่ติด cooldown ของเบอร์เดิม */
 const suffix = String(randomInt(0, 100_000_000)).padStart(8, '0');
 const SMOKE_PHONE = `09${suffix}`;
@@ -504,6 +617,9 @@ async function main() {
 
   const after = await call('POST', `/orders/${placed.body.id}/pay-promptpay`, undefined, token);
   check('ส่งถึงแล้วเปลี่ยนวิธีจ่ายไม่ได้', after.status === 409, `ได้ ${after.status}`);
+
+  console.log('\nจ่ายงานไรเดอร์อัตโนมัติ (claude.md §6.3)');
+  await dispatchChecks(token, maleeToken, adminToken, malee.id, kaphraoId, spicyMid);
 
   console.log('\nledger ที่เขียนลงฐานจริง (claude.md §6.2)');
   await checkLedger(placed.body.id);

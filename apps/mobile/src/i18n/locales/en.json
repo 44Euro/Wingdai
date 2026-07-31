@@ -413,5 +413,52 @@
     "error": {
       "cannotSwitch": "This order can no longer change payment method"
     }
+  },
+  "rider": {
+    "home": {
+      "title": "My jobs",
+      "online": "Accepting jobs",
+      "offline": "Not accepting jobs",
+      "onlineHint": "Jobs are offered to you one at a time, nearest first",
+      "offlineHint": "Turn on to start receiving jobs (location required)",
+      "toggle": "Accept jobs on or off",
+      "activeJobs": "Current jobs",
+      "noJobs": "Nothing to do right now",
+      "summary": "My summary",
+      "deliveredCount": "Delivered",
+      "hoursOnline": "Hours online",
+      "cashHeld": "Cash in hand",
+      "cashLimitWarning": "Near your cash ceiling — settle up to keep taking cash orders",
+      "locationNeeded": "Location permission is required before you can accept jobs"
+    },
+    "offer": {
+      "title": "New job",
+      "dropoff": "Drop off at",
+      "items": "{{count}} items",
+      "pay": "You earn",
+      "collectCash": "Collect {{amount}} cash from the customer",
+      "accept": "Accept",
+      "decline": "Pass"
+    },
+    "status": {
+      "accepted": "Waiting for kitchen",
+      "preparing": "Cooking",
+      "picked_up": "On the way"
+    },
+    "job": {
+      "title": "Current job",
+      "missing": "This job is no longer here",
+      "pickup": "Pick up at",
+      "dropoff": "Drop off at",
+      "items": "Items",
+      "pay": "You earn",
+      "collectCash": "Collect {{amount}} cash",
+      "alreadyPaid": "Already paid — collect nothing",
+      "waitingKitchen": "Waiting for the kitchen to start cooking",
+      "action": {
+        "picked_up": "Picked up",
+        "delivered": "Delivered"
+      }
+    }
   }
 }

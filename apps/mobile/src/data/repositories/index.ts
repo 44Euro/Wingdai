@@ -1,6 +1,6 @@
 import type {
   Account, AccountType, Address, MenuItem, MerchantOrder, MerchantRestaurant,
-  Order, OrderStatus, PaymentMethod, Restaurant,
+  Order, OrderStatus, PaymentMethod, Restaurant, RiderJob, RiderStatus,
 } from '../types';
 
 export interface RegisterInput {
@@ -113,10 +113,30 @@ export interface MerchantRepo {
   ): Promise<MenuItem>;
 }
 
+/**
+ * ฝั่งไรเดอร์ (claude.md §6.3)
+ *
+ * ไม่มีเมธอด "ดูงานทั้งหมดที่ว่างอยู่" โดยตั้งใจ — §6.3 ห้ามกองงานรวมให้ไรเดอร์แย่งกันกด
+ * เพราะแบบนั้นรางวัลตกกับคนที่เน็ตเร็ว ไม่ใช่คนที่เหมาะกับงาน ระบบเป็นคนเสนอทีละคน
+ */
+export interface RiderRepo {
+  status(): Promise<RiderStatus>;
+  /** เปิดรับงานต้องส่งพิกัดมาด้วย — ไม่รู้ว่าอยู่ไหนก็ให้คะแนนระยะทางไม่ได้ */
+  setOnline(isOnline: boolean, at?: { lat: number; lng: number }): Promise<RiderStatus>;
+  /** ส่งพิกัดระหว่างทาง · claude.md §5 ทุก 3–5 วิ ตอนส่งของ / 15–30 วิ ตอนว่าง */
+  ping(lat: number, lng: number): Promise<void>;
+  jobs(): Promise<RiderJob[]>;
+  acceptOffer(orderId: string): Promise<RiderJob>;
+  declineOffer(orderId: string): Promise<void>;
+  /** §8 North Star — ตัวเลขไว้ให้ไรเดอร์ดูรายได้ ไม่ใช่กระดานแข่งอันดับ (§3 ข้อ 4) */
+  stats(): Promise<{ hours: number; delivered: number; ordersPerHour: number | null }>;
+}
+
 export interface Repos {
   auth: AuthRepo;
   catalog: CatalogRepo;
   orders: OrderRepo;
   addresses: AddressRepo;
   merchant: MerchantRepo;
+  rider: RiderRepo;
 }

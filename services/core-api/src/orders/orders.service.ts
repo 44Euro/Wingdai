@@ -7,9 +7,12 @@ import {
   ForbiddenException,
   ConflictException,
 } from '@nestjs/common';
-import { and, eq, inArray, asc, desc } from 'drizzle-orm';
+import { and, eq, inArray, asc, desc, sql } from 'drizzle-orm';
 import { DB, type Db } from '../db/db.module';
-import { orders, orderItems, restaurants, menuItems, addresses, accounts, ledgerEntries } from '../db/schema';
+import {
+  orders, orderItems, restaurants, menuItems, addresses, accounts, ledgerEntries,
+  riderProfiles, riderStatus,
+} from '../db/schema';
 import { assertTransition, isActiveStatus, type OrderStatus } from './stateMachine';
 import { assertCanSetStatus, type Actor } from './authorize';
 import { postOrderDelivered } from '../ledger/postOrder';
@@ -269,9 +272,40 @@ export class OrdersService {
         })
         .where(eq(orders.id, orderId));
 
+      /*
+       * งานของไรเดอร์จบแล้ว (ส่งถึงหรือถูกยกเลิก) — บันทึกเวลาไว้ให้พจน์ fairness
+       * ของการจ่ายงานรอบถัดไปใช้ ไม่งั้นคนที่เพิ่งจบงานจะยังดู "ว่างมานาน" อยู่
+       * แล้วได้งานรวดเดียวหลายใบ ซึ่งตรงข้ามกับที่ §6.3 ต้องการ
+       */
+      if (order.riderId && (next === 'delivered' || next === 'cancelled')) {
+        await tx
+          .update(riderStatus)
+          .set({ lastJobEndedAt: now })
+          .where(eq(riderStatus.accountId, order.riderId));
+      }
+
       if (next !== 'delivered') return;
 
       const gross = order.foodTotalSatang + order.deliveryFeeSatang + order.serviceFeeSatang;
+
+      /*
+       * ส่งถึงแล้วถือว่าเก็บเงินสดครบ (§6.5 — เลยจุดนี้ปัญหาไปทางกระบวนการคืนเงิน)
+       * และเงินก้อนนั้นเป็นของแพลตฟอร์มที่ไรเดอร์ถือไว้ ต้องบวกเข้ายอดเงินสดในมือ
+       * ไม่งั้นเพดาน cash_limit_satang จะไม่มีวันถูกแตะ และไรเดอร์จะถือเงินบริษัทไม่จำกัด
+       */
+      if (order.paymentMethod === 'cash' && order.paymentStatus === 'pending') {
+        await tx
+          .update(orders)
+          .set({ paymentStatus: 'paid', paidAt: now })
+          .where(eq(orders.id, orderId));
+
+        if (order.riderId) {
+          await tx
+            .update(riderProfiles)
+            .set({ cashHeldSatang: sql`${riderProfiles.cashHeldSatang} + ${gross}` })
+            .where(eq(riderProfiles.accountId, order.riderId));
+        }
+      }
       const lines = postOrderDelivered({
         foodTotalSatang: order.foodTotalSatang,
         deliveryFeeSatang: order.deliveryFeeSatang,

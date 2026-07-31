@@ -95,7 +95,7 @@ describe('RootNavigator', () => {
   it('ไรเดอร์ที่อนุมัติแล้วเข้า RiderStack เป็นค่าเริ่มต้น', async () => {
     await useAuthStore.getState().login('rider_ann', '1234');
     const result = renderApp();
-    expectPresent(result.root, 'stack-rider');
+    expectPresent(result.root, 'screen-rider-home');
   });
 
   it('ไรเดอร์ที่อนุมัติแล้วสลับไปโหมดลูกค้าได้', async () => {
@@ -111,7 +111,7 @@ describe('RootNavigator', () => {
     expectPresent(result.root, 'screen-pending');
     // กฎความปลอดภัย: ไรเดอร์รออนุมัติต้องไม่เข้า stack ใดเลย รวมทั้งการสั่งอาหาร (stack-customer)
     expectAbsent(result.root, 'screen-customer-home');
-    expectAbsent(result.root, 'stack-rider');
+    expectAbsent(result.root, 'screen-rider-home');
     expectAbsent(result.root, 'screen-merchant-orders');
     expectAbsent(result.root, 'stack-admin');
   });
