@@ -1,6 +1,7 @@
 import type {
   Account, AccountType, Address, MenuItem, MerchantOrder, MerchantRestaurant,
   Order, OrderStatus, PaymentMethod, Restaurant, RiderJob, RiderStatus,
+  RefundCase, RefundReason, RefundFault, OrderException, AdminMetrics,
 } from '../types';
 
 export interface RegisterInput {
@@ -132,6 +133,31 @@ export interface RiderRepo {
   stats(): Promise<{ hours: number; delivered: number; ordersPerHour: number | null }>;
 }
 
+export interface RefundRepo {
+  /** ลูกค้าแจ้งปัญหา — ระบบตรวจแล้วเก็บข้อเสนอไว้ ยังไม่มีเงินออกจนกว่าแอดมินจะกด (§6.4) */
+  open(input: {
+    orderId: string;
+    reason: RefundReason;
+    detail: string;
+    hasPhoto?: boolean;
+  }): Promise<RefundCase>;
+  mine(): Promise<RefundCase[]>;
+}
+
+/** เฉพาะบัญชี admin — เซิร์ฟเวอร์อ่าน account_type จากฐานทุกครั้ง ไม่เชื่อตั๋ว */
+export interface AdminRepo {
+  exceptions(): Promise<OrderException[]>;
+  metrics(): Promise<AdminMetrics>;
+  openRefunds(): Promise<RefundCase[]>;
+  /** ไม่ส่งยอด/ความรับผิดมา = ใช้ตามที่ระบบเสนอ (§6.4 "ยืนยันด้วยการกดครั้งเดียว") */
+  decideRefund(
+    caseId: string,
+    input: { approve: boolean; amountSatang?: number; fault?: RefundFault },
+  ): Promise<RefundCase>;
+  /** §6.3 ทางแทรกมือเมื่อระบบจ่ายงานไม่สำเร็จ */
+  forceDispatch(orderId: string): Promise<{ offered: boolean; reason: string | null }>;
+}
+
 export interface Repos {
   auth: AuthRepo;
   catalog: CatalogRepo;
@@ -139,4 +165,6 @@ export interface Repos {
   addresses: AddressRepo;
   merchant: MerchantRepo;
   rider: RiderRepo;
+  refunds: RefundRepo;
+  admin: AdminRepo;
 }

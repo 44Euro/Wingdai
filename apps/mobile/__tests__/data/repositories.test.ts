@@ -13,7 +13,7 @@ describe('HttpRepo กับ MockRepo มีหน้าตาเหมือน
   const http = createHttpRepos('https://example.invalid/api', createMemoryTokenStore());
   const mock = createMockRepos();
 
-  const GROUPS = ['addresses', 'auth', 'catalog', 'merchant', 'orders', 'rider'] as const;
+  const GROUPS = ['addresses', 'admin', 'auth', 'catalog', 'merchant', 'orders', 'refunds', 'rider'] as const;
 
   it('มีกลุ่ม repo ครบทุกกลุ่ม', () => {
     expect(Object.keys(http).sort()).toEqual([...GROUPS]);

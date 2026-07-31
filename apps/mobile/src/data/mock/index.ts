@@ -1,7 +1,9 @@
 import type {
   Repos, RegisterInput, GoogleRegisterInput, CreateOrderInput, NewAddressInput,
 } from '../repositories';
-import type { Account, Address, MenuItem, Order, OrderStatus, Restaurant } from '../types';
+import type {
+  Account, Address, MenuItem, Order, OrderStatus, Restaurant, RefundCase, RefundFault,
+} from '../types';
 import { assertTransition } from '../orderStateMachine';
 import { canOrderFromRestaurant, canPayNowWithPromptPay } from '../../lib/rules';
 import { seedAccounts, seedRestaurants, seedMenuItems, seedAddresses, MOCK_PASSWORD } from './seed';
@@ -24,6 +26,7 @@ export function createMockRepos(): Repos {
   const menuItems: MenuItem[] = seedMenuItems.map((m) => ({ ...m }));
   const addresses: (Address & { accountId: string })[] = seedAddresses.map((a) => ({ ...a }));
   const orders: Order[] = [];
+  const refundCases: RefundCase[] = [];
   let seq = 0;
 
   /**
@@ -477,6 +480,135 @@ export function createMockRepos(): Repos {
           delivered,
           ordersPerHour: hours > 0 ? Number((delivered / hours).toFixed(2)) : null,
         };
+      },
+    },
+
+    refunds: {
+      async open(input) {
+        await delay();
+        const me = requireLogin();
+        const order = orders.find((o) => o.id === input.orderId && o.customerId === me.id);
+        if (!order) throw new Error('ไม่พบออร์เดอร์นี้');
+        if (refundCases.some((c) => c.orderId === order.id && (c.status === 'open' || c.status === 'auto_verified'))) {
+          throw new Error('ออร์เดอร์นี้มีเรื่องที่กำลังตรวจอยู่แล้ว');
+        }
+
+        /*
+         * ตรรกะการตรวจอัตโนมัติจริงอยู่ฝั่งเซิร์ฟเวอร์ (refunds/autoVerify.ts)
+         * ที่นี่จำลองผลลัพธ์ให้พอทำให้จอทำงานได้ ไม่ได้เขียนกติกาซ้ำสองที่
+         */
+        const total = order.foodTotal + order.deliveryFee + order.serviceFee;
+        const fault: RefundFault | null =
+          input.reason === 'damaged' || input.reason === 'not_delivered' ? 'rider'
+            : input.reason === 'late' ? 'platform'
+              : input.reason === 'other' ? null
+                : 'restaurant';
+        const full = fault !== null && total <= 20_000;
+
+        const c: RefundCase = {
+          id: `rc-${++seq}`,
+          orderId: order.id,
+          reference: order.reference,
+          status: 'auto_verified',
+          customerReason: `${input.reason}: ${input.detail}`,
+          autoVerdict: full ? 'suggest_full' : 'needs_review',
+          reasoning: full
+            ? ['ตรวจอัตโนมัติผ่านทุกข้อ — เสนอคืนเต็มจำนวน']
+            : ['ต้องให้คนตรวจก่อน'],
+          suggestedAmountSatang: full ? total : null,
+          approvedAmountSatang: null,
+          fault,
+          createdAt: new Date().toISOString(),
+          decidedAt: null,
+        };
+        refundCases.push(c);
+        return { ...c };
+      },
+
+      async mine() {
+        await delay();
+        const me = requireLogin();
+        const mineIds = new Set(orders.filter((o) => o.customerId === me.id).map((o) => o.id));
+        return refundCases.filter((c) => mineIds.has(c.orderId)).map((c) => ({ ...c }));
+      },
+    },
+
+    admin: {
+      async exceptions() {
+        await delay();
+        requireLogin();
+        const open = refundCases.filter((c) => c.status === 'auto_verified' || c.status === 'open');
+        return open.map((c) => {
+          const order = orders.find((o) => o.id === c.orderId)!;
+          const shop = restaurants.find((r) => r.id === order.restaurantId);
+          const minutes = Math.floor((Date.now() - new Date(c.createdAt).getTime()) / 60_000);
+          return {
+            kind: 'open_dispute' as const,
+            orderId: order.id,
+            reference: order.reference,
+            restaurantName: shop?.name ?? '',
+            status: order.status,
+            minutesWaiting: minutes,
+            detail: `ลูกค้าแจ้งปัญหามา ${minutes} นาทีแล้วยังไม่ได้ตัดสิน`,
+          };
+        });
+      },
+
+      async metrics() {
+        await delay();
+        requireLogin();
+        const delivered = orders.filter((o) => o.status === 'delivered').length;
+        const refunded = refundCases.filter((c) => c.status === 'approved').length;
+        // ยังไม่มีข้อมูล = null ไม่ใช่ 0 — 0 อ่านเหมือนตัวเลขจริงที่แย่หรือดี
+        return {
+          windowDays: 7,
+          orders: orders.length,
+          delivered,
+          ordersPerRiderHour: null,
+          restaurantAcceptRate: orders.length > 0
+            ? orders.filter((o) => o.status !== 'created').length / orders.length
+            : null,
+          refundRate: delivered > 0 ? refunded / delivered : null,
+          autoDispatchRate: null,
+        };
+      },
+
+      async openRefunds() {
+        await delay();
+        requireLogin();
+        return refundCases
+          .filter((c) => c.status === 'auto_verified' || c.status === 'open')
+          .map((c) => ({ ...c }));
+      },
+
+      async decideRefund(caseId, input) {
+        await delay();
+        requireLogin();
+        const c = refundCases.find((x) => x.id === caseId);
+        if (!c) throw new Error('ไม่พบเรื่องนี้');
+        if (c.status === 'approved' || c.status === 'rejected') throw new Error('เรื่องนี้ตัดสินไปแล้ว');
+
+        if (!input.approve) {
+          c.status = 'rejected';
+        } else {
+          const fault = input.fault ?? c.fault;
+          // ไม่รู้ว่าใครรับผิดชอบ = ไม่รู้ว่าจะหักจากบัญชีไหน (§6.4)
+          if (!fault) throw new Error('ต้องระบุว่าใครรับผิดชอบก่อนอนุมัติคืนเงิน');
+          c.status = 'approved';
+          c.fault = fault;
+          c.approvedAmountSatang = input.amountSatang ?? c.suggestedAmountSatang ?? 0;
+          const order = orders.find((o) => o.id === c.orderId);
+          if (order) order.paymentStatus = 'refunded';
+        }
+        c.decidedAt = new Date().toISOString();
+        return { ...c };
+      },
+
+      async forceDispatch() {
+        await delay();
+        requireLogin();
+        // mock ไม่มีเครื่องจ่ายงาน — ของจริงอยู่ที่ dispatch/dispatch.service.ts
+        return { offered: false, reason: 'โหมดจำลองไม่มีเครื่องจ่ายงาน' };
       },
     },
 

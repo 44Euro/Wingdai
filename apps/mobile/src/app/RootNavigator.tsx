@@ -4,6 +4,7 @@ import { PendingApprovalScreen } from './navigators/AuthStack';
 import { AuthNavigator } from './navigators/AuthNavigator';
 import { PlaceholderStack } from './navigators/PlaceholderStack';
 import { RiderStack } from './navigators/RiderStack';
+import { AdminHomeScreen } from '../features/admin/screens/AdminHomeScreen';
 import { CustomerStack } from './navigators/CustomerStack';
 import { MerchantStack } from './navigators/MerchantStack';
 
@@ -37,7 +38,7 @@ export function RootNavigator() {
 
   switch (active) {
     case 'admin':
-      return <PlaceholderStack name="Admin" testID="stack-admin" />;
+      return <AdminHomeScreen />;
     case 'rider':
       return <RiderStack />;
     case 'merchant':

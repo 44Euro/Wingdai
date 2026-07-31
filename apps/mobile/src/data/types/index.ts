@@ -95,8 +95,12 @@ export interface Address {
  */
 export type PaymentMethod = 'promptpay' | 'cash' | 'card';
 
-/** เงินสดเป็น 'pending' จนกว่าไรเดอร์จะเก็บตอนส่ง ส่วนพร้อมเพย์จ่ายจบตั้งแต่ก่อนออร์เดอร์เดิน */
-export type PaymentStatus = 'pending' | 'paid';
+/**
+ * เงินสดเป็น 'pending' จนกว่าไรเดอร์จะเก็บตอนส่ง ส่วนพร้อมเพย์จ่ายจบตั้งแต่ก่อนออร์เดอร์เดิน
+ * `refunded` เกิดเมื่อแอดมินอนุมัติคืนเงิน (§6.4) — ต้องมีในชนิดนี้ ไม่งั้นจอที่แยกตามสถานะ
+ * จะพลาดเคสนี้เงียบ ๆ ทั้งที่เซิร์ฟเวอร์ส่งมาจริง
+ */
+export type PaymentStatus = 'pending' | 'paid' | 'refunded';
 
 /** ร้านตามที่เจ้าของเห็น — ต่างจาก `Restaurant` ที่เป็นมุมของลูกค้า (ไม่มีระยะทาง/คะแนน) */
 export interface MerchantRestaurant {
@@ -174,6 +178,60 @@ export interface RiderStatus {
   cashLimitSatang: number;
   activeJobs: RiderJob[];
   offer: RiderOffer | null;
+}
+
+/** เหตุผลที่ลูกค้าแจ้งปัญหาได้ — ตัวที่ตัดสินว่าใครรับผิดชอบตาม claude.md §6.4 */
+export type RefundReason =
+  | 'wrong_item' | 'missing_item' | 'food_quality'
+  | 'damaged' | 'not_delivered' | 'late' | 'other';
+
+export type RefundFault = 'restaurant' | 'rider' | 'platform';
+
+export interface RefundCase {
+  id: string;
+  orderId: string;
+  reference?: string;
+  customerName?: string;
+  status: 'open' | 'auto_verified' | 'approved' | 'rejected';
+  customerReason: string;
+  autoVerdict: string | null;
+  /**
+   * เหตุผลรายข้อจากการตรวจอัตโนมัติ — §6.4 ห้ามโชว์แค่ปุ่มคืนเงินเปล่า ๆ
+   * แอดมินต้องอ่านได้ว่าระบบคิดยังไงก่อนกดยืนยัน
+   */
+  reasoning: string[];
+  suggestedAmountSatang: number | null;
+  approvedAmountSatang: number | null;
+  fault: RefundFault | null;
+  createdAt: string;
+  decidedAt: string | null;
+}
+
+/** สิ่งที่ต้องมีคนเข้าไปยุ่ง (claude.md §7) — ไม่ใช่ฟีดออร์เดอร์ทั้งหมด */
+export interface OrderException {
+  kind: 'unaccepted' | 'no_rider' | 'slow_delivery' | 'open_dispute';
+  orderId: string;
+  reference: string;
+  restaurantName: string;
+  status: OrderStatus;
+  minutesWaiting: number;
+  /** บอกว่าต้องทำอะไร ไม่ใช่แค่ว่ามีอะไรผิด */
+  detail: string;
+}
+
+/**
+ * ตัวเลขจาก claude.md §8
+ * ค่าที่ยังวัดไม่ได้เป็น `null` ไม่ใช่ 0 — 0 อ่านเหมือน "แย่มาก" หรือ "ดีมาก"
+ * แล้วแต่ตัวชี้วัด ทั้งที่ความจริงคือยังไม่มีข้อมูล
+ */
+export interface AdminMetrics {
+  windowDays: number;
+  orders: number;
+  delivered: number;
+  ordersPerRiderHour: number | null;
+  restaurantAcceptRate: number | null;
+  refundRate: number | null;
+  autoDispatchRate: number | null;
 }
 
 export interface Order {

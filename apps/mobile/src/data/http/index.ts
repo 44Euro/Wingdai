@@ -4,7 +4,7 @@ import type {
 } from '../repositories';
 import type {
   Account, Address, MenuItem, MerchantOrder, MerchantRestaurant, Order, OrderStatus,
-  Restaurant, RiderJob, RiderStatus,
+  Restaurant, RiderJob, RiderStatus, RefundCase, OrderException, AdminMetrics,
 } from '../types';
 import { createClient, ApiError } from './client';
 import type { TokenStore } from './tokenStore';
@@ -232,6 +232,38 @@ export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
         return request<{ hours: number; delivered: number; ordersPerHour: number | null }>(
           '/rider/stats',
           { token: auth() },
+        );
+      },
+    },
+
+    refunds: {
+      async open(input): Promise<RefundCase> {
+        return request<RefundCase>('/refunds', { method: 'POST', body: input, token: auth() });
+      },
+      async mine(): Promise<RefundCase[]> {
+        return request<RefundCase[]>('/refunds', { token: auth() });
+      },
+    },
+
+    admin: {
+      async exceptions(): Promise<OrderException[]> {
+        return request<OrderException[]>('/admin/exceptions', { token: auth() });
+      },
+      async metrics(): Promise<AdminMetrics> {
+        return request<AdminMetrics>('/admin/metrics', { token: auth() });
+      },
+      async openRefunds(): Promise<RefundCase[]> {
+        return request<RefundCase[]>('/admin/refunds', { token: auth() });
+      },
+      async decideRefund(caseId, input): Promise<RefundCase> {
+        return request<RefundCase>(`/admin/refunds/${caseId}`, {
+          method: 'POST', body: input, token: auth(),
+        });
+      },
+      async forceDispatch(orderId) {
+        return request<{ offered: boolean; reason: string | null }>(
+          `/admin/dispatch/orders/${orderId}`,
+          { method: 'POST', token: auth() },
         );
       },
     },

@@ -460,5 +460,37 @@
         "delivered": "Delivered"
       }
     }
+  },
+  "admin": {
+    "title": "Needs attention",
+    "subtitle": "Only what someone has to act on — not every order",
+    "exceptions": "{{count}} needing attention",
+    "allClear": "Nothing stuck right now",
+    "refunds": "{{count}} refunds awaiting a decision",
+    "noRefunds": "No refunds waiting",
+    "forceDispatch": "Dispatch now",
+    "suggestedRefund": "Suggested refund {{amount}}",
+    "needsReview": "No amount suggested — review before approving",
+    "approve": "Approve as suggested",
+    "reject": "Reject",
+    "kind": {
+      "unaccepted": "Not accepted",
+      "no_rider": "No rider",
+      "slow_delivery": "Slow delivery",
+      "open_dispute": "Open dispute"
+    },
+    "fault": {
+      "restaurant": "Restaurant",
+      "rider": "Rider",
+      "platform": "Platform"
+    },
+    "metric": {
+      "title": "Last {{days}} days",
+      "orders": "Orders",
+      "ordersPerRiderHour": "Orders per rider hour",
+      "acceptRate": "Restaurant accept rate",
+      "refundRate": "Refund rate",
+      "autoDispatchRate": "Auto-dispatch success"
+    }
   }
 }

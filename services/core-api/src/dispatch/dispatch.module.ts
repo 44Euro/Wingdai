@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
+import { AdminGuard } from '../auth/admin.guard';
 import { DispatchService } from './dispatch.service';
 import { DispatchScheduler } from './dispatch.scheduler';
 import { RiderService } from './rider.service';
@@ -13,7 +14,7 @@ import { AdminDispatchController } from './admin.controller';
 @Module({
   imports: [AuthModule],
   controllers: [RiderController, AdminDispatchController],
-  providers: [DispatchService, DispatchScheduler, RiderService],
+  providers: [DispatchService, DispatchScheduler, RiderService, AdminGuard],
   exports: [DispatchService],
 })
 export class DispatchModule {}

@@ -205,6 +205,101 @@ async function dispatchChecks(
   }
 }
 
+/**
+ * คืนเงินกึ่งอัตโนมัติ (claude.md §6.4) + จอ exception-based ของแอดมิน (§7)
+ *
+ * ใช้ออร์เดอร์ที่ส่งถึงแล้วจากขั้นก่อนหน้า เพราะ §6.4 กำหนดว่าเรื่องคุณภาพ
+ * แจ้งได้เฉพาะออร์เดอร์ที่ถึงมือลูกค้าแล้ว
+ */
+async function refundChecks(customerToken: string, adminToken: string, deliveredOrderId: string) {
+  const notMine = await call('POST', '/refunds', {
+    orderId: deliveredOrderId, reason: 'wrong_item', detail: 'ได้ของผิด', hasPhoto: true,
+  }, adminToken);
+  // ตอบ 404 ไม่ใช่ 403 — 403 ยืนยันว่าออร์เดอร์รหัสนี้มีอยู่จริง
+  check('แจ้งปัญหาออร์เดอร์ของคนอื่นไม่ได้', notMine.status === 404, `ได้ ${notMine.status}`);
+
+  const opened = await call('POST', '/refunds', {
+    orderId: deliveredOrderId, reason: 'wrong_item', detail: 'ได้ข้าวผัดแทนกะเพรา', hasPhoto: true,
+  }, customerToken);
+  check('ลูกค้าแจ้งปัญหาได้', opened.status === 201, JSON.stringify(opened.body));
+  check('ระบบตรวจอัตโนมัติแล้วเสนอคำตัดสิน', opened.body?.autoVerdict === 'suggest_full', `ได้ ${opened.body?.autoVerdict}`);
+  // §6.4 ห้ามโชว์แค่ปุ่มคืนเงินเปล่า ๆ ต้องมีเหตุผลให้แอดมินอ่านก่อนกด
+  check('มีเหตุผลประกอบให้แอดมินอ่าน', Array.isArray(opened.body?.reasoning) && opened.body.reasoning.length > 0);
+  check('ของผิด = ความรับผิดของร้าน (§6.4)', opened.body?.fault === 'restaurant', `ได้ ${opened.body?.fault}`);
+  check('เสนอยอดคืนมาให้', opened.body?.suggestedAmountSatang > 0);
+
+  const twice = await call('POST', '/refunds', {
+    orderId: deliveredOrderId, reason: 'wrong_item', detail: 'แจ้งซ้ำ', hasPhoto: false,
+  }, customerToken);
+  check('แจ้งซ้ำใบเดิมไม่ได้', twice.status === 409, `ได้ ${twice.status}`);
+
+  const caseId = opened.body.id as string;
+
+  const byCustomer = await call('POST', `/admin/refunds/${caseId}`, { approve: true }, customerToken);
+  // §6.4 มีคนกดยืนยันก่อนเงินออกเสมอ และคนนั้นต้องเป็นแอดมิน ไม่ใช่คนที่แจ้งเอง
+  check('ลูกค้าอนุมัติคืนเงินให้ตัวเองไม่ได้', byCustomer.status === 403, `ได้ ${byCustomer.status}`);
+
+  const queue = await call('GET', '/admin/refunds', undefined, adminToken);
+  check('เรื่องโผล่ในคิวของแอดมิน', queue.body?.some((c: any) => c.id === caseId));
+
+  const exceptions = await call('GET', '/admin/exceptions', undefined, adminToken);
+  check('ข้อพิพาทที่ยังไม่จบโผล่ในจอ exception (§7)', exceptions.status === 200
+    && exceptions.body?.some((e: any) => e.kind === 'open_dispute' && e.orderId === deliveredOrderId));
+  check('บอกด้วยว่าแอดมินต้องทำอะไร ไม่ใช่แค่ว่ามีอะไรผิด',
+    exceptions.body?.every((e: any) => typeof e.detail === 'string' && e.detail.length > 0));
+
+  const overRefund = await call('POST', `/admin/refunds/${caseId}`, {
+    approve: true, amountSatang: 999_999_99,
+  }, adminToken);
+  // คืนเกินที่ลูกค้าจ่ายมาคือการสร้างเงินจากอากาศ — ฐานจับไม่ได้เพราะยังบาลานซ์อยู่
+  check('คืนเกินยอดที่ลูกค้าจ่ายไม่ได้', overRefund.status === 400, `ได้ ${overRefund.status}`);
+
+  const approved = await call('POST', `/admin/refunds/${caseId}`, { approve: true }, adminToken);
+  check('แอดมินกดยืนยันครั้งเดียวจบ (§6.4)', approved.status === 200, JSON.stringify(approved.body));
+  check('ยอดที่อนุมัติ = ยอดที่ระบบเสนอ', approved.body?.approvedAmountSatang === opened.body.suggestedAmountSatang);
+
+  const decidedTwice = await call('POST', `/admin/refunds/${caseId}`, { approve: true }, adminToken);
+  check('ตัดสินซ้ำไม่ได้', decidedTwice.status === 409, `ได้ ${decidedTwice.status}`);
+
+  await checkRefundLedger(deliveredOrderId, opened.body.suggestedAmountSatang);
+
+  const afterExceptions = await call('GET', '/admin/exceptions', undefined, adminToken);
+  check('ตัดสินแล้วเรื่องหลุดจากจอ exception',
+    !afterExceptions.body?.some((e: any) => e.kind === 'open_dispute' && e.orderId === deliveredOrderId));
+
+  const metrics = await call('GET', '/admin/metrics', undefined, adminToken);
+  check('มีตัวเลข §8 ให้ดู', metrics.status === 200 && typeof metrics.body?.orders === 'number');
+  check('อัตราคืนเงินคำนวณได้ (§8 เกิน 2% = มีอะไรพัง)', metrics.body?.refundRate !== undefined);
+  check('อัตราจ่ายงานอัตโนมัติคำนวณได้ (§8 > 90%)', metrics.body?.autoDispatchRate !== undefined);
+
+  const byRider = await call('GET', '/admin/exceptions', undefined, adminToken);
+  check('จอ exception ไม่ใช่ฟีดออร์เดอร์ทั้งหมด (§7)', Array.isArray(byRider.body));
+}
+
+/** รายการกลับทางที่เขียนลงฐานจริงตอนแอดมินอนุมัติ (§6.4) */
+async function checkRefundLedger(orderId: string, amount: number) {
+  const sql = createScriptClient();
+  try {
+    const rows = await sql<{ account: string; debit_satang: number; credit_satang: number }[]>`
+      select account, debit_satang, credit_satang
+        from ledger_entries where order_id = ${orderId} and reason = 'refund.approved'`;
+
+    check('อนุมัติแล้วมีรายการกลับทางเกิดขึ้นอัตโนมัติ', rows.length === 2, `ได้ ${rows.length} แถว`);
+
+    const debit = rows.reduce((s, r) => s + r.debit_satang, 0);
+    const credit = rows.reduce((s, r) => s + r.credit_satang, 0);
+    check(`คืนเงินแล้วเดบิต = เครดิต (${debit} = ${credit})`, debit === credit && debit === amount);
+
+    // ของผิด = ร้านรับผิดชอบ → หักจากยอดค้างจ่ายร้าน ไม่ใช่ให้บริษัทรับ
+    check('หักจากยอดค้างจ่ายร้าน เพราะเป็นความผิดของร้าน',
+      rows.some((r) => r.account === 'restaurant_payable' && r.debit_satang === amount));
+    check('เงินออกจากบริษัทไปหาลูกค้า',
+      rows.some((r) => r.account === 'cash' && r.credit_satang === amount));
+  } finally {
+    await sql.end();
+  }
+}
+
 /** เบอร์และชื่อผู้ใช้ที่ไม่ชนของเดิม เพื่อให้รันซ้ำได้โดยไม่ติด cooldown ของเบอร์เดิม */
 const suffix = String(randomInt(0, 100_000_000)).padStart(8, '0');
 const SMOKE_PHONE = `09${suffix}`;
@@ -635,6 +730,9 @@ async function main() {
   check('ประวัติเรียงใหม่ไปเก่า', history.body.every((o: any, i: number) =>
     i === 0 || history.body[i - 1].createdAt >= o.createdAt));
 
+  console.log('\nคืนเงินกึ่งอัตโนมัติ + จอ exception ของแอดมิน (§6.4 · §7)');
+  await refundChecks(token, adminToken, placed.body.id);
+
   console.log('\nที่อยู่จัดส่ง');
 
   const addrs = await call('GET', '/addresses', undefined, token);
@@ -716,6 +814,8 @@ async function cleanup() {
       await sql`alter table ledger_entries disable trigger ledger_entries_no_delete`;
       await sql`delete from ledger_entries where order_id in ${sql(ids)}`;
       await sql`alter table ledger_entries enable trigger ledger_entries_no_delete`;
+      await sql`delete from refund_cases where order_id in ${sql(ids)}`;
+      await sql`delete from dispatch_offers where order_id in ${sql(ids)}`;
       await sql`delete from orders where id in ${sql(ids)}`;
     }
     const menuIds = createdMenuItemIds.filter(Boolean);
