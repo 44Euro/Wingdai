@@ -112,14 +112,16 @@ describe('RootNavigator', () => {
     // กฎความปลอดภัย: ไรเดอร์รออนุมัติต้องไม่เข้า stack ใดเลย รวมทั้งการสั่งอาหาร (stack-customer)
     expectAbsent(result.root, 'screen-customer-home');
     expectAbsent(result.root, 'stack-rider');
-    expectAbsent(result.root, 'screen-merchant-menu');
+    expectAbsent(result.root, 'screen-merchant-orders');
     expectAbsent(result.root, 'stack-admin');
   });
 
-  it('เจ้าของร้านเริ่มที่ MerchantStack', async () => {
+  it('เจ้าของร้านเริ่มที่คิวออร์เดอร์ ไม่ใช่จอเมนู', async () => {
     await useAuthStore.getState().login('malee', '1234');
     const result = renderApp();
-    expectPresent(result.root, 'screen-merchant-menu');
+    // ร้านเปิดแอปเพราะมีออร์เดอร์เข้า ไม่ใช่เพราะอยากแก้เมนู (§8 อัตราการรับออร์เดอร์ > 95%)
+    expectPresent(result.root, 'screen-merchant-orders');
+    expectAbsent(result.root, 'screen-merchant-menu');
   });
 
   it('แอดมินเข้า AdminStack', async () => {

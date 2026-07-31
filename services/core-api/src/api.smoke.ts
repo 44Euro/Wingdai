@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { randomInt } from 'node:crypto';
-import postgres from 'postgres';
+import { createScriptClient } from './db/client';
 
 /**
  * ยิง HTTP จริงใส่เซิร์ฟเวอร์ที่รันอยู่ ตั้งแต่ขอ OTP จนล็อกอินสำเร็จ
@@ -44,6 +44,7 @@ async function call(method: string, path: string, body?: unknown, token?: string
 
 /** ออร์เดอร์ที่สร้างระหว่างทดสอบ — ต้องลบทิ้งตอนจบ ไม่ทิ้งขยะไว้ในฐาน */
 const createdOrderIds: string[] = [];
+const createdMenuItemIds: string[] = [];
 
 /**
  * อ่าน ledger ที่เขียนลงฐานจริงแล้วเทียบกับตัวเลขที่คำนวณมือ
@@ -52,7 +53,7 @@ const createdOrderIds: string[] = [];
  * ต้องเปิดดูว่าเขียนอะไรลงไปจริง ๆ และเดบิตเท่ากับเครดิตไหม
  */
 async function checkLedger(orderId: string) {
-  const sql = postgres(process.env.DATABASE_URL!, { max: 1, ssl: 'require', onnotice: () => {} });
+  const sql = createScriptClient();
   try {
     const rows = await sql<{ account: string; debit_satang: number; credit_satang: number }[]>`
       select account, debit_satang, credit_satang from ledger_entries where order_id = ${orderId}`;
@@ -375,6 +376,89 @@ async function main() {
   );
   check('คนที่ไม่เกี่ยวข้องเปลี่ยนสถานะไม่ได้ (404 ไม่ใช่ 403)', byStranger.status === 404, `ได้ ${byStranger.status}`);
 
+  console.log('\nคิวออร์เดอร์ฝั่งร้าน (claude.md §8 อัตราการรับออร์เดอร์ > 95%)');
+
+  const queue = await call('GET', '/merchant/orders', undefined, maleeToken);
+  check('ร้านดึงคิวออร์เดอร์ของตัวเองได้', queue.status === 200, JSON.stringify(queue.body));
+  const queued = queue.body?.find((o: any) => o.id === placed.body.id);
+  check('ออร์เดอร์ใหม่โผล่ในคิวร้าน', !!queued);
+  check('คิวเรียงเก่าไปใหม่ ใบที่รอนานสุดอยู่บน', queue.body.every((o: any, i: number) =>
+    i === 0 || queue.body[i - 1].createdAt <= o.createdAt));
+  check('ครัวเห็นชื่อรายการพร้อมตัวเลือกที่ลูกค้าเลือก', /ไข่ดาว/.test(queued?.items?.[0]?.name ?? ''));
+
+  /*
+   * ร้านเห็นว่าตัวเองได้เท่าไหร่จากใบนี้ = ค่าอาหาร − คอมมิชชัน 15% (§6.1)
+   * ค่าส่ง/ค่าบริการไม่ใช่ของร้าน จึงต้องไม่โผล่ในยอดนี้ ไม่งั้นร้านจะคาดหวังผิด
+   */
+  check('ยอดที่ร้านได้ = ค่าอาหาร − 15%', queued?.restaurantPayout === 13000 - 1950,
+    `ได้ ${queued?.restaurantPayout} จาก commission ${queued?.commission}`);
+  check('คอมมิชชันคิดจากค่าอาหารอย่างเดียว ไม่รวมค่าส่ง', queued?.commission === 1950, `ได้ ${queued?.commission}`);
+
+  // ร้านไม่ได้เป็นคนไปส่ง จึงไม่ต้องรู้เบอร์ลูกค้า — เก็บข้อมูลส่วนบุคคลเท่าที่งานต้องใช้
+  check('คิวร้านไม่มีเบอร์โทรลูกค้าติดมา', !JSON.stringify(queue.body).includes('081'));
+
+  const otherQueue = await call('GET', '/merchant/orders', undefined, strangerToken);
+  check('คนที่ไม่มีร้านได้คิวว่าง ไม่ใช่ error', otherQueue.status === 200 && otherQueue.body.length === 0);
+
+  // ขอดูคิวร้านคนอื่นตรง ๆ ต้องได้ว่าง ไม่ใช่ข้อมูลร้านนั้น
+  const peekOthers = await call('GET', `/merchant/orders?restaurantId=${malee.id}`, undefined, strangerToken);
+  check('ระบุ id ร้านคนอื่นก็ยังไม่เห็นคิวเขา', peekOthers.status === 200 && peekOthers.body.length === 0);
+
+  const shops = await call('GET', '/merchant/restaurants', undefined, maleeToken);
+  check('ร้านดึงรายชื่อร้านของตัวเองได้', shops.status === 200 && shops.body.length === 1);
+  check('รายชื่อร้านมีแต่ร้านของตัวเอง', shops.body[0]?.name === 'ครัวมาลี');
+
+  const closeShop = await call('PATCH', `/merchant/restaurants/${malee.id}/open`, { isOpen: false }, maleeToken);
+  check('ร้านปิดรับออร์เดอร์เองได้', closeShop.status === 200 && closeShop.body?.isOpen === false);
+  const reopen = await call('PATCH', `/merchant/restaurants/${malee.id}/open`, { isOpen: true }, maleeToken);
+  check('ร้านเปิดกลับได้', reopen.status === 200 && reopen.body?.isOpen === true);
+
+  const hijack = await call('PATCH', `/merchant/restaurants/${malee.id}/open`, { isOpen: false }, token);
+  check('คนอื่นสั่งปิดร้านเราไม่ได้ (404 ไม่ใช่ 403)', hijack.status === 404, `ได้ ${hijack.status}`);
+
+  // somchai เป็นเจ้าของ "ร้านรออนุมัติ" — ยังไม่ผ่านการตรวจ จึงเปิดรับออร์เดอร์ไม่ได้
+  const myShops = await call('GET', '/merchant/restaurants', undefined, token);
+  const pendingShop = myShops.body?.find((r: any) => r.name === 'ร้านรออนุมัติ');
+  check('ร้านที่รออนุมัติยังอยู่ในรายชื่อ เพื่อให้จอบอกสถานะได้', !!pendingShop && pendingShop.isApproved === false);
+  const openPending = await call('PATCH', `/merchant/restaurants/${pendingShop?.id}/open`, { isOpen: true }, token);
+  check('ร้านที่ยังไม่อนุมัติเปิดรับออร์เดอร์ไม่ได้', openPending.status === 404, `ได้ ${openPending.status}`);
+
+  console.log('\nแก้เมนูฝั่งร้าน');
+
+  const newItem = await call('POST', '/merchant/menu', {
+    restaurantId: malee.id,
+    name: 'เมนูทดสอบ smoke',
+    price: 4500,
+    category: 'rice',
+  }, maleeToken);
+  check('ร้านเพิ่มเมนูได้', newItem.status === 201, JSON.stringify(newItem.body));
+  createdMenuItemIds.push(newItem.body?.id);
+  check('ราคาที่ได้กลับมาเป็นสตางค์จำนวนเต็ม', newItem.body?.price === 4500);
+
+  const floatPrice = await call('POST', '/merchant/menu', {
+    restaurantId: malee.id, name: 'ราคาทศนิยม', price: 45.5, category: 'rice',
+  }, maleeToken);
+  // §5 กติกาข้อ 1 — เงินเป็นสตางค์จำนวนเต็มเท่านั้น ปล่อยเศษเข้าฐานแล้วคอมมิชชัน 15% จะเพี้ยน
+  check('ราคาที่มีเศษทศนิยมถูกปฏิเสธ', floatPrice.status === 400, `ได้ ${floatPrice.status}`);
+
+  const otherShopMenu = await call('POST', '/merchant/menu', {
+    restaurantId: malee.id, name: 'แทรกเมนูร้านคนอื่น', price: 100, category: 'rice',
+  }, token);
+  check('เพิ่มเมนูให้ร้านคนอื่นไม่ได้', otherShopMenu.status === 404, `ได้ ${otherShopMenu.status}`);
+
+  const soldOut = await call('PATCH', `/merchant/menu/${newItem.body.id}`, { isAvailable: false }, maleeToken);
+  check('ร้านกดของหมดได้', soldOut.status === 200 && soldOut.body?.isAvailable === false);
+
+  const soldOutOrder = await call('POST', '/orders', {
+    restaurantId: malee.id,
+    items: [{ menuItemId: newItem.body.id, quantity: 1, choiceIds: [] }],
+    paymentMethod: 'cash',
+  }, token);
+  check('ของที่ร้านเพิ่งกดหมด สั่งไม่ได้ทันที', soldOutOrder.status === 409, `ได้ ${soldOutOrder.status}`);
+
+  const editOthers = await call('PATCH', `/merchant/menu/${kaphraoId}`, { price: 1 }, token);
+  check('แก้ราคาเมนูร้านคนอื่นไม่ได้', editOthers.status === 404, `ได้ ${editOthers.status}`);
+
   console.log('\nเปลี่ยนสถานะและลง ledger');
 
   /*
@@ -423,6 +507,17 @@ async function main() {
 
   console.log('\nledger ที่เขียนลงฐานจริง (claude.md §6.2)');
   await checkLedger(placed.body.id);
+
+  /*
+   * ใบที่ไรเดอร์รับไปแล้วต้องหลุดจากคิวครัว ไม่งั้นคิวจะยาวขึ้นเรื่อย ๆ
+   * จนใบที่ต้องรีบจริงถูกกลบ — ซึ่งเป็นทางตรงไปสู่อัตราการรับออร์เดอร์ที่ต่ำลง (§8)
+   */
+  const queueAfter = await call('GET', '/merchant/orders', undefined, maleeToken);
+  check('ใบที่ส่งถึงแล้วหลุดจากคิวครัว', !queueAfter.body.some((o: any) => o.id === placed.body.id));
+  const history = await call('GET', '/merchant/orders?scope=history', undefined, maleeToken);
+  check('ใบที่จบแล้วไปอยู่ในประวัติของร้าน', history.body.some((o: any) => o.id === placed.body.id));
+  check('ประวัติเรียงใหม่ไปเก่า', history.body.every((o: any, i: number) =>
+    i === 0 || history.body[i - 1].createdAt >= o.createdAt));
 
   console.log('\nที่อยู่จัดส่ง');
 
@@ -493,7 +588,7 @@ async function main() {
 
 /** ลบร่องรอยของการทดสอบทุกครั้ง ไม่ว่าจะผ่านหรือไม่ผ่าน */
 async function cleanup() {
-  const sql = postgres(process.env.DATABASE_URL!, { max: 1, ssl: 'require', onnotice: () => {} });
+  const sql = createScriptClient();
   try {
     const ids = createdOrderIds.filter(Boolean);
     if (ids.length > 0) {
@@ -507,6 +602,8 @@ async function cleanup() {
       await sql`alter table ledger_entries enable trigger ledger_entries_no_delete`;
       await sql`delete from orders where id in ${sql(ids)}`;
     }
+    const menuIds = createdMenuItemIds.filter(Boolean);
+    if (menuIds.length > 0) await sql`delete from menu_items where id in ${sql(menuIds)}`;
     await sql`delete from accounts where username = ${SMOKE_USERNAME}`;
     await sql`delete from phone_verifications where phone = ${SMOKE_PHONE}`;
   } finally {

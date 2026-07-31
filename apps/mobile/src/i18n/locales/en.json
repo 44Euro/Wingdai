@@ -344,7 +344,8 @@
       "empty": "No menu items yet. Tap Add item to start.",
       "items": "items",
       "optionGroups": "option groups",
-      "logout": "Log out"
+      "logout": "Log out",
+      "available": "Available"
     },
     "form": {
       "title": "Add menu item",
@@ -363,6 +364,49 @@
       "choicePrice": "Extra price",
       "removeGroup": "Remove group",
       "save": "Save item"
+    },
+    "orders": {
+      "title": "Order queue",
+      "waiting": "{{count}} waiting to accept",
+      "open": "Accepting orders",
+      "closed": "Not accepting orders",
+      "toggleOpen": "Accept orders on or off",
+      "prepTime": "About {{minutes}} min to cook",
+      "items": "{{count}} items",
+      "payout": "You receive",
+      "secondsLeft": "{{count}}s left to accept",
+      "overdue": "Past the accept window",
+      "scope": {
+        "queue": "To do",
+        "history": "Done"
+      },
+      "empty": {
+        "queue": "No orders yet",
+        "history": "No finished orders yet"
+      },
+      "status": {
+        "created": "New order",
+        "accepted": "Accepted",
+        "preparing": "Cooking",
+        "picked_up": "Picked up",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled"
+      }
+    },
+    "detail": {
+      "title": "Order detail",
+      "missing": "This order is no longer here",
+      "customer": "Customer",
+      "secondsToAccept": "seconds left (of {{total}})",
+      "overdue": "Past the accept window · you can still accept",
+      "foodTotal": "Food subtotal",
+      "commission": "Commission 15%",
+      "feesNote": "Delivery and service fees are charged to the customer, not deducted from you",
+      "action": {
+        "accepted": "Accept order",
+        "preparing": "Start cooking",
+        "reject": "Reject order"
+      }
     }
   },
   "payment": {

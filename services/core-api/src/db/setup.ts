@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { readFile } from 'node:fs/promises';
-import postgres from 'postgres';
+import { createScriptClient } from './client';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 
@@ -18,15 +18,7 @@ import { migrate } from 'drizzle-orm/postgres-js/migrator';
  * ทั้งที่ไม่ได้สร้างอะไรเลย — เสียเวลาไล่หาสาเหตุนาน
  */
 async function main() {
-  const client = postgres(process.env.DATABASE_URL!, {
-    max: 1,
-    ssl: 'require',
-    // Supabase วาง extension ไว้ที่ schema `extensions` — ต้องมีใน search_path
-    // ไม่งั้นอ้างชนิด geometry ไม่เจอ ทั้งตอน migrate และตอน query
-    connection: { search_path: 'public,extensions' },
-    // สคริปต์นี้เขียนให้รันซ้ำได้ NOTICE ว่า "มีอยู่แล้ว" จึงเป็นเรื่องปกติ ไม่ใช่สิ่งที่ต้องอ่าน
-    onnotice: () => {},
-  });
+  const client = createScriptClient();
 
   try {
     console.log('1/3 ติดตั้ง PostGIS…');

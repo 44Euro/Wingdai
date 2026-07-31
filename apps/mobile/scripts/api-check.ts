@@ -143,6 +143,43 @@ async function main() {
     repos.orders.updateStatus(order.id, 'accepted'),
   );
 
+  console.log('\nฝั่งร้าน — คิวออร์เดอร์');
+
+  // สมชายเป็นเจ้าของ "ร้านรออนุมัติ" ที่ยังไม่ผ่านการตรวจ
+  const myShops = await repos.merchant.myRestaurants();
+  check('ดึงร้านของตัวเองได้', myShops.length === 1 && myShops[0]!.name === 'ร้านรออนุมัติ');
+  check('ร้านที่รออนุมัติบอกสถานะได้ ไม่ใช่ซ่อนหาย', myShops[0]?.isApproved === false);
+  await mustReject('ร้านที่ยังไม่อนุมัติเปิดรับออร์เดอร์ไม่ได้', () =>
+    repos.merchant.setOpen(myShops[0]!.id, true),
+  );
+  check('ไม่มีคิวของร้านคนอื่นหลุดมา', (await repos.merchant.listOrders()).length === 0);
+
+  await repos.auth.login('malee', SEED_PASSWORD);
+  const queue = await repos.merchant.listOrders({ scope: 'queue' });
+  const mineInQueue = queue.find((o) => o.id === order.id);
+  check('เจ้าของร้านเห็นออร์เดอร์ที่เข้าร้านตัวเอง', !!mineInQueue);
+  // ข้าวกะเพรา ฿50 + ไข่ดาว ฿15 = ฿65 × 2 = ฿130 → หัก 15% = ฿19.50 → ร้านได้ ฿110.50
+  check('ยอดที่ร้านได้ = ค่าอาหาร − 15%', mineInQueue?.restaurantPayout === 11050, `ได้ ${mineInQueue?.restaurantPayout}`);
+  check('ไม่มีเบอร์โทรลูกค้าติดมากับคิวร้าน', !JSON.stringify(queue).includes('081'));
+
+  const opened = await repos.merchant.setOpen(mineInQueue!.restaurantId, false);
+  check('ร้านปิดรับออร์เดอร์เองได้', opened.isOpen === false);
+  await repos.merchant.setOpen(mineInQueue!.restaurantId, true);
+
+  const menu2 = await repos.catalog.getMenu(mineInQueue!.restaurantId);
+  const target = menu2.find((m) => m.isAvailable)!;
+  const soldOut = await repos.merchant.updateMenuItem(target.id, { isAvailable: false });
+  check('ร้านกดของหมดได้', soldOut.isAvailable === false);
+  await repos.merchant.updateMenuItem(target.id, { isAvailable: true });
+
+  // ร้านรับออร์เดอร์แล้วบอกว่ากำลังทำ — สิทธิ์ที่ authorize.ts ให้ร้านทำได้
+  check('ร้านรับออร์เดอร์ได้', (await repos.orders.updateStatus(order.id, 'accepted')).status === 'accepted');
+  await mustReject('ร้านกดรับของแทนไรเดอร์ไม่ได้', () =>
+    repos.orders.updateStatus(order.id, 'picked_up'),
+  );
+
+  await repos.auth.login('somchai', SEED_PASSWORD);
+
   console.log('\nที่อยู่จัดส่ง');
 
   const addresses = await repos.addresses.list();

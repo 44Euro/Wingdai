@@ -13,13 +13,15 @@ describe('HttpRepo กับ MockRepo มีหน้าตาเหมือน
   const http = createHttpRepos('https://example.invalid/api', createMemoryTokenStore());
   const mock = createMockRepos();
 
-  it('มีกลุ่ม repo ครบทั้งสี่', () => {
-    expect(Object.keys(http).sort()).toEqual(['addresses', 'auth', 'catalog', 'orders']);
-    expect(Object.keys(mock).sort()).toEqual(['addresses', 'auth', 'catalog', 'orders']);
+  const GROUPS = ['addresses', 'auth', 'catalog', 'merchant', 'orders'] as const;
+
+  it('มีกลุ่ม repo ครบทุกกลุ่ม', () => {
+    expect(Object.keys(http).sort()).toEqual([...GROUPS]);
+    expect(Object.keys(mock).sort()).toEqual([...GROUPS]);
   });
 
   it('ทุกกลุ่มมี method ชื่อเดียวกันทั้งสองฝั่ง', () => {
-    for (const group of ['auth', 'catalog', 'orders', 'addresses'] as const) {
+    for (const group of GROUPS) {
       const httpMethods = Object.keys(http[group]).sort();
       const mockMethods = Object.keys(mock[group]).sort();
       expect({ group, httpMethods }).toEqual({ group, httpMethods: mockMethods });

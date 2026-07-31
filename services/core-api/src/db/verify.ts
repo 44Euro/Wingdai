@@ -1,5 +1,6 @@
 import 'dotenv/config';
-import postgres from 'postgres';
+import type postgres from 'postgres';
+import { createScriptClient } from './client';
 
 /**
  * ยิงของจริงใส่ฐานเพื่อพิสูจน์ว่า trigger กับ constraint ทำงานจริง
@@ -7,12 +8,7 @@ import postgres from 'postgres';
  *
  * claude.md §6.2 บอกว่า ledger ผิดคือปัญหาการเงิน สิ่งที่กันไว้จึงต้องมีคนลองพังดูจริง
  */
-const client = postgres(process.env.DATABASE_URL!, {
-  max: 1,
-  ssl: 'require',
-  connection: { search_path: 'public,extensions' },
-  onnotice: () => {},
-});
+const client = createScriptClient();
 
 let passed = 0;
 let failed = 0;

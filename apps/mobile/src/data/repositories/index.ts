@@ -1,5 +1,6 @@
 import type {
-  Account, AccountType, Address, MenuItem, Order, OrderStatus, PaymentMethod, Restaurant,
+  Account, AccountType, Address, MenuItem, MerchantOrder, MerchantRestaurant,
+  Order, OrderStatus, PaymentMethod, Restaurant,
 } from '../types';
 
 export interface RegisterInput {
@@ -96,9 +97,26 @@ export interface AddressRepo {
   add(input: NewAddressInput): Promise<Address>;
 }
 
+/**
+ * ฝั่งร้าน — ทุกเมธอดตัดสินสิทธิ์จาก `restaurants.owner_user_id` ที่เซิร์ฟเวอร์ ไม่ใช่จาก account_type
+ * เพราะร้านเป็น "ความสามารถ" บนบัญชี type `user` ไม่ใช่ประเภทบัญชี (claude.md §4.3)
+ */
+export interface MerchantRepo {
+  myRestaurants(): Promise<MerchantRestaurant[]>;
+  /** `queue` = ใบที่ครัวยังต้องทำต่อ · `history` = ใบที่ออกจากมือร้านไปแล้ว */
+  listOrders(opts?: { restaurantId?: string; scope?: 'queue' | 'history' }): Promise<MerchantOrder[]>;
+  setOpen(restaurantId: string, isOpen: boolean): Promise<MerchantRestaurant>;
+  /** ที่ใช้บ่อยที่สุดคือกด "ของหมด" ระหว่างวัน — ต้องมีผลกับการสั่งซื้อทันที */
+  updateMenuItem(
+    menuItemId: string,
+    patch: { name?: string; description?: string; price?: number; isAvailable?: boolean },
+  ): Promise<MenuItem>;
+}
+
 export interface Repos {
   auth: AuthRepo;
   catalog: CatalogRepo;
   orders: OrderRepo;
   addresses: AddressRepo;
+  merchant: MerchantRepo;
 }

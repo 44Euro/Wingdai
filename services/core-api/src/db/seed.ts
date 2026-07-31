@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { createHash } from 'node:crypto';
-import postgres from 'postgres';
+import { createScriptClient } from './client';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { hashPassword } from '../auth/password';
 import * as schema from './schema';
@@ -14,12 +14,7 @@ import * as schema from './schema';
  *
  * ห้ามรันกับฐาน production — สคริปต์นี้ทับข้อมูลของแถวที่ id ตรงกัน
  */
-const client = postgres(process.env.DATABASE_URL!, {
-  max: 1,
-  ssl: 'require',
-  connection: { search_path: 'public,extensions' },
-  onnotice: () => {},
-});
+const client = createScriptClient();
 const db = drizzle(client, { schema });
 
 /**

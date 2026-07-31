@@ -1,10 +1,16 @@
 import type {
   Repos, RegisterInput, GoogleRegisterInput, CreateOrderInput, NewAddressInput,
 } from '../repositories';
-import type { Account, Address, MenuItem, Order, Restaurant } from '../types';
+import type { Account, Address, MenuItem, Order, OrderStatus, Restaurant } from '../types';
 import { assertTransition } from '../orderStateMachine';
 import { canOrderFromRestaurant, canPayNowWithPromptPay } from '../../lib/rules';
 import { seedAccounts, seedRestaurants, seedMenuItems, seedAddresses, MOCK_PASSWORD } from './seed';
+
+/**
+ * สถานะที่ครัวยังต้องทำต่อ — ต้องตรงกับ QUEUE_STATUSES ใน core-api/src/merchant/merchant.service.ts
+ * `picked_up` ไม่อยู่ในนี้ เพราะไรเดอร์รับของไปแล้ว = ครัวไม่ต้องทำอะไรอีก
+ */
+const QUEUE_STATUSES: OrderStatus[] = ['created', 'accepted', 'preparing'];
 
 /** รหัส OTP ที่ mock ยอมรับ — ของจริงสุ่มหกหลักแล้วส่ง SMS */
 export const MOCK_OTP = '123456';
@@ -243,6 +249,91 @@ export function createMockRepos(): Repos {
         o.paymentMethod = 'promptpay';
         o.paymentStatus = 'paid';
         return { ...o };
+      },
+    },
+
+    merchant: {
+      async myRestaurants() {
+        await delay();
+        const me = requireLogin();
+        return restaurants
+          .filter((r) => r.ownerUserId === me.id)
+          .map((r) => ({
+            id: r.id,
+            name: r.name,
+            isApproved: r.isApproved,
+            isOpen: r.isOpen,
+            prepTimeMinutes: r.prepTimeMinutes,
+          }));
+      },
+
+      async listOrders(opts) {
+        await delay();
+        const me = requireLogin();
+        const mine = restaurants.filter(
+          (r) => r.ownerUserId === me.id && (!opts?.restaurantId || r.id === opts.restaurantId),
+        );
+        const ids = new Set(mine.map((r) => r.id));
+        const queue = (opts?.scope ?? 'queue') === 'queue';
+
+        return orders
+          .filter((o) => ids.has(o.restaurantId) && QUEUE_STATUSES.includes(o.status) === queue)
+          .sort((a, b) =>
+            queue ? a.createdAt.localeCompare(b.createdAt) : b.createdAt.localeCompare(a.createdAt),
+          )
+          .map((o) => {
+            // §6.1 ปัดลงเหมือนฝั่งเซิร์ฟเวอร์ ส่วนที่ปัดทิ้งตกเป็นของร้าน ไม่ใช่ของแพลตฟอร์ม
+            const commission = Math.floor((o.foodTotal * 1500) / 10000);
+            const shop = restaurants.find((r) => r.id === o.restaurantId)!;
+            const customer = accounts.find((a) => a.id === o.customerId);
+            return {
+              id: o.id,
+              reference: o.reference,
+              restaurantId: o.restaurantId,
+              restaurantName: shop.name,
+              status: o.status,
+              customerName: customer?.fullName ?? '',
+              items: o.items.map((i) => ({
+                name: i.name,
+                unitPrice: i.unitPrice,
+                quantity: i.quantity,
+              })),
+              foodTotal: o.foodTotal,
+              commission,
+              restaurantPayout: o.foodTotal - commission,
+              paymentMethod: o.paymentMethod,
+              paymentStatus: o.paymentStatus,
+              hasRider: !!o.riderId,
+              createdAt: o.createdAt,
+              acceptedAt: o.status === 'created' ? null : o.createdAt,
+            };
+          });
+      },
+
+      async setOpen(restaurantId, isOpen) {
+        await delay();
+        const me = requireLogin();
+        const shop = restaurants.find((r) => r.id === restaurantId && r.ownerUserId === me.id);
+        if (!shop) throw new Error('ไม่พบร้านนี้');
+        if (!shop.isApproved && isOpen) throw new Error('ร้านนี้ยังรออนุมัติ เปิดรับออร์เดอร์ไม่ได้');
+        shop.isOpen = isOpen;
+        return {
+          id: shop.id,
+          name: shop.name,
+          isApproved: shop.isApproved,
+          isOpen: shop.isOpen,
+          prepTimeMinutes: shop.prepTimeMinutes,
+        };
+      },
+
+      async updateMenuItem(menuItemId, patch) {
+        await delay();
+        const me = requireLogin();
+        const item = menuItems.find((m) => m.id === menuItemId);
+        const shop = item && restaurants.find((r) => r.id === item.restaurantId);
+        if (!item || shop?.ownerUserId !== me.id) throw new Error('ไม่พบเมนูนี้');
+        Object.assign(item, patch);
+        return { ...item };
       },
     },
 

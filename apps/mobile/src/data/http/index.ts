@@ -2,7 +2,9 @@ import type {
   Repos, RegisterInput, GoogleRegisterInput, GoogleSignInResult,
   CreateOrderInput, NewMenuItemInput, NewAddressInput,
 } from '../repositories';
-import type { Account, Address, MenuItem, Order, OrderStatus, Restaurant } from '../types';
+import type {
+  Account, Address, MenuItem, MerchantOrder, MerchantRestaurant, Order, OrderStatus, Restaurant,
+} from '../types';
 import { createClient, ApiError } from './client';
 import type { TokenStore } from './tokenStore';
 
@@ -116,9 +118,10 @@ export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
         });
       },
 
-      async createMenuItem(_input: NewMenuItemInput): Promise<MenuItem> {
-        // ฝั่งร้านยังไม่มี endpoint (คลื่นที่ 3) — โยนให้ชัดดีกว่าเงียบแล้วให้จอคิดว่าสำเร็จ
-        throw new ApiError(501, 'เพิ่มเมนูผ่านเซิร์ฟเวอร์ยังไม่พร้อมใช้งาน');
+      async createMenuItem(input: NewMenuItemInput): Promise<MenuItem> {
+        // อยู่ใต้ /merchant เพราะเซิร์ฟเวอร์ต้องเช็คว่าเป็นเจ้าของร้านนี้จริงก่อน
+        // แต่คงไว้ใน catalog repo เพื่อไม่ให้จอเพิ่มเมนูที่มีอยู่ต้องแก้ตาม
+        return request<MenuItem>('/merchant/menu', { method: 'POST', body: input, token: auth() });
       },
     },
 
@@ -164,6 +167,34 @@ export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
 
       async add(input: NewAddressInput): Promise<Address> {
         return request<Address>('/addresses', { method: 'POST', body: input, token: auth() });
+      },
+    },
+
+    merchant: {
+      async myRestaurants(): Promise<MerchantRestaurant[]> {
+        return request<MerchantRestaurant[]>('/merchant/restaurants', { token: auth() });
+      },
+
+      async listOrders(opts): Promise<MerchantOrder[]> {
+        const q = new URLSearchParams({ scope: opts?.scope ?? 'queue' });
+        if (opts?.restaurantId) q.set('restaurantId', opts.restaurantId);
+        return request<MerchantOrder[]>(`/merchant/orders?${q}`, { token: auth() });
+      },
+
+      async setOpen(restaurantId, isOpen): Promise<MerchantRestaurant> {
+        return request<MerchantRestaurant>(`/merchant/restaurants/${restaurantId}/open`, {
+          method: 'PATCH',
+          body: { isOpen },
+          token: auth(),
+        });
+      },
+
+      async updateMenuItem(menuItemId, patch): Promise<MenuItem> {
+        return request<MenuItem>(`/merchant/menu/${menuItemId}`, {
+          method: 'PATCH',
+          body: patch,
+          token: auth(),
+        });
       },
     },
   };

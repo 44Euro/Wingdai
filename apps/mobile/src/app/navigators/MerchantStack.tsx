@@ -1,10 +1,14 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../../theme/ThemeProvider';
+import { MerchantOrdersScreen } from '../../features/merchant/screens/MerchantOrdersScreen';
+import { MerchantOrderDetailScreen } from '../../features/merchant/screens/MerchantOrderDetailScreen';
 import { MerchantMenuScreen } from '../../features/merchant/screens/MerchantMenuScreen';
 import { AddMenuItemScreen } from '../../features/merchant/screens/AddMenuItemScreen';
 
 export type MerchantStackParamList = {
+  MerchantOrders: undefined;
+  MerchantOrderDetail: { orderId: string };
   MerchantMenu: undefined;
   AddMenuItem: { restaurantId: string };
 };
@@ -21,6 +25,12 @@ export function MerchantStack() {
         contentStyle: { backgroundColor: tokens.bgSurface },
       }}
     >
+      {/*
+        คิวออร์เดอร์เป็นจอแรก ไม่ใช่จอเมนู — ร้านเปิดแอปเพราะมีออร์เดอร์เข้า
+        ไม่ใช่เพราะอยากแก้เมนู และ §8 วัดอัตราการรับออร์เดอร์ > 95%
+      */}
+      <Stack.Screen name="MerchantOrders" component={MerchantOrdersScreen} />
+      <Stack.Screen name="MerchantOrderDetail" component={MerchantOrderDetailScreen} />
       <Stack.Screen name="MerchantMenu" component={MerchantMenuScreen} />
       <Stack.Screen name="AddMenuItem" component={AddMenuItemScreen} />
     </Stack.Navigator>

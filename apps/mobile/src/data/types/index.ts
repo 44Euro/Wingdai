@@ -98,6 +98,44 @@ export type PaymentMethod = 'promptpay' | 'cash' | 'card';
 /** เงินสดเป็น 'pending' จนกว่าไรเดอร์จะเก็บตอนส่ง ส่วนพร้อมเพย์จ่ายจบตั้งแต่ก่อนออร์เดอร์เดิน */
 export type PaymentStatus = 'pending' | 'paid';
 
+/** ร้านตามที่เจ้าของเห็น — ต่างจาก `Restaurant` ที่เป็นมุมของลูกค้า (ไม่มีระยะทาง/คะแนน) */
+export interface MerchantRestaurant {
+  id: string;
+  name: string;
+  /** แอดมินเป็นคนอนุมัติ ร้านแก้เองไม่ได้ */
+  isApproved: boolean;
+  /** ร้านกดเปิด/ปิดรับออร์เดอร์เอง */
+  isOpen: boolean;
+  prepTimeMinutes: number;
+}
+
+/**
+ * ออร์เดอร์ตามที่ครัวเห็น
+ *
+ * **ไม่มีเบอร์โทรลูกค้า** โดยตั้งใจ — ร้านไม่ได้เป็นคนไปส่ง ไรเดอร์ต่างหากที่ต้องติดต่อ
+ * และ **ไม่มีค่าส่ง/ค่าบริการ** เพราะไม่ใช่เงินของร้าน โชว์ไปมีแต่ทำให้ร้านคาดหวังยอดผิด
+ */
+export interface MerchantOrder {
+  id: string;
+  reference: string;
+  restaurantId: string;
+  restaurantName: string;
+  status: OrderStatus;
+  customerName: string;
+  items: { name: string; unitPrice: number; quantity: number }[];
+  foodTotal: number;
+  /** 15% ที่แช่แข็งไว้ตอนสั่ง (claude.md §6.1) ไม่ใช่คำนวณสดตอนอ่าน */
+  commission: number;
+  /** ยอดที่ร้านได้จริงจากใบนี้ = foodTotal − commission */
+  restaurantPayout: number;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  /** ร้านรู้แค่ว่ามีไรเดอร์มารับหรือยัง ไม่ต้องรู้ว่าใคร */
+  hasRider: boolean;
+  createdAt: string;
+  acceptedAt: string | null;
+}
+
 export interface Order {
   id: string;
   /** เลขที่ที่ลูกค้าเห็นและใช้อ้างตอนแจ้งปัญหา (WD-XXXXXX) — ไม่ใช่ uuid ที่อ่านไม่ออก */

@@ -6,10 +6,10 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Icon } from '../../../ui/Icon';
-import { Card, PhotoBlock, RoundButton } from '../../../ui/Surface';
+import { Card, PhotoBlock, RoundButton, Toggle } from '../../../ui/Surface';
 import { RoleSwitcher } from '../../../app/RoleSwitcher';
 import { useMenu } from '../../customer/hooks';
-import { useOwnerRestaurantId } from '../hooks';
+import { useOwnerRestaurantId, useToggleMenuItem } from '../hooks';
 import { formatBaht } from '../../../lib/format';
 import { useAuthStore } from '../../auth/authStore';
 import type { MerchantStackParamList } from '../../../app/navigators/MerchantStack';
@@ -21,6 +21,7 @@ export function MerchantMenuScreen({ navigation }: Props) {
   const { tokens, primitives: p } = useTheme();
   const restaurantId = useOwnerRestaurantId();
   const { data: menu = [] } = useMenu(restaurantId ?? '');
+  const toggle = useToggleMenuItem(restaurantId ?? '');
   const logout = useAuthStore((s) => s.logout);
 
   return (
@@ -39,7 +40,17 @@ export function MerchantMenuScreen({ navigation }: Props) {
             paddingTop: p.space.md,
           }}
         >
-          <Text variant="h1">{t('merchant.menu.title')}</Text>
+          {/* จอนี้ถูก push มาจากคิวออร์เดอร์แล้ว จึงต้องมีทางกลับ ไม่ใช่ทางตันของ stack */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: p.space.md, flex: 1 }}>
+            <RoundButton
+              testID="btn-back"
+              icon="chevronLeft"
+              tone="surface"
+              accessibilityLabel={t('common.back')}
+              onPress={() => navigation.goBack()}
+            />
+            <Text variant="h1">{t('merchant.menu.title')}</Text>
+          </View>
           <RoundButton
             testID="btn-add-menu"
             icon="plus"
@@ -79,6 +90,18 @@ export function MerchantMenuScreen({ navigation }: Props) {
                     </Text>
                   ) : null}
                 </View>
+                {/*
+                  ปิดของหมดต้องทำได้ทันทีระหว่างวัน ไม่งั้นลูกค้าสั่งของที่ไม่มี
+                  แล้วจบที่การคืนเงิน (claude.md §6.4) ซึ่งนับเป็นความผิดของร้าน
+                */}
+                <Toggle
+                  testID={`menu-available-${m.id}`}
+                  value={m.isAvailable}
+                  accessibilityLabel={t('merchant.menu.available')}
+                  onValueChange={(isAvailable) =>
+                    restaurantId && toggle.mutate({ menuItemId: m.id, isAvailable })
+                  }
+                />
               </Card>
             ))
           )}
