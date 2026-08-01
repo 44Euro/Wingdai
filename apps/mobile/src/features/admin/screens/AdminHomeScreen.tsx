@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -6,14 +6,15 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Button } from '../../../ui/Button';
 import { Badge, Card } from '../../../ui/Surface';
+import { Field, Input } from '../../../ui/Field';
 import { formatBaht } from '../../../lib/format';
 import { useAuthStore } from '../../auth/authStore';
 import {
   useExceptions, useAdminMetrics, useOpenRefunds, useDecideRefund, useForceDispatch,
-  usePendingRestaurants, useDecideRestaurant,
+  usePendingRestaurants, useDecideRestaurant, usePendingRiders, useDecideRider,
 } from '../hooks';
 import type {
-  AdminMetrics, OrderException, RefundCase, PendingRestaurant,
+  AdminMetrics, OrderException, RefundCase, PendingRestaurant, PendingRider,
 } from '../../../data/types';
 
 /**
@@ -31,6 +32,7 @@ export function AdminHomeScreen() {
   const { data: metrics } = useAdminMetrics();
   const { data: refunds = [] } = useOpenRefunds();
   const { data: pendingShops = [] } = usePendingRestaurants();
+  const { data: pendingRiders = [] } = usePendingRiders();
   const logout = useAuthStore((s) => s.logout);
 
   return (
@@ -91,6 +93,19 @@ export function AdminHomeScreen() {
             </Text>
           ) : (
             pendingShops.map((s) => <ShopCard key={s.id} shop={s} />)
+          )}
+        </View>
+
+        <View style={{ paddingHorizontal: p.space.screen, gap: p.space.md }}>
+          <Text variant="kicker" color="muted">
+            {t('admin.riders.title')} ({pendingRiders.length})
+          </Text>
+          {pendingRiders.length === 0 ? (
+            <Text testID="admin-no-riders" variant="body" color="muted">
+              {t('admin.riders.empty')}
+            </Text>
+          ) : (
+            pendingRiders.map((r) => <RiderCard key={r.accountId} rider={r} />)
           )}
         </View>
 
@@ -309,6 +324,84 @@ function ShopCard({ shop }: { shop: PendingRestaurant }) {
 
         {decide.isError ? (
           <Text testID="shop-decide-error" variant="small" color="danger">
+            {(decide.error as Error).message}
+          </Text>
+        ) : null}
+      </View>
+    </Card>
+  );
+}
+
+/**
+ * ใบสมัครไรเดอร์ที่รอตรวจ (claude.md §7)
+ *
+ * รูปบัตร/ใบขับขี่/เล่มทะเบียน/พ.ร.บ. ยังไม่มีเพราะยังไม่ได้ต่อ Storage — แอดมินจึงยัง
+ * ตรวจเอกสารตัวจริงนอกแอป จอนี้ตรวจได้เฉพาะข้อมูลที่พิมพ์มา **ต้องเพิ่มรูปก่อนรับไรเดอร์จริง**
+ *
+ * ธง `bankNameMatches` เป็นตัวช่วยดู ไม่ใช่ตัวตัดสิน — ระบบไม่ปฏิเสธเองเพราะชื่อจริง
+ * มีคำนำหน้าและตัวสะกดต่างกันได้ (§7 ด่านกันบัญชีม้า)
+ */
+function RiderCard({ rider }: { rider: PendingRider }) {
+  const { t } = useTranslation();
+  const { primitives: p } = useTheme();
+  const decide = useDecideRider();
+  const [reason, setReason] = useState('');
+
+  return (
+    <Card testID={`pending-rider-${rider.accountId}`}>
+      <View style={{ gap: p.space.sm }}>
+        <View>
+          <Text variant="h3">{rider.fullName}</Text>
+          <Text variant="small" color="muted">{rider.phone}</Text>
+          <Text variant="small" color="muted">
+            {rider.vehicleRegistration}
+            {rider.zoneName ? ` · ${rider.zoneName}` : ''}
+          </Text>
+        </View>
+
+        <Text variant="caption" color="muted">
+          {t('admin.riders.licenceExpiry')} {rider.licenceExpiry}
+          {' · '}
+          {t('admin.riders.insuranceExpiry')} {rider.compulsoryInsuranceExpiry}
+        </Text>
+
+        <Text variant="caption" color="muted">
+          {rider.bankName} · {rider.bankAccountNumber} · {rider.bankAccountName}
+        </Text>
+
+        {!rider.bankNameMatches ? (
+          <Text testID={`bank-mismatch-${rider.accountId}`} variant="small" color="danger" bold>
+            {t('admin.riders.bankMismatch')}
+          </Text>
+        ) : null}
+
+        <Button
+          testID={`btn-approve-rider-${rider.accountId}`}
+          label={t('admin.riders.approve')}
+          disabled={decide.isPending}
+          onPress={() => decide.mutate({ accountId: rider.accountId, approve: true })}
+        />
+
+        {/* ปฏิเสธต้องมีเหตุผล ไม่งั้นไรเดอร์ไม่รู้ว่าต้องแก้อะไรแล้วส่งใหม่ */}
+        <Field label={t('admin.riders.rejectReason')}>
+          <Input
+            testID={`input-reject-reason-${rider.accountId}`}
+            accessibilityLabel={t('admin.riders.rejectReason')}
+            value={reason}
+            onChangeText={setReason}
+          />
+        </Field>
+        <Button
+          testID={`btn-reject-rider-${rider.accountId}`}
+          variant="secondary"
+          label={t('admin.riders.reject')}
+          disabled={decide.isPending || reason.trim() === ''}
+          onPress={() =>
+            decide.mutate({ accountId: rider.accountId, approve: false, rejectionReason: reason })}
+        />
+
+        {decide.isError ? (
+          <Text testID="rider-decide-error" variant="small" color="danger">
             {(decide.error as Error).message}
           </Text>
         ) : null}

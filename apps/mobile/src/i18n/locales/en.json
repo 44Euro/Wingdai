@@ -82,7 +82,13 @@
     "pending": {
       "title": "Awaiting approval",
       "description": "We're reviewing your documents. You'll hear from us within 1-2 business days.",
-      "logout": "Log out"
+      "logout": "Log out",
+      "applyTitle": "Submit your rider application",
+      "applyDescription": "Fill in your details so our team can review them — about 5 minutes",
+      "apply": "Start application",
+      "rejectedTitle": "Application not approved",
+      "rejectedDescription": "Fix the points below and submit again",
+      "resubmit": "Fix and resubmit"
     }
   },
   "roleSwitcher": {
@@ -538,6 +544,44 @@
       "history": "Completed deliveries",
       "empty": "No completed deliveries in this period yet",
       "paidCash": "Cash collected"
+    },
+    "apply": {
+      "title": "Rider application",
+      "sectionIdentity": "Identity",
+      "nationalId": "National ID number",
+      "dateOfBirth": "Date of birth",
+      "dateFormat": "Format YYYY-MM-DD, e.g. 2000-01-31",
+      "sectionVehicle": "Vehicle and licence",
+      "vehicleRegistration": "Vehicle registration",
+      "licenceExpiry": "Licence expiry",
+      "insuranceExpiry": "Compulsory insurance expiry",
+      "sectionPayout": "Payout account",
+      "bankName": "Bank",
+      "bankAccountNumber": "Account number",
+      "bankAccountName": "Account holder",
+      "bankNameNote": "Should match the name on your ID card",
+      "sectionSafety": "Emergency contact",
+      "emergencyName": "Contact name",
+      "emergencyPhone": "Contact phone",
+      "preferredZone": "Preferred zone",
+      "documentsTitle": "Original documents",
+      "documentsNote": "Bring your ID card, licence, vehicle book and insurance in person when you collect your equipment — photo upload is not available in the app yet",
+      "acceptContract": "I accept the independent contractor agreement",
+      "acceptPdpa": "I consent to my personal data being stored and used under PDPA",
+      "submit": "Submit application",
+      "incomplete": "Some fields are missing or invalid",
+      "sentTitle": "Application submitted",
+      "sentBody": "Our team will review it and call you on your verified number",
+      "error": {
+        "nationalId": "That national ID number is not valid",
+        "date": "Please use the date format shown",
+        "age": "You must be 18 or older",
+        "licenceExpired": "That licence has expired",
+        "insuranceExpired": "That insurance has expired",
+        "bankNumber": "That account number is not valid",
+        "phone": "That phone number is not valid",
+        "required": "This field is required"
+      }
     }
   },
   "admin": {
@@ -574,6 +618,16 @@
     "pendingShops": "{{count}} restaurants awaiting approval",
     "noPendingShops": "No restaurants awaiting approval",
     "shopMenuCount": "{{count}} menu items (needs at least 3)",
-    "approveShop": "Approve restaurant"
+    "approveShop": "Approve restaurant",
+    "riders": {
+      "title": "Rider applications",
+      "empty": "No applications waiting",
+      "bankMismatch": "Account holder does not match legal name — check before approving",
+      "approve": "Approve",
+      "reject": "Reject",
+      "rejectReason": "Reason for rejection",
+      "licenceExpiry": "Licence until",
+      "insuranceExpiry": "Insurance until"
+    }
   }
 }

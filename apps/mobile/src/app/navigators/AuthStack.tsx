@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../../theme/ThemeProvider';
 import { Text } from '../../ui/Text';
@@ -21,6 +22,7 @@ import {
   signInWithGoogle, GoogleCancelled, GOOGLE_SIGN_IN_AVAILABLE,
 } from '../../features/auth/google';
 import { useAuthStore } from '../../features/auth/authStore';
+import { repos } from '../../data';
 import type { AuthStackParamList } from './AuthNavigator';
 
 const LOGO_MARK = require('../../../assets/logo-mark.png');
@@ -305,10 +307,32 @@ export function LoginScreen({ navigation }: Props) {
   );
 }
 
-export function PendingApprovalScreen() {
+/**
+ * จอของไรเดอร์ที่ยังไม่ผ่านการอนุมัติ
+ *
+ * แยกสามสถานะออกจากกัน เพราะสิ่งที่ผู้ใช้ต้องทำต่อไม่เหมือนกันเลย:
+ *   none     — ยังไม่ได้ส่งใบสมัคร → ต้องกดไปกรอก **ไม่ใช่รอ**
+ *   pending  — ส่งแล้ว → รออย่างเดียว
+ *   rejected — ถูกปฏิเสธ → เห็นเหตุผล แล้วแก้แล้วส่งใหม่ได้
+ *
+ * ก่อนหน้านี้จอนี้บอกว่า "รอการอนุมัติ" กับทุกคน ซึ่งทำให้คนที่ยังไม่ได้ส่งใบสมัคร
+ * นั่งรอการอนุมัติที่ไม่มีวันมาถึง เพราะแอดมินไม่มีใบสมัครให้ตรวจ
+ */
+export function PendingApprovalScreen({ navigation }: { navigation?: { navigate: (s: never) => void } }) {
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const logout = useAuthStore((s) => s.logout);
+
+  const { data: application } = useQuery({
+    queryKey: ['rider', 'application'],
+    queryFn: () => repos.rider.application(),
+    // ส่งแล้วรออยู่ = เช็คซ้ำเป็นระยะ เพื่อให้จอเปลี่ยนเองเมื่อแอดมินกดอนุมัติ
+    refetchInterval: (q) => (q.state.data?.status === 'pending' ? 20_000 : false),
+  });
+
+  const status = application?.status ?? 'none';
+  const notSubmitted = status === 'none';
+  const rejected = status === 'rejected';
 
   return (
     <SafeAreaView
@@ -330,17 +354,44 @@ export function PendingApprovalScreen() {
             p.shadow.raised,
           ]}
         >
-          <Icon name="clock" color={tokens.brandAccent} size={50} strokeWidth={1.8} />
+          <Icon
+            name={notSubmitted ? 'edit' : rejected ? 'close' : 'clock'}
+            color={rejected ? tokens.danger : tokens.brandAccent}
+            size={50}
+            strokeWidth={1.8}
+          />
         </View>
-        <Text variant="h2" style={{ marginTop: p.space.sm, textAlign: 'center' }}>
-          {t('auth.pending.title')}
+        <Text testID="pending-title" variant="h2" style={{ marginTop: p.space.sm, textAlign: 'center' }}>
+          {t(
+            notSubmitted ? 'auth.pending.applyTitle'
+              : rejected ? 'auth.pending.rejectedTitle'
+                : 'auth.pending.title',
+          )}
         </Text>
         <Text variant="body" color="muted" style={{ textAlign: 'center' }}>
-          {t('auth.pending.description')}
+          {t(
+            notSubmitted ? 'auth.pending.applyDescription'
+              : rejected ? 'auth.pending.rejectedDescription'
+                : 'auth.pending.description',
+          )}
         </Text>
+
+        {/* ถูกปฏิเสธต้องเห็นเหตุผล ไม่งั้นส่งใหม่ก็โดนปฏิเสธด้วยเรื่องเดิม */}
+        {rejected && application?.rejectionReason ? (
+          <Text testID="rejection-reason" variant="small" color="danger" style={{ textAlign: 'center' }}>
+            {application.rejectionReason}
+          </Text>
+        ) : null}
       </View>
 
-      <View style={{ paddingHorizontal: p.space.screen, paddingBottom: p.space.lg }}>
+      <View style={{ paddingHorizontal: p.space.screen, paddingBottom: p.space.lg, gap: p.space.sm }}>
+        {(notSubmitted || rejected) && navigation ? (
+          <Button
+            testID="btn-open-application"
+            label={t(rejected ? 'auth.pending.resubmit' : 'auth.pending.apply')}
+            onPress={() => navigation.navigate('RiderApplication' as never)}
+          />
+        ) : null}
         <Button
           testID="btn-logout"
           label={t('auth.pending.logout')}

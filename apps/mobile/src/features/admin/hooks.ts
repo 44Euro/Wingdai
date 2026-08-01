@@ -56,3 +56,29 @@ export function useDecideRestaurant() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin'] }),
   });
 }
+
+/** คิวอนุมัติไรเดอร์ (§7) */
+export function usePendingRiders() {
+  return useQuery({
+    queryKey: ['admin', 'riders'],
+    queryFn: () => repos.admin.pendingRiders(),
+  });
+}
+
+/**
+ * อนุมัติ/ปฏิเสธไรเดอร์ — ปฏิเสธต้องมีเหตุผลเสมอ
+ * ล้าง ['rider'] ด้วย เพราะจอฝั่งไรเดอร์อ่านสถานะใบสมัครจาก cache ก้อนนั้น
+ */
+export function useDecideRider() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      accountId, approve, rejectionReason,
+    }: { accountId: string; approve: boolean; rejectionReason?: string }) =>
+      repos.admin.decideRider(accountId, { approve, rejectionReason }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin'] });
+      qc.invalidateQueries({ queryKey: ['rider'] });
+    },
+  });
+}

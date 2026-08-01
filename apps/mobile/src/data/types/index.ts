@@ -237,6 +237,57 @@ export interface MerchantSummary {
   restaurantCount: number;
 }
 
+/** โซนที่เปิดให้บริการ — ชนิดโซนเป็นข้อมูล ไม่ใช่ตรรกะที่แตกสาขา (claude.md §7) */
+export interface Zone {
+  id: string;
+  name: string;
+  type: 'university' | 'condo_cluster' | 'office_district' | 'mixed';
+}
+
+/** ข้อมูลในใบสมัครไรเดอร์ (design R5 · claude.md §7) */
+export interface RiderApplicationProfile {
+  nationalId: string;
+  dateOfBirth: string;
+  vehicleRegistration: string;
+  licenceExpiry: string;
+  compulsoryInsuranceExpiry: string;
+  bankName: string;
+  bankAccountNumber: string;
+  bankAccountName: string;
+  emergencyContactName: string;
+  emergencyContactPhone: string;
+  preferredZoneId: string | null;
+}
+
+/**
+ * สถานะใบสมัครไรเดอร์
+ *
+ * `none` (ยังไม่เคยส่ง) ต่างจาก `pending` (ส่งแล้วรอตรวจ) อย่างมีนัยสำคัญ —
+ * คนที่เพิ่งสมัครบัญชี rider จะเป็น `none` ถ้าจอไม่แยกสองอย่างนี้ เขาจะนั่งรอ
+ * การอนุมัติที่ไม่มีวันมาถึง เพราะแอดมินไม่มีใบสมัครให้ตรวจเลย
+ */
+export interface RiderApplication {
+  status: 'none' | RiderApprovalStatus;
+  rejectionReason: string | null;
+  profile: RiderApplicationProfile | null;
+}
+
+export interface RiderApplicationInput extends Omit<RiderApplicationProfile, 'preferredZoneId'> {
+  preferredZoneId?: string;
+  acceptContract: boolean;
+  acceptPdpa: boolean;
+}
+
+/** ใบสมัครที่รอแอดมินตรวจ */
+export interface PendingRider extends RiderApplicationProfile {
+  accountId: string;
+  fullName: string;
+  phone: string;
+  zoneName: string | null;
+  /** ชื่อบัญชีตรงกับชื่อตามกฎหมายไหม — ธงกันบัญชีม้า (§7) ไม่ใช่การตัดสินอัตโนมัติ */
+  bankNameMatches: boolean;
+}
+
 /** เหตุผลที่ลูกค้าแจ้งปัญหาได้ — ตัวที่ตัดสินว่าใครรับผิดชอบตาม claude.md §6.4 */
 export type RefundReason =
   | 'wrong_item' | 'missing_item' | 'food_quality'

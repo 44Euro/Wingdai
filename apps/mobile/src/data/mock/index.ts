@@ -3,9 +3,11 @@ import type {
 } from '../repositories';
 import type {
   Account, Address, MenuItem, Order, OrderStatus, Restaurant, RefundCase, RefundFault,
+  RiderApplication, Zone,
 } from '../types';
 import { assertTransition } from '../orderStateMachine';
 import { canOrderFromRestaurant, canPayNowWithPromptPay } from '../../lib/rules';
+import { validateDraft } from '../../lib/riderApplication';
 import { seedAccounts, seedRestaurants, seedMenuItems, seedAddresses, MOCK_PASSWORD } from './seed';
 
 /**
@@ -18,6 +20,19 @@ const QUEUE_STATUSES: OrderStatus[] = ['created', 'accepted', 'preparing'];
 export const MOCK_OTP = '123456';
 export const MOCK_VERIFICATION_TOKEN = 'mock-verification-token';
 const MOCK_GOOGLE_TOKEN = 'mock-google-token';
+
+/** โซนที่เปิดให้บริการใน mock — ของจริงมาจากตาราง zones ที่มีขอบเขต PostGIS */
+const MOCK_ZONES: Zone[] = [{ id: 'z-ari', name: 'อารีย์', type: 'mixed' }];
+
+/**
+ * ชื่อบัญชีตรงกับชื่อตามกฎหมายไหม — ธงกันบัญชีม้า (§7)
+ * ตัวจริงอยู่ที่ core-api/src/dispatch/riderApplication.ts
+ */
+function bankNameMatchesLegalName(bankAccountName: string, fullName: string): boolean {
+  const strip = (v: string) =>
+    v.replace(/(นาย|นาง|นางสาว|น\.ส\.|mr\.?|mrs\.?|ms\.?)/gi, '').replace(/\s+/g, '').toLowerCase();
+  return strip(bankAccountName) === strip(fullName);
+}
 
 export function createMockRepos(): Repos {
   // state แยกต่อ instance เพื่อให้เทสต์ไม่รบกวนกัน
@@ -32,6 +47,8 @@ export function createMockRepos(): Repos {
    * ถ้าไม่จำไว้ จอประวัติงานจะต้องเอาเวลา "ตอนสั่ง" มาโชว์เป็น "เวลาส่งถึง" ซึ่งผิด
    */
   const deliveredAtById = new Map<string, string>();
+  /** ใบสมัครไรเดอร์ในหน่วยความจำ — ของจริงคือตาราง rider_profiles */
+  const riderApplications = new Map<string, RiderApplication>();
   let seq = 0;
 
   /**
@@ -585,6 +602,55 @@ export function createMockRepos(): Repos {
         };
       },
 
+      async zones() {
+        await delay();
+        return MOCK_ZONES.map((z) => ({ ...z }));
+      },
+
+      async application() {
+        await delay();
+        const me = requireLogin();
+        return (
+          riderApplications.get(me.id)
+          ?? { status: 'none' as const, rejectionReason: null, profile: null }
+        );
+      },
+
+      async submitApplication(input) {
+        await delay();
+        const me = requireLogin();
+        // §4.1 ไรเดอร์เลือกตอนสมัครบัญชี ไม่ใช่ความสามารถที่บัญชี user เพิ่มทีหลัง
+        if (me.accountType !== 'rider') throw new Error('เฉพาะบัญชีไรเดอร์เท่านั้นที่ส่งใบสมัครนี้ได้');
+
+        const current = riderApplications.get(me.id)?.status;
+        if (current === 'approved') throw new Error('ใบสมัครได้รับการอนุมัติแล้ว แก้ไขข้อมูลเองไม่ได้');
+        if (current === 'pending') throw new Error('ส่งใบสมัครไปแล้ว กำลังรอตรวจสอบ');
+
+        // ตรวจซ้ำที่ชั้น repo เหมือนที่เซิร์ฟเวอร์ทำ ไม่ใช่เชื่อว่าจอกันไว้แล้ว
+        const errors = validateDraft({ ...input }, new Date());
+        if (Object.keys(errors).length > 0) throw new Error(Object.values(errors)[0]!);
+
+        const app: RiderApplication = {
+          status: 'pending',
+          rejectionReason: null,
+          profile: {
+            nationalId: input.nationalId.replace(/\D/g, ''),
+            dateOfBirth: input.dateOfBirth,
+            vehicleRegistration: input.vehicleRegistration.trim(),
+            licenceExpiry: input.licenceExpiry,
+            compulsoryInsuranceExpiry: input.compulsoryInsuranceExpiry,
+            bankName: input.bankName.trim(),
+            bankAccountNumber: input.bankAccountNumber.replace(/\D/g, ''),
+            bankAccountName: input.bankAccountName.trim(),
+            emergencyContactName: input.emergencyContactName.trim(),
+            emergencyContactPhone: input.emergencyContactPhone.replace(/\D/g, ''),
+            preferredZoneId: input.preferredZoneId ?? null,
+          },
+        };
+        riderApplications.set(me.id, app);
+        return app;
+      },
+
       async earnings() {
         await delay();
         const me = requireLogin();
@@ -774,6 +840,46 @@ export function createMockRepos(): Repos {
           id: shop.id, name: shop.name, isApproved: shop.isApproved,
           isOpen: shop.isOpen, prepTimeMinutes: shop.prepTimeMinutes,
         };
+      },
+
+      async pendingRiders() {
+        await delay();
+        requireLogin();
+        const out = [];
+        for (const [accountId, app] of riderApplications) {
+          if (app.status !== 'pending' || !app.profile) continue;
+          const person = accounts.find((a) => a.id === accountId);
+          if (!person) continue;
+          out.push({
+            ...app.profile,
+            accountId,
+            fullName: person.fullName,
+            phone: person.phone,
+            zoneName: MOCK_ZONES.find((z) => z.id === app.profile!.preferredZoneId)?.name ?? null,
+            // §7 ชื่อบัญชีไม่ตรงชื่อจริง = ธงบัญชีม้า ให้แอดมินดู ไม่ใช่ตัดสินอัตโนมัติ
+            bankNameMatches: bankNameMatchesLegalName(app.profile.bankAccountName, person.fullName),
+          });
+        }
+        return out;
+      },
+
+      async decideRider(accountId, input) {
+        await delay();
+        requireLogin();
+        const app = riderApplications.get(accountId);
+        if (!app) throw new Error('ไม่พบใบสมัครนี้');
+        if (!input.approve && !input.rejectionReason?.trim()) {
+          throw new Error('ต้องบอกเหตุผลที่ปฏิเสธ');
+        }
+        const next: RiderApplication = {
+          ...app,
+          status: input.approve ? 'approved' : 'rejected',
+          rejectionReason: input.approve ? null : input.rejectionReason!.trim(),
+        };
+        riderApplications.set(accountId, next);
+        const person = accounts.find((a) => a.id === accountId);
+        if (person) person.riderApproval = next.status as never;
+        return next;
       },
     },
 

@@ -249,6 +249,50 @@ async function main() {
   );
   await repos.auth.updateProfile({ fullName: before.fullName, email: before.email ?? null });
 
+  console.log('\nใบสมัครไรเดอร์ (R5)');
+
+  await repos.auth.login('rider_ann', SEED_PASSWORD);
+  const zones = await repos.rider.zones();
+  check('มีโซนที่เปิดให้บริการอย่างน้อยหนึ่งโซน', zones.length >= 1, `ได้ ${zones.length}`);
+  const app = await repos.rider.application();
+  check('ไรเดอร์ที่อนุมัติแล้วมีใบสมัครอยู่จริง', app.status === 'approved', `ได้ ${app.status}`);
+  // §7 ข้อมูลที่แอดมินตรวจแล้ว ไรเดอร์แก้เองทีหลังไม่ได้ ไม่งั้นเท่ากับล้างการตรวจทิ้ง
+  await mustReject('ไรเดอร์ที่อนุมัติแล้วแก้ใบสมัครเองไม่ได้', () =>
+    repos.rider.submitApplication({
+      nationalId: '1101700635799', dateOfBirth: '2000-01-31',
+      vehicleRegistration: '1กข 1234', licenceExpiry: '2030-12-31',
+      compulsoryInsuranceExpiry: '2030-06-30',
+      bankName: 'กสิกรไทย', bankAccountNumber: '1234567890', bankAccountName: 'แอน ใจดี',
+      emergencyContactName: 'สมหญิง', emergencyContactPhone: '0898887777',
+      acceptContract: true, acceptPdpa: true,
+    }),
+  );
+
+  await repos.auth.login('admin_root', SEED_PASSWORD);
+  const riderQueue = await repos.admin.pendingRiders();
+  check(
+    'คิวอนุมัติไรเดอร์ตอบเป็นรายการได้ และมีธงเช็คชื่อบัญชีทุกใบ',
+    Array.isArray(riderQueue) && riderQueue.every((x) => typeof x.bankNameMatches === 'boolean'),
+  );
+  check(
+    'ไม่มีใบที่อนุมัติแล้วหลุดมาอยู่ในคิวรอตรวจ',
+    !riderQueue.some((x) => x.phone === '0899999999'),
+  );
+  await repos.auth.login('somchai', SEED_PASSWORD);
+  await mustReject('บัญชีที่ไม่ใช่แอดมินเปิดคิวอนุมัติไรเดอร์ไม่ได้', () =>
+    repos.admin.pendingRiders(),
+  );
+  await mustReject('บัญชี user ส่งใบสมัครไรเดอร์ไม่ได้', () =>
+    repos.rider.submitApplication({
+      nationalId: '1101700635799', dateOfBirth: '2000-01-31',
+      vehicleRegistration: '1กข 9999', licenceExpiry: '2030-12-31',
+      compulsoryInsuranceExpiry: '2030-06-30',
+      bankName: 'กสิกรไทย', bankAccountNumber: '1234567890', bankAccountName: 'สมชาย ใจดี',
+      emergencyContactName: 'สมหญิง', emergencyContactPhone: '0898887777',
+      acceptContract: true, acceptPdpa: true,
+    }),
+  );
+
   console.log('\nGoogle sign-in');
 
   await mustReject('id_token ปลอมถูกปฏิเสธ', () => repos.auth.googleSignIn('ไม่ใช่ token จริง'));

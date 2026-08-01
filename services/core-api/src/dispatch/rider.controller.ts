@@ -4,10 +4,37 @@ import { ZodBody } from '../common/zod.pipe';
 import { JwtGuard, CurrentAccount } from '../auth/jwt.guard';
 import type { SessionClaims } from '../auth/auth.service';
 import { RiderService } from './rider.service';
+import { AdminGuard } from '../auth/admin.guard';
 
 const CoordsSchema = z.object({
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
+});
+
+/** วันที่แบบ YYYY-MM-DD — เก็บเป็น date ในฐาน ไม่ใช่ timestamp เพราะไม่มีความหมายระดับเวลา */
+const IsoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'ต้องเป็นวันที่รูปแบบ YYYY-MM-DD');
+
+/** ใบสมัครไรเดอร์ (design R5 · claude.md §7) — รูปเอกสารยังไม่มี เพราะยังไม่ได้ต่อ Storage */
+const RiderApplicationSchema = z.object({
+  nationalId: z.string().trim().min(13).max(20),
+  dateOfBirth: IsoDate,
+  vehicleRegistration: z.string().trim().min(1, 'กรุณากรอกทะเบียนรถ').max(20),
+  licenceExpiry: IsoDate,
+  compulsoryInsuranceExpiry: IsoDate,
+  bankName: z.string().trim().min(1, 'กรุณากรอกชื่อธนาคาร').max(60),
+  bankAccountNumber: z.string().trim().min(8, 'เลขบัญชีสั้นเกินไป').max(20),
+  bankAccountName: z.string().trim().min(1, 'กรุณากรอกชื่อบัญชี').max(120),
+  emergencyContactName: z.string().trim().min(1, 'กรุณากรอกชื่อผู้ติดต่อฉุกเฉิน').max(120),
+  emergencyContactPhone: z.string().trim().regex(/^0[689][0-9]{8}$/, 'เบอร์ติดต่อฉุกเฉินไม่ถูกต้อง'),
+  preferredZoneId: z.uuid().optional(),
+  /** §7 ต้องมีทั้งคู่ก่อนอนุมัติ — ตรวจซ้ำที่ service ด้วย ไม่ใช่เชื่อว่าจอบังคับติ๊กแล้ว */
+  acceptContract: z.boolean(),
+  acceptPdpa: z.boolean(),
+});
+
+const DecideApplicationSchema = z.object({
+  approve: z.boolean(),
+  rejectionReason: z.string().trim().max(500).optional(),
 });
 
 const SetOnlineSchema = z.object({
@@ -25,6 +52,31 @@ export class RiderController {
   @Get('status')
   status(@CurrentAccount() me: SessionClaims) {
     return this.rider.status(me.sub);
+  }
+
+  /** โซนที่เปิดให้บริการ — ใช้ในตัวเลือก "โซนที่อยากวิ่ง" ของใบสมัคร */
+  @Get('zones')
+  zones() {
+    return this.rider.activeZones();
+  }
+
+  /**
+   * ใบสมัครของตัวเอง (R5)
+   *
+   * ไม่ใช้ JwtGuard ระดับ approved เพราะจุดทั้งหมดของเส้นทางนี้คือคนที่ **ยังไม่อนุมัติ**
+   */
+  @Get('application')
+  application(@CurrentAccount() me: SessionClaims) {
+    return this.rider.application(me.sub);
+  }
+
+  @Post('application')
+  @HttpCode(200)
+  submitApplication(
+    @CurrentAccount() me: SessionClaims,
+    @Body(new ZodBody(RiderApplicationSchema)) body: z.infer<typeof RiderApplicationSchema>,
+  ) {
+    return this.rider.submitApplication(me.sub, body);
   }
 
   @Post('online')
@@ -75,5 +127,27 @@ export class RiderController {
   @Get('earnings')
   earnings(@CurrentAccount() me: SessionClaims) {
     return this.rider.earnings(me.sub);
+  }
+}
+
+/** คิวอนุมัติไรเดอร์ของแอดมิน (§7) — คู่กับ AdminRestaurantsController */
+@Controller('admin/riders')
+@UseGuards(JwtGuard, AdminGuard)
+export class AdminRidersController {
+  constructor(private readonly rider: RiderService) {}
+
+  @Get('pending')
+  pending() {
+    return this.rider.pendingApplications();
+  }
+
+  @Post(':accountId/approval')
+  @HttpCode(200)
+  decide(
+    @Param('accountId', ParseUUIDPipe) accountId: string,
+    @Body(new ZodBody(DecideApplicationSchema)) body: z.infer<typeof DecideApplicationSchema>,
+    @CurrentAccount() me: SessionClaims,
+  ) {
+    return this.rider.decideApplication(me.sub, accountId, body.approve, body.rejectionReason);
   }
 }

@@ -25,8 +25,8 @@ re-registering, and a rider can also order food.
 |---|---|
 | Customer | browse, search, cart, checkout, PromptPay, live tracking, order history, receipts, report a problem, addresses, payment method |
 | Merchant | order queue with accept countdown, order detail, menu + sold-out toggle, sales summary, restaurant registration |
-| Rider | go online/offline, 15-second job offers, active job, earnings + delivery history |
-| Admin | exception dashboard, semi-automated refund decisions, restaurant approvals, manual dispatch override |
+| Rider | application + approval flow, go online/offline, 15-second job offers, active job, earnings + delivery history |
+| Admin | exception dashboard, semi-automated refund decisions, restaurant and rider approvals, manual dispatch override |
 
 Backend: auth (argon2id + JWT, username-or-phone login, phone OTP, Google sign-in), catalog,
 orders with a state machine, pricing, double-entry ledger, auto-dispatch, refunds, admin.
@@ -56,6 +56,11 @@ written (`1/distance` explodes as distance → 0, and the terms had incompatible
 documents each deviation. Hard eligibility gates live in a
 [separate module](services/core-api/src/dispatch/eligibility.ts) so a "never" can't be outvoted by
 a high score.
+
+**A Thai national ID is checked by its real checksum, not its length.** Any 13 digits pass a
+length check; only 1 in 10 pass the checksum, so typos and invented numbers are caught before an
+admin ever sees them. Expired licences and insurance are rejected at submission too — otherwise
+`eligibility.ts` would silently stop offering that rider jobs and they would never learn why.
 
 **Riders never front money.** Cash collected by a rider is platform money held in
 `rider_cash_held`, not a loan from the rider. If a customer picks cash and can't pay, the app
@@ -138,10 +143,10 @@ HTTP one is a one-file change.
 ## Tests
 
 ```bash
-cd apps/mobile       && npx jest            # 338 tests — screens, stores, pricing, i18n, contrast
-cd services/core-api && npm test            # 97 tests  — ledger properties, dispatch scoring, refunds
+cd apps/mobile       && npx jest            # 347 tests — screens, stores, pricing, i18n, contrast
+cd services/core-api && npm test            # 112 tests — ledger properties, dispatch scoring, refunds
 cd services/core-api && npm run api:smoke   # 178 checks against a live database
-cd apps/mobile       && npm run api:check   # 58 checks that the app's repo contract matches the API
+cd apps/mobile       && npm run api:check   # 65 checks that the app's repo contract matches the API
 ```
 
 `api:check` is the suite that has caught the most real bugs — it drives the same repository
@@ -160,7 +165,8 @@ An honest list, because a portfolio that claims to be finished is easy to dispro
   and daily gateway reconciliation aren't built.
 - **Real payments.** PromptPay is a mocked QR screen — the payment gateway hasn't been chosen.
 - **SMS.** OTP codes are returned in the dev response instead of being sent.
-- **File storage.** Rider ID/licence photos and delivery-confirmation photos have no upload path.
+- **File storage.** Rider ID/licence photos and delivery-confirmation photos have no upload path,
+  so the rider application collects every field except the document images and says so on screen.
 - **Realtime.** Rider location and the merchant queue poll on an interval; the spec calls for
   WebSocket push and that swap hasn't happened.
 - **Rider↔customer contact.** Riders currently have no way to reach customers. The intended design

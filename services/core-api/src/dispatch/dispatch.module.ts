@@ -4,7 +4,7 @@ import { AdminGuard } from '../auth/admin.guard';
 import { DispatchService } from './dispatch.service';
 import { DispatchScheduler } from './dispatch.scheduler';
 import { RiderService } from './rider.service';
-import { RiderController } from './rider.controller';
+import { RiderController, AdminRidersController } from './rider.controller';
 import { AdminDispatchController } from './admin.controller';
 
 /**
@@ -13,7 +13,7 @@ import { AdminDispatchController } from './admin.controller';
  */
 @Module({
   imports: [AuthModule],
-  controllers: [RiderController, AdminDispatchController],
+  controllers: [RiderController, AdminDispatchController, AdminRidersController],
   providers: [DispatchService, DispatchScheduler, RiderService, AdminGuard],
   exports: [DispatchService],
 })

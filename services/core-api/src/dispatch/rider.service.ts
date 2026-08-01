@@ -1,14 +1,16 @@
 import {
   Injectable, Inject, NotFoundException, ForbiddenException, ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { and, eq, desc, inArray, isNull, sql } from 'drizzle-orm';
 import { DB, type Db } from '../db/db.module';
 import {
   accounts, riderProfiles, riderStatus, riderSessions, dispatchOffers,
-  orders, orderItems, restaurants, addresses,
+  orders, orderItems, restaurants, addresses, zones,
 } from '../db/schema';
 import { DispatchService } from './dispatch.service';
 import { MAX_ACTIVE_JOBS } from './scoring';
+import { validateRiderApplication, bankNameMatchesLegalName } from './riderApplication';
 
 /** งานที่ไรเดอร์ถืออยู่ = ยังไม่ส่งถึงและยังไม่ถูกยกเลิก */
 const ACTIVE_JOB_STATUSES = ['accepted', 'preparing', 'picked_up'] as const;
@@ -52,6 +54,206 @@ export class RiderService {
     if (row.approval !== 'approved') {
       throw new ForbiddenException({ message: 'บัญชีไรเดอร์ยังรออนุมัติ' });
     }
+  }
+
+  /** โซนที่เปิดให้บริการ — ใบสมัครต้องเลือกโซนที่อยากวิ่ง (claude.md §7) */
+  async activeZones() {
+    return this.db
+      .select({ id: zones.id, name: zones.name, type: zones.type })
+      .from(zones)
+      .where(eq(zones.isActive, true))
+      .orderBy(zones.name);
+  }
+
+  /**
+   * ใบสมัครไรเดอร์ของบัญชีนี้ (design R5)
+   *
+   * `status: 'none'` = ยังไม่เคยส่ง ซึ่งเป็นสถานะของทุกคนที่เพิ่งสมัครบัญชี rider
+   * ต่างจาก `'pending'` ที่แปลว่าส่งแล้วรอแอดมิน — จอต้องแยกสองอย่างนี้ให้ออก
+   * ไม่งั้นคนที่ยังไม่ได้ส่งจะนั่งรอการอนุมัติที่ไม่มีวันมาถึง
+   */
+  async application(accountId: string) {
+    const [row] = await this.db
+      .select()
+      .from(riderProfiles)
+      .where(eq(riderProfiles.accountId, accountId))
+      .limit(1);
+
+    if (!row) return { status: 'none' as const, profile: null, rejectionReason: null };
+
+    return {
+      status: row.approval,
+      rejectionReason: row.rejectionReason,
+      profile: {
+        nationalId: row.nationalId,
+        dateOfBirth: row.dateOfBirth,
+        vehicleRegistration: row.vehicleRegistration,
+        licenceExpiry: row.licenceExpiry,
+        compulsoryInsuranceExpiry: row.compulsoryInsuranceExpiry,
+        bankName: row.bankName,
+        bankAccountNumber: row.bankAccountNumber,
+        bankAccountName: row.bankAccountName,
+        emergencyContactName: row.emergencyContactName,
+        emergencyContactPhone: row.emergencyContactPhone,
+        preferredZoneId: row.preferredZoneId,
+      },
+    };
+  }
+
+  /**
+   * ส่ง/ส่งใหม่ใบสมัครไรเดอร์
+   *
+   * ส่งใหม่ได้เฉพาะตอนยังไม่ส่ง หรือถูกปฏิเสธไปแล้ว — คนที่อนุมัติแล้วแก้ข้อมูลตรงนี้ไม่ได้
+   * เพราะข้อมูลชุดนี้คือสิ่งที่แอดมินตรวจแล้ว การให้แก้เองทีหลังเท่ากับล้างการตรวจทิ้ง
+   */
+  async submitApplication(
+    accountId: string,
+    input: {
+      nationalId: string;
+      dateOfBirth: string;
+      vehicleRegistration: string;
+      licenceExpiry: string;
+      compulsoryInsuranceExpiry: string;
+      bankName: string;
+      bankAccountNumber: string;
+      bankAccountName: string;
+      emergencyContactName: string;
+      emergencyContactPhone: string;
+      preferredZoneId?: string;
+      acceptContract: boolean;
+      acceptPdpa: boolean;
+    },
+  ) {
+    const [account] = await this.db
+      .select({ accountType: accounts.accountType, fullName: accounts.fullName })
+      .from(accounts)
+      .where(eq(accounts.id, accountId))
+      .limit(1);
+
+    // บัญชี user เดินเส้นทางนี้ไม่ได้ — ไรเดอร์เลือกตอนสมัครบัญชี ไม่ใช่ความสามารถที่เพิ่มทีหลัง (§4.1)
+    if (account?.accountType !== 'rider') {
+      throw new ForbiddenException({ message: 'เฉพาะบัญชีไรเดอร์เท่านั้นที่ส่งใบสมัครนี้ได้' });
+    }
+
+    const existing = await this.application(accountId);
+    if (existing.status === 'approved') {
+      throw new ConflictException({ message: 'ใบสมัครได้รับการอนุมัติแล้ว แก้ไขข้อมูลเองไม่ได้' });
+    }
+    if (existing.status === 'pending') {
+      throw new ConflictException({ message: 'ส่งใบสมัครไปแล้ว กำลังรอตรวจสอบ' });
+    }
+
+    // §7 ทั้งสัญญาผู้รับจ้างอิสระและความยินยอม PDPA ต้องมีก่อนอนุมัติ — ไม่มีก็ไม่รับใบสมัคร
+    if (!input.acceptContract || !input.acceptPdpa) {
+      throw new BadRequestException({
+        fields: {
+          ...(input.acceptContract ? {} : { acceptContract: 'ต้องยอมรับสัญญาผู้รับจ้างอิสระ' }),
+          ...(input.acceptPdpa ? {} : { acceptPdpa: 'ต้องยินยอมให้เก็บข้อมูลตาม PDPA' }),
+        },
+      });
+    }
+
+    const fields = validateRiderApplication(input, new Date());
+    if (Object.keys(fields).length > 0) throw new BadRequestException({ fields });
+
+    if (input.preferredZoneId) {
+      const [zone] = await this.db
+        .select({ id: zones.id })
+        .from(zones)
+        .where(and(eq(zones.id, input.preferredZoneId), eq(zones.isActive, true)))
+        .limit(1);
+      if (!zone) throw new BadRequestException({ fields: { preferredZoneId: 'ไม่พบโซนนี้' } });
+    }
+
+    const now = new Date();
+    const values = {
+      accountId,
+      approval: 'pending' as const,
+      // ส่งใหม่หลังถูกปฏิเสธ ต้องล้างเหตุผลเก่าทิ้ง ไม่งั้นจอจะโชว์เหตุผลของรอบก่อนค้างไว้
+      rejectionReason: null,
+      nationalId: input.nationalId.replace(/\D/g, ''),
+      dateOfBirth: input.dateOfBirth,
+      vehicleRegistration: input.vehicleRegistration.trim(),
+      licenceExpiry: input.licenceExpiry,
+      compulsoryInsuranceExpiry: input.compulsoryInsuranceExpiry,
+      bankName: input.bankName.trim(),
+      bankAccountNumber: input.bankAccountNumber.replace(/\D/g, ''),
+      bankAccountName: input.bankAccountName.trim(),
+      emergencyContactName: input.emergencyContactName.trim(),
+      emergencyContactPhone: input.emergencyContactPhone.replace(/\D/g, ''),
+      preferredZoneId: input.preferredZoneId ?? null,
+      contractSignedAt: now,
+      pdpaConsentAt: now,
+    };
+
+    await this.db
+      .insert(riderProfiles)
+      .values(values)
+      .onConflictDoUpdate({ target: riderProfiles.accountId, set: values });
+
+    return this.application(accountId);
+  }
+
+  /**
+   * ใบสมัครที่รอแอดมินตรวจ (§7)
+   *
+   * แนบ `bankNameMatches` มาด้วย — ชื่อบัญชีที่ไม่ตรงกับชื่อตามกฎหมายคือสัญญาณบัญชีม้า
+   * ระบบไม่ตัดสินให้เอง แค่ชูธงไว้ เพราะชื่อจริงมีคำนำหน้าและตัวสะกดต่างกันได้
+   */
+  async pendingApplications() {
+    const rows = await this.db
+      .select({
+        accountId: riderProfiles.accountId,
+        fullName: accounts.fullName,
+        phone: accounts.phone,
+        nationalId: riderProfiles.nationalId,
+        dateOfBirth: riderProfiles.dateOfBirth,
+        vehicleRegistration: riderProfiles.vehicleRegistration,
+        licenceExpiry: riderProfiles.licenceExpiry,
+        compulsoryInsuranceExpiry: riderProfiles.compulsoryInsuranceExpiry,
+        bankName: riderProfiles.bankName,
+        bankAccountNumber: riderProfiles.bankAccountNumber,
+        bankAccountName: riderProfiles.bankAccountName,
+        emergencyContactName: riderProfiles.emergencyContactName,
+        emergencyContactPhone: riderProfiles.emergencyContactPhone,
+        zoneName: zones.name,
+      })
+      .from(riderProfiles)
+      .innerJoin(accounts, eq(accounts.id, riderProfiles.accountId))
+      .leftJoin(zones, eq(zones.id, riderProfiles.preferredZoneId))
+      .where(eq(riderProfiles.approval, 'pending'))
+      .orderBy(riderProfiles.accountId);
+
+    return rows.map((r) => ({
+      ...r,
+      bankNameMatches: bankNameMatchesLegalName(r.bankAccountName, r.fullName),
+    }));
+  }
+
+  /** แอดมินอนุมัติ/ปฏิเสธ — ปฏิเสธต้องมีเหตุผล ไม่งั้นไรเดอร์ไม่รู้ว่าต้องแก้อะไรแล้วส่งใหม่ */
+  async decideApplication(
+    adminAccountId: string,
+    riderAccountId: string,
+    approve: boolean,
+    rejectionReason?: string,
+  ) {
+    if (!approve && !rejectionReason?.trim()) {
+      throw new BadRequestException({ fields: { rejectionReason: 'ต้องบอกเหตุผลที่ปฏิเสธ' } });
+    }
+
+    const [row] = await this.db
+      .update(riderProfiles)
+      .set({
+        approval: approve ? 'approved' : 'rejected',
+        approvedAt: approve ? new Date() : null,
+        approvedByAccountId: adminAccountId,
+        rejectionReason: approve ? null : rejectionReason!.trim(),
+      })
+      .where(eq(riderProfiles.accountId, riderAccountId))
+      .returning({ accountId: riderProfiles.accountId });
+
+    if (!row) throw new NotFoundException({ message: 'ไม่พบใบสมัครนี้' });
+    return this.application(riderAccountId);
   }
 
   async status(accountId: string) {

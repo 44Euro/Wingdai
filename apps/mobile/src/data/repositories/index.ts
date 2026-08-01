@@ -2,7 +2,7 @@ import type {
   Account, AccountType, Address, MenuItem, MerchantOrder, MerchantRestaurant,
   Order, OrderStatus, PaymentMethod, Restaurant, RiderJob, RiderStatus, RiderEarnings,
   RefundCase, RefundReason, RefundFault, OrderException, AdminMetrics, PendingRestaurant,
-  MerchantSummary,
+  MerchantSummary, Zone, RiderApplication, RiderApplicationInput, PendingRider,
 } from '../types';
 
 /** ฟอร์มเปิดร้าน (claude.md §4.3) — รูปหน้าร้าน/เอกสารยังไม่มี เพราะยังไม่ได้ต่อ Storage */
@@ -161,6 +161,11 @@ export interface RiderRepo {
   stats(): Promise<{ hours: number; delivered: number; ordersPerHour: number | null }>;
   /** จอรายได้ + ประวัติงาน 7 วันล่าสุด (design R4 · R6) */
   earnings(): Promise<RiderEarnings>;
+  /** โซนที่เปิดให้บริการ — ตัวเลือกในใบสมัคร */
+  zones(): Promise<Zone[]>;
+  /** ใบสมัครของตัวเอง (R5) — เรียกได้ตั้งแต่ยังไม่อนุมัติ ต่างจากเมธอดอื่นในนี้ */
+  application(): Promise<RiderApplication>;
+  submitApplication(input: RiderApplicationInput): Promise<RiderApplication>;
 }
 
 export interface RefundRepo {
@@ -188,6 +193,12 @@ export interface AdminRepo {
   forceDispatch(orderId: string): Promise<{ offered: boolean; reason: string | null }>;
   pendingRestaurants(): Promise<PendingRestaurant[]>;
   decideRestaurant(restaurantId: string, approve: boolean): Promise<MerchantRestaurant>;
+  /** คิวอนุมัติไรเดอร์ (§7) — ปฏิเสธต้องมีเหตุผล ไม่งั้นไรเดอร์ไม่รู้ว่าต้องแก้อะไร */
+  pendingRiders(): Promise<PendingRider[]>;
+  decideRider(
+    accountId: string,
+    input: { approve: boolean; rejectionReason?: string },
+  ): Promise<RiderApplication>;
 }
 
 export interface Repos {

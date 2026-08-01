@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useAuthStore } from '../features/auth/authStore';
-import { PendingApprovalScreen } from './navigators/AuthStack';
+import { RiderOnboardingStack } from './navigators/RiderOnboardingStack';
 import { AuthNavigator } from './navigators/AuthNavigator';
 import { RiderStack } from './navigators/RiderStack';
 import { AdminHomeScreen } from '../features/admin/screens/AdminHomeScreen';
@@ -33,7 +33,7 @@ export function RootNavigator() {
   if (!account) return <AuthNavigator />;
 
   // ไรเดอร์ที่ยังไม่อนุมัติ: ไม่มี capability ใดเลย เข้าได้แค่หน้ารออนุมัติ
-  if (capabilities.length === 0) return <PendingApprovalScreen />;
+  if (capabilities.length === 0) return <RiderOnboardingStack />;
 
   switch (active) {
     case 'admin':
@@ -45,6 +45,6 @@ export function RootNavigator() {
     case 'customer':
       return <CustomerStack />;
     default:
-      return <PendingApprovalScreen />;
+      return <RiderOnboardingStack />;
   }
 }

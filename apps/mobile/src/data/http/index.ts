@@ -5,7 +5,7 @@ import type {
 import type {
   Account, Address, MenuItem, MerchantOrder, MerchantRestaurant, Order, OrderStatus,
   Restaurant, RiderJob, RiderStatus, RiderEarnings, RefundCase, OrderException, AdminMetrics,
-  PendingRestaurant, MerchantSummary,
+  PendingRestaurant, MerchantSummary, Zone, RiderApplication, PendingRider,
 } from '../types';
 import { createClient, ApiError } from './client';
 import type { TokenStore } from './tokenStore';
@@ -265,6 +265,20 @@ export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
       async earnings(): Promise<RiderEarnings> {
         return request<RiderEarnings>('/rider/earnings', { token: auth() });
       },
+
+      async zones(): Promise<Zone[]> {
+        return request<Zone[]>('/rider/zones', { token: auth() });
+      },
+
+      async application(): Promise<RiderApplication> {
+        return request<RiderApplication>('/rider/application', { token: auth() });
+      },
+
+      async submitApplication(input): Promise<RiderApplication> {
+        return request<RiderApplication>('/rider/application', {
+          method: 'POST', body: input, token: auth(),
+        });
+      },
     },
 
     refunds: {
@@ -305,6 +319,16 @@ export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
       async decideRestaurant(restaurantId, approve): Promise<MerchantRestaurant> {
         return request<MerchantRestaurant>(`/admin/restaurants/${restaurantId}/approval`, {
           method: 'POST', body: { approve }, token: auth(),
+        });
+      },
+
+      async pendingRiders(): Promise<PendingRider[]> {
+        return request<PendingRider[]>('/admin/riders/pending', { token: auth() });
+      },
+
+      async decideRider(accountId, input): Promise<RiderApplication> {
+        return request<RiderApplication>(`/admin/riders/${accountId}/approval`, {
+          method: 'POST', body: input, token: auth(),
         });
       },
     },
