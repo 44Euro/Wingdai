@@ -76,6 +76,11 @@ export interface AuthRepo {
   /** เปิดแอปมาแล้วยังมีเซสชันค้างอยู่ไหม — null = ต้องล็อกอินใหม่ */
   restore(): Promise<Account | null>;
   logout(): Promise<void>;
+  /**
+   * C21 แก้โปรไฟล์ — แก้ได้แค่ชื่อกับอีเมล
+   * เบอร์ผ่าน OTP มาแล้ว และ username คือ identifier ที่ใช้ล็อกอิน จึงแก้ทางนี้ไม่ได้
+   */
+  updateProfile(input: { fullName: string; email: string | null }): Promise<Account>;
 }
 
 /** ข้อมูลเมนูใหม่จากหน้าเพิ่มเมนูของร้าน (ยังไม่มี id — repo เป็นคนตั้ง) */

@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, HttpCode } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, UseGuards, HttpCode } from '@nestjs/common';
 import { ZodBody } from '../common/zod.pipe';
 import { AuthService, type PublicAccount, type SessionClaims } from './auth.service';
 import { OtpService } from './otp.service';
@@ -10,6 +10,7 @@ import {
   LoginSchema, type LoginInput,
   GoogleSignInSchema, type GoogleSignInInput,
   GoogleRegisterSchema, type GoogleRegisterInput,
+  UpdateProfileSchema, type UpdateProfileInput,
 } from './dto';
 
 /**
@@ -67,5 +68,18 @@ export class AuthController {
   @UseGuards(JwtGuard)
   me(@CurrentAccount() claims: SessionClaims): Promise<PublicAccount> {
     return this.auth.publicAccount(claims.sub);
+  }
+
+  /** C21 แก้โปรไฟล์ — เบอร์กับชื่อผู้ใช้แก้ทางนี้ไม่ได้ ดูเหตุผลใน auth.service */
+  @Patch('me')
+  @UseGuards(JwtGuard)
+  updateMe(
+    @CurrentAccount() claims: SessionClaims,
+    @Body(new ZodBody(UpdateProfileSchema)) body: UpdateProfileInput,
+  ): Promise<PublicAccount> {
+    return this.auth.updateProfile(claims.sub, {
+      fullName: body.fullName,
+      email: body.email ?? null,
+    });
   }
 }

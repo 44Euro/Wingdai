@@ -87,6 +87,31 @@ export function ProfileScreen({ navigation }: Props) {
           {/* รายการตั้งค่าในการ์ดขาวใบเดียว มีเส้นคั่นบาง ๆ ตาม design */}
           <Card padded={false} style={{ overflow: 'hidden' }}>
             <Pressable
+              testID="btn-edit-profile"
+              accessibilityRole="button"
+              onPress={() => navigation.navigate('EditProfile')}
+              style={({ pressed }) => ({
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: p.space.lg,
+                paddingHorizontal: p.space.card,
+                paddingVertical: 15,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <IconChip name="edit" tone="brand" size={36} />
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text variant="small" bold>{t('customer.editProfile.title')}</Text>
+                <Text variant="caption" color="muted" numberOfLines={1}>
+                  {t('customer.editProfile.subtitle')}
+                </Text>
+              </View>
+              <Icon name="chevronRight" color={tokens.textFaint} size={18} strokeWidth={2.4} />
+            </Pressable>
+
+            <View style={{ height: 1, backgroundColor: tokens.borderSubtle, marginLeft: 66 }} />
+
+            <Pressable
               testID="btn-payment-method"
               accessibilityRole="button"
               onPress={() => navigation.navigate('PaymentMethod')}

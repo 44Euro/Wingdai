@@ -349,6 +349,18 @@
         "other": "Something else"
       },
       "entry": "Something wrong with this order"
+    },
+    "editProfile": {
+      "title": "Edit profile",
+      "subtitle": "Your name and password-reset email",
+      "fullName": "Full name",
+      "email": "Email",
+      "emailHint": "Used only for password resets — can be left empty",
+      "emailInvalid": "That email is not valid",
+      "username": "Username",
+      "phone": "Phone",
+      "lockedNote": "Username and phone cannot be changed here — the username is your login, and the phone was verified by OTP",
+      "saved": "Saved"
     }
   },
   "order": {

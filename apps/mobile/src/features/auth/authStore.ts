@@ -23,6 +23,8 @@ type AuthState = {
   /** เปิดแอปมาแล้วเช็คว่ายังล็อกอินอยู่ไหม */
   restore: () => Promise<void>;
   logout: () => Promise<void>;
+  /** C21 — แก้ชื่อ/อีเมล แล้วอัปเดตบัญชีในสโตร์ทันที เพราะทุกจอที่โชว์ชื่ออ่านจากตรงนี้ */
+  updateProfile: (input: { fullName: string; email: string | null }) => Promise<void>;
   setActiveCapability: (cap: Capability) => void;
 };
 
@@ -110,6 +112,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   async logout() {
     await repos.auth.logout();
     set({ ...signedOut, isLoading: false, error: null });
+  },
+
+  /*
+   * ไม่แตะ capabilities/restaurants — แก้ชื่อกับอีเมลไม่ได้เปลี่ยนสิทธิ์อะไรเลย
+   * โยน error ต่อให้จอจัดการ เพราะอีเมลซ้ำต้องขึ้นใต้ช่องอีเมล ไม่ใช่กลายเป็น error ของทั้งสโตร์
+   */
+  async updateProfile(input) {
+    const account = await repos.auth.updateProfile(input);
+    set({ account });
   },
 
   setActiveCapability(cap) {

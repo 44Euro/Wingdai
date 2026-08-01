@@ -259,6 +259,44 @@ export class AuthService {
    * ใส่ ownedRestaurantIds มาด้วยเพราะแอปใช้ค่านี้ตัดสินว่าจะโชว์ปุ่มสลับไปโหมดร้านไหม
    * (claude.md §4.3 merchant เป็นความสามารถ ไม่ใช่ประเภทบัญชี)
    */
+  /**
+   * แก้โปรไฟล์ (design C21)
+   *
+   * แก้ได้แค่ **ชื่อ** กับ **อีเมล** โดยตั้งใจ:
+   * - `phone` เป็นเบอร์ที่ผ่าน OTP มาแล้ว การให้แก้ตรงนี้เท่ากับล้างการยืนยันทิ้ง
+   *   ถ้าจะเปลี่ยนเบอร์ต้องเดินเส้นทาง OTP ใหม่ทั้งเส้น (claude.md §4.2)
+   * - `username` เป็น identifier ที่ใช้ล็อกอิน เปลี่ยนแล้วผู้ใช้จะเข้าไม่ได้
+   *
+   * อีเมลว่างแปลว่า "ลบอีเมลออก" ไม่ใช่ "ไม่แก้" — จอส่งค่ามาเสมอเมื่อผู้ใช้กดบันทึก
+   */
+  async updateProfile(
+    accountId: string,
+    input: { fullName: string; email: string | null },
+  ): Promise<PublicAccount> {
+    const email = input.email?.trim() ? input.email.trim().toLowerCase() : null;
+
+    if (email) {
+      // อีเมลเป็นช่องทางรีเซ็ตรหัสผ่าน สองบัญชีใช้เบอร์เดียวกันไม่ได้ฉันใด อีเมลก็ฉันนั้น
+      const clash = await this.db
+        .select({ id: accounts.id })
+        .from(accounts)
+        .where(eq(accounts.email, email))
+        .limit(1);
+      if (clash[0] && clash[0].id !== accountId) {
+        throw new ConflictException({ fields: { email: 'อีเมลนี้มีคนใช้แล้ว' } });
+      }
+    }
+
+    const [row] = await this.db
+      .update(accounts)
+      .set({ fullName: input.fullName.trim(), email })
+      .where(eq(accounts.id, accountId))
+      .returning({ id: accounts.id });
+
+    if (!row) throw new UnauthorizedException({ message: 'ไม่พบบัญชีนี้' });
+    return this.publicAccount(accountId);
+  }
+
   async publicAccount(accountId: string): Promise<PublicAccount> {
     const [row] = await this.db.select().from(accounts).where(eq(accounts.id, accountId)).limit(1);
     if (!row) throw new UnauthorizedException({ message: 'ไม่พบบัญชีนี้' });

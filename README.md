@@ -138,10 +138,10 @@ HTTP one is a one-file change.
 ## Tests
 
 ```bash
-cd apps/mobile       && npx jest            # 333 tests — screens, stores, pricing, i18n, contrast
+cd apps/mobile       && npx jest            # 338 tests — screens, stores, pricing, i18n, contrast
 cd services/core-api && npm test            # 97 tests  — ledger properties, dispatch scoring, refunds
 cd services/core-api && npm run api:smoke   # 178 checks against a live database
-cd apps/mobile       && npm run api:check   # 53 checks that the app's repo contract matches the API
+cd apps/mobile       && npm run api:check   # 58 checks that the app's repo contract matches the API
 ```
 
 `api:check` is the suite that has caught the most real bugs — it drives the same repository

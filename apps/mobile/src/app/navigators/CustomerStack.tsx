@@ -20,6 +20,7 @@ import { SearchScreen } from '../../features/customer/screens/SearchScreen';
 import { AddressesScreen } from '../../features/customer/screens/AddressesScreen';
 import { AddAddressScreen } from '../../features/customer/screens/AddAddressScreen';
 import { OpenRestaurantScreen } from '../../features/merchant/screens/OpenRestaurantScreen';
+import { EditProfileScreen } from '../../features/customer/screens/EditProfileScreen';
 import { ReportProblemScreen } from '../../features/customer/screens/ReportProblemScreen';
 import { ReceiptScreen } from '../../features/customer/screens/ReceiptScreen';
 import { PaymentMethodScreen } from '../../features/customer/screens/PaymentMethodScreen';
@@ -52,6 +53,8 @@ export type CustomerStackParamList = {
   ReportProblem: { orderId: string };
   /** §4.3 ร้านเป็นความสามารถบนบัญชีเดิม จอนี้จึงอยู่ใน stack ลูกค้า ไม่ใช่ stack แยก */
   OpenRestaurant: undefined;
+  /** C21 แก้ชื่อ/อีเมล — เบอร์กับ username แก้ที่นี่ไม่ได้ */
+  EditProfile: undefined;
   Search: undefined;
   /** C9 — ที่อยู่จัดส่งที่บันทึกไว้ */
   Addresses: undefined;
@@ -109,6 +112,7 @@ export function CustomerStack() {
       <Stack.Screen name="Receipt" component={ReceiptScreen} />
       <Stack.Screen name="ReportProblem" component={ReportProblemScreen} />
       <Stack.Screen name="OpenRestaurant" component={OpenRestaurantScreen} />
+      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
     </Stack.Navigator>
   );
 }

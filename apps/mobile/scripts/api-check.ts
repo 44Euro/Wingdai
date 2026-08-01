@@ -235,6 +235,20 @@ async function main() {
 
   await repos.auth.login('somchai', SEED_PASSWORD);
 
+  console.log('\nแก้โปรไฟล์ (C21)');
+
+  const before = (await repos.auth.restore())!;
+  const renamed = await repos.auth.updateProfile({ fullName: 'สมชาย ใจกล้า', email: null });
+  check('แก้ชื่อได้', renamed.fullName === 'สมชาย ใจกล้า');
+  check('ลบอีเมลออกได้', !renamed.email);
+  // §4.2 เบอร์ผ่าน OTP แล้วและ username เป็น identifier ที่ใช้ล็อกอิน — เส้นทางนี้ต้องแตะไม่ได้
+  check('เบอร์ไม่ถูกแก้ตามไปด้วย', renamed.phone === before.phone);
+  check('ชื่อผู้ใช้ไม่ถูกแก้ตามไปด้วย', renamed.username === before.username);
+  await mustReject('ชื่อว่างถูกปฏิเสธ', () =>
+    repos.auth.updateProfile({ fullName: '   ', email: null }),
+  );
+  await repos.auth.updateProfile({ fullName: before.fullName, email: before.email ?? null });
+
   console.log('\nGoogle sign-in');
 
   await mustReject('id_token ปลอมถูกปฏิเสธ', () => repos.auth.googleSignIn('ไม่ใช่ token จริง'));

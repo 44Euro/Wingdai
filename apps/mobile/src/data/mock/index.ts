@@ -174,6 +174,23 @@ export function createMockRepos(): Repos {
         await delay();
         current = null;
       },
+
+      async updateProfile(input) {
+        await delay();
+        const me = requireLogin();
+        const email = input.email?.trim() ? input.email.trim().toLowerCase() : null;
+
+        // อีเมลเป็นช่องทางรีเซ็ตรหัสผ่าน — สองบัญชีใช้ซ้ำกันไม่ได้ เหมือนที่เซิร์ฟเวอร์เช็ค
+        if (email && accounts.some((a) => a.id !== me.id && a.email === email)) {
+          throw new Error('อีเมลนี้มีคนใช้แล้ว');
+        }
+
+        const row = accounts.find((a) => a.id === me.id)!;
+        row.fullName = input.fullName.trim();
+        row.email = email ?? undefined;
+        current = { ...row };
+        return { ...row };
+      },
     },
 
     catalog: {

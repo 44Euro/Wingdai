@@ -72,3 +72,17 @@ export const LoginSchema = z.object({
   password: z.string().min(1, 'กรุณากรอกรหัสผ่าน').max(PASSWORD_MAX_LENGTH),
 });
 export type LoginInput = z.infer<typeof LoginSchema>;
+
+/**
+ * C21 แก้โปรไฟล์ — มีแค่สองช่องโดยตั้งใจ
+ *
+ * `phone` ผ่าน OTP มาแล้ว และ `username` เป็น identifier ที่ใช้ล็อกอิน
+ * ทั้งคู่จึงไม่อยู่ในสคีมานี้ (ดูเหตุผลเต็มที่ auth.service.updateProfile)
+ *
+ * อีเมลรับสตริงว่างได้ เพราะ "ลบอีเมลออก" ต้องทำได้ — ต่างจากตอนสมัครที่ไม่ส่งช่องนี้มาเลย
+ */
+export const UpdateProfileSchema = z.object({
+  fullName: z.string().trim().min(1, 'กรุณากรอกชื่อ-นามสกุล').max(120),
+  email: z.union([z.email('อีเมลไม่ถูกต้อง').max(254), z.literal('')]).optional(),
+});
+export type UpdateProfileInput = z.infer<typeof UpdateProfileSchema>;

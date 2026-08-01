@@ -94,6 +94,15 @@ export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
       async logout() {
         await session.clear();
       },
+
+      async updateProfile(input): Promise<Account> {
+        return request<Account>('/auth/me', {
+          method: 'PATCH',
+          // อีเมลว่างส่งเป็นสตริงว่าง = สั่งลบ ไม่ใช่ "ไม่แก้"
+          body: { fullName: input.fullName, email: input.email ?? '' },
+          token: auth(),
+        });
+      },
     },
 
     catalog: {
