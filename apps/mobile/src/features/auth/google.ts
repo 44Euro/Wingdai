@@ -7,6 +7,11 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 const WEB_CLIENT_ID = '604454119763-53piv5sil6qe42p69pjcpmntou3s86q5.apps.googleusercontent.com';
 const IOS_CLIENT_ID = '604454119763-km1m49afqj081oin5tincocas48111o5.apps.googleusercontent.com';
 
+/**
+ * เนทีฟมีโมดูลนี้เสมอ — ฝั่งเว็บ (`google.web.ts`) ประกาศเป็น false แล้วจอล็อกอินจะซ่อนปุ่มให้
+ */
+export const GOOGLE_SIGN_IN_AVAILABLE = true;
+
 let configured = false;
 
 /**

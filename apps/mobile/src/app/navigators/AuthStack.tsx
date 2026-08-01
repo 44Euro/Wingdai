@@ -17,7 +17,9 @@ import { Button } from '../../ui/Button';
 import { Icon } from '../../ui/Icon';
 import { Input, Field } from '../../ui/Field';
 import { GoogleGIcon } from '../../ui/GoogleGIcon';
-import { signInWithGoogle, GoogleCancelled } from '../../features/auth/google';
+import {
+  signInWithGoogle, GoogleCancelled, GOOGLE_SIGN_IN_AVAILABLE,
+} from '../../features/auth/google';
 import { useAuthStore } from '../../features/auth/authStore';
 import type { AuthStackParamList } from './AuthNavigator';
 
@@ -236,32 +238,40 @@ export function LoginScreen({ navigation }: Props) {
               onPress={() => login(identifier, password)}
             />
 
-            {/* เส้นคั่น "หรือ" */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: p.space.md, marginVertical: p.space.xs }}>
-              <View style={{ flex: 1, height: 1, backgroundColor: tokens.borderSubtle }} />
-              <Text variant="caption" color="muted">
-                {t('auth.login.or')}
-              </Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: tokens.borderSubtle }} />
-            </View>
+            {/*
+              บนเว็บไม่มีโมดูลเนทีฟของ Google — ซ่อนทั้งเส้นคั่นและปุ่ม ไม่ใช่โชว์ปุ่มที่กดแล้ว error
+              (claude.md §10 "ห้ามปล่อย UI ที่กดแล้วไม่เกิดอะไร")
+            */}
+            {GOOGLE_SIGN_IN_AVAILABLE ? (
+              <>
+                {/* เส้นคั่น "หรือ" */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: p.space.md, marginVertical: p.space.xs }}>
+                  <View style={{ flex: 1, height: 1, backgroundColor: tokens.borderSubtle }} />
+                  <Text variant="caption" color="muted">
+                    {t('auth.login.or')}
+                  </Text>
+                  <View style={{ flex: 1, height: 1, backgroundColor: tokens.borderSubtle }} />
+                </View>
 
-            <GoogleButton
-              testID="btn-google"
-              label={t('auth.login.google')}
-              disabled={googleBusy}
-              onPress={handleGoogle}
-            />
+                <GoogleButton
+                  testID="btn-google"
+                  label={t('auth.login.google')}
+                  disabled={googleBusy}
+                  onPress={handleGoogle}
+                />
 
-            {googleError ? (
-              <Text
-                testID="google-error"
-                variant="caption"
-                color="danger"
-                bold
-                style={{ textAlign: 'center' }}
-              >
-                {t(googleError)}
-              </Text>
+                {googleError ? (
+                  <Text
+                    testID="google-error"
+                    variant="caption"
+                    color="danger"
+                    bold
+                    style={{ textAlign: 'center' }}
+                  >
+                    {t(googleError)}
+                  </Text>
+                ) : null}
+              </>
             ) : null}
           </View>
 

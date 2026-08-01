@@ -10,6 +10,7 @@ import {
 } from '@expo-google-fonts/ibm-plex-sans-thai';
 import { ThemeProvider } from './src/theme/ThemeProvider';
 import { RootNavigator } from './src/app/RootNavigator';
+import { WebFrame } from './src/app/WebFrame';
 import { initI18n } from './src/i18n';
 
 const queryClient = new QueryClient();
@@ -35,9 +36,12 @@ export default function App() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <NavigationContainer>
-            <RootNavigator />
-          </NavigationContainer>
+          {/* บนเว็บบีบแอปไว้ที่ความกว้างมือถือแล้ววางกลางจอ · บนมือถือไม่ทำอะไร */}
+          <WebFrame>
+            <NavigationContainer>
+              <RootNavigator />
+            </NavigationContainer>
+          </WebFrame>
         </ThemeProvider>
       </QueryClientProvider>
     </SafeAreaProvider>
