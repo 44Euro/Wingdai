@@ -66,13 +66,22 @@ export function MerchantOrdersScreen({ navigation }: Props) {
               </Text>
             ) : null}
           </View>
-          <RoundButton
-            testID="btn-go-menu"
-            icon="menu"
-            tone="surface"
-            accessibilityLabel={t('merchant.menu.title')}
-            onPress={() => navigation.navigate('MerchantMenu')}
-          />
+          <View style={{ flexDirection: 'row', gap: p.space.sm }}>
+            <RoundButton
+              testID="btn-go-summary"
+              icon="history"
+              tone="surface"
+              accessibilityLabel={t('merchant.summary.title')}
+              onPress={() => navigation.navigate('MerchantSummary')}
+            />
+            <RoundButton
+              testID="btn-go-menu"
+              icon="menu"
+              tone="surface"
+              accessibilityLabel={t('merchant.menu.title')}
+              onPress={() => navigation.navigate('MerchantMenu')}
+            />
+          </View>
         </View>
 
         {shop ? (

@@ -44,6 +44,20 @@ export function useMerchantOrders(scope: 'queue' | 'history' = 'queue') {
   });
 }
 
+/**
+ * ยอดขายวันนี้ / 7 วัน (M1 · M5)
+ *
+ * ดึงซ้ำทุก 30 วินาที — ตัวเลขเงินไม่ต้องสด ๆ ระดับวินาทีเหมือนคิวออร์เดอร์
+ * แต่ต้องขยับเองระหว่างที่ร้านเปิดจอค้างไว้ ไม่งั้นดูเหมือนระบบค้าง
+ */
+export function useMerchantSummary(restaurantId?: string) {
+  return useQuery({
+    queryKey: ['merchant', 'summary', restaurantId ?? 'all'],
+    queryFn: () => repos.merchant.summary(restaurantId),
+    refetchInterval: 30_000,
+  });
+}
+
 export function useSetRestaurantOpen() {
   const qc = useQueryClient();
   return useMutation({

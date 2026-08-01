@@ -1,7 +1,8 @@
 import type {
   Account, AccountType, Address, MenuItem, MerchantOrder, MerchantRestaurant,
-  Order, OrderStatus, PaymentMethod, Restaurant, RiderJob, RiderStatus,
+  Order, OrderStatus, PaymentMethod, Restaurant, RiderJob, RiderStatus, RiderEarnings,
   RefundCase, RefundReason, RefundFault, OrderException, AdminMetrics, PendingRestaurant,
+  MerchantSummary,
 } from '../types';
 
 /** ฟอร์มเปิดร้าน (claude.md §4.3) — รูปหน้าร้าน/เอกสารยังไม่มี เพราะยังไม่ได้ต่อ Storage */
@@ -132,6 +133,8 @@ export interface MerchantRepo {
     menuItemId: string,
     patch: { name?: string; description?: string; price?: number; isAvailable?: boolean },
   ): Promise<MenuItem>;
+  /** ยอดขายวันนี้ / 7 วัน (design M1 · M5) — ไม่ระบุร้าน = รวมทุกร้านของบัญชีนี้ */
+  summary(restaurantId?: string): Promise<MerchantSummary>;
 }
 
 /**
@@ -151,6 +154,8 @@ export interface RiderRepo {
   declineOffer(orderId: string): Promise<void>;
   /** §8 North Star — ตัวเลขไว้ให้ไรเดอร์ดูรายได้ ไม่ใช่กระดานแข่งอันดับ (§3 ข้อ 4) */
   stats(): Promise<{ hours: number; delivered: number; ordersPerHour: number | null }>;
+  /** จอรายได้ + ประวัติงาน 7 วันล่าสุด (design R4 · R6) */
+  earnings(): Promise<RiderEarnings>;
 }
 
 export interface RefundRepo {

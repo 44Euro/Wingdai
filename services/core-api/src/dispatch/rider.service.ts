@@ -299,6 +299,57 @@ export class RiderService {
     };
   }
 
+  /**
+   * รายได้ + ประวัติงานที่ส่งสำเร็จ (design R4 · R6)
+   *
+   * รายได้ของไรเดอร์คือ **ค่าส่ง** ของแต่ละใบ ไม่ใช่ยอดที่ลูกค้าจ่าย — ยอดนั้นมีค่าอาหาร
+   * ของร้านรวมอยู่ด้วย การเอายอดเต็มมาโชว์เป็น "รายได้" จะทำให้ไรเดอร์เข้าใจผิดทั้งเดือน
+   *
+   * ตั้งใจไม่คืนอันดับหรือค่าเฉลี่ยเทียบกับไรเดอร์คนอื่น — claude.md §3 ข้อ 4
+   * ห้ามสร้างอะไรที่กดดันให้ไรเดอร์เร่งความเร็ว
+   */
+  async earnings(accountId: string, sinceDays = 7) {
+    const stats = await this.ordersPerHour(accountId, sinceDays);
+
+    const rows = await this.db
+      .select({
+        orderId: orders.id,
+        reference: orders.reference,
+        restaurantName: restaurants.name,
+        dropoffAddress: addresses.addressText,
+        deliveredAt: orders.deliveredAt,
+        riderPaySatang: orders.deliveryFeeSatang,
+        paymentMethod: orders.paymentMethod,
+      })
+      .from(orders)
+      .innerJoin(restaurants, eq(restaurants.id, orders.restaurantId))
+      .innerJoin(addresses, eq(addresses.id, orders.deliveryAddressId))
+      .where(
+        and(
+          eq(orders.riderId, accountId),
+          eq(orders.status, 'delivered'),
+          sql`${orders.deliveredAt} > now() - (${sinceDays} || ' days')::interval`,
+        ),
+      )
+      .orderBy(desc(orders.deliveredAt));
+
+    return {
+      ...stats,
+      sinceDays,
+      totalPaySatang: rows.reduce((sum, r) => sum + r.riderPaySatang, 0),
+      deliveries: rows.map((r) => ({
+        orderId: r.orderId,
+        reference: r.reference,
+        restaurantName: r.restaurantName,
+        dropoffAddress: r.dropoffAddress,
+        // ผ่านด่าน status = 'delivered' มาแล้ว deliveredAt จึงมีค่าเสมอ
+        deliveredAt: r.deliveredAt!.toISOString(),
+        riderPaySatang: r.riderPaySatang,
+        paymentMethod: r.paymentMethod,
+      })),
+    };
+  }
+
   /** §8 Orders per Rider Hour ของไรเดอร์คนนี้ — ตัวเลขที่โมเดลทั้งหมดวัดตัวเองด้วย */
   async ordersPerHour(accountId: string, sinceDays = 7) {
     const [row] = await this.db.execute<{ hours: number; delivered: number }>(sql`

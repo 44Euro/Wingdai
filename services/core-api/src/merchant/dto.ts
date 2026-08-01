@@ -7,6 +7,12 @@ export const ListOrdersQuerySchema = z.object({
 });
 export type ListOrdersQuery = z.infer<typeof ListOrdersQuerySchema>;
 
+/** จอสรุปยอดขาย — ไม่ระบุร้าน = รวมทุกร้านที่บัญชีนี้เป็นเจ้าของ */
+export const SummaryQuerySchema = z.object({
+  restaurantId: z.uuid().optional(),
+});
+export type SummaryQuery = z.infer<typeof SummaryQuerySchema>;
+
 export const SetOpenSchema = z.object({ isOpen: z.boolean() });
 export type SetOpenInput = z.infer<typeof SetOpenSchema>;
 

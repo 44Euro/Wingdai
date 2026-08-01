@@ -190,6 +190,53 @@ export interface RiderStatus {
   offer: RiderOffer | null;
 }
 
+/** งานที่ส่งสำเร็จแล้ว — แถวหนึ่งในประวัติงานของไรเดอร์ (design R6) */
+export interface RiderDelivery {
+  orderId: string;
+  reference: string;
+  restaurantName: string;
+  dropoffAddress: string;
+  deliveredAt: string;
+  /** ค่าตอบแทนของใบนี้ = ค่าส่ง ไม่ใช่ยอดที่ลูกค้าจ่าย */
+  riderPaySatang: number;
+  paymentMethod: PaymentMethod;
+}
+
+/**
+ * จอรายได้ของไรเดอร์ (design R4 + R6)
+ *
+ * ไม่มีอันดับ ไม่มีค่าเฉลี่ยเทียบไรเดอร์คนอื่น และไม่มีเป้าที่ต้องวิ่งให้ถึง —
+ * claude.md §3 ข้อ 4 ห้ามสร้างตัวเลขที่กดดันให้ไรเดอร์ขับเร็วขึ้น
+ */
+export interface RiderEarnings {
+  hours: number;
+  delivered: number;
+  /** null = ยังไม่เคยออนไลน์ จึงยังคำนวณไม่ได้ — ไม่ใช่ 0 ซึ่งอ่านเหมือน "ทำได้แย่" */
+  ordersPerHour: number | null;
+  sinceDays: number;
+  totalPaySatang: number;
+  deliveries: RiderDelivery[];
+}
+
+/** ยอดขายของร้านในช่วงเวลาหนึ่ง — ทุกช่องเป็นจำนวนเต็มสตางค์ */
+export interface MerchantSales {
+  orders: number;
+  foodSalesSatang: number;
+  /** 15% ของค่าอาหาร ตามที่แช่แข็งไว้ตอนสั่ง (§6.1) */
+  commissionSatang: number;
+  /** ยอดที่ร้านได้จริง = ค่าอาหาร − คอมมิชชัน (ค่าส่ง/ค่าบริการไม่ใช่ของร้าน) */
+  netSatang: number;
+}
+
+/** จอสรุปของร้าน (design M1 + M5) */
+export interface MerchantSummary {
+  today: MerchantSales;
+  last7Days: MerchantSales;
+  /** ใบที่ครัวยังต้องทำ — ต้องเห็นก่อนตัวเลขเงินเสมอ */
+  openQueue: number;
+  restaurantCount: number;
+}
+
 /** เหตุผลที่ลูกค้าแจ้งปัญหาได้ — ตัวที่ตัดสินว่าใครรับผิดชอบตาม claude.md §6.4 */
 export type RefundReason =
   | 'wrong_item' | 'missing_item' | 'food_quality'

@@ -5,12 +5,15 @@ import { MerchantOrdersScreen } from '../../features/merchant/screens/MerchantOr
 import { MerchantOrderDetailScreen } from '../../features/merchant/screens/MerchantOrderDetailScreen';
 import { MerchantMenuScreen } from '../../features/merchant/screens/MerchantMenuScreen';
 import { AddMenuItemScreen } from '../../features/merchant/screens/AddMenuItemScreen';
+import { MerchantSummaryScreen } from '../../features/merchant/screens/MerchantSummaryScreen';
 
 export type MerchantStackParamList = {
   MerchantOrders: undefined;
   MerchantOrderDetail: { orderId: string };
   MerchantMenu: undefined;
   AddMenuItem: { restaurantId: string };
+  /** M1 + M5 รวมกัน — ยอดขายกับยอดที่จะได้รับเป็นตัวเลขชุดเดียวกัน */
+  MerchantSummary: undefined;
 };
 
 const Stack = createNativeStackNavigator<MerchantStackParamList>();
@@ -33,6 +36,7 @@ export function MerchantStack() {
       <Stack.Screen name="MerchantOrderDetail" component={MerchantOrderDetailScreen} />
       <Stack.Screen name="MerchantMenu" component={MerchantMenuScreen} />
       <Stack.Screen name="AddMenuItem" component={AddMenuItemScreen} />
+      <Stack.Screen name="MerchantSummary" component={MerchantSummaryScreen} />
     </Stack.Navigator>
   );
 }

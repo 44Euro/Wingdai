@@ -70,4 +70,10 @@ export class RiderController {
   stats(@CurrentAccount() me: SessionClaims) {
     return this.rider.ordersPerHour(me.sub);
   }
+
+  /** จอรายได้ + ประวัติงาน (R4 · R6) — รวมเป็นครั้งเดียวเพราะจอเดียวใช้ทั้งสองส่วน */
+  @Get('earnings')
+  earnings(@CurrentAccount() me: SessionClaims) {
+    return this.rider.earnings(me.sub);
+  }
 }

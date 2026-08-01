@@ -167,6 +167,13 @@ export function RiderHomeScreen({ navigation }: Props) {
                   {t('rider.home.cashLimitWarning')}
                 </Text>
               ) : null}
+
+              <Button
+                testID="btn-rider-earnings"
+                variant="secondary"
+                label={t('rider.home.seeEarnings')}
+                onPress={() => navigation.navigate('RiderEarnings')}
+              />
             </View>
           </Card>
         </View>

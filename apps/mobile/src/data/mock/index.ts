@@ -27,6 +27,11 @@ export function createMockRepos(): Repos {
   const addresses: (Address & { accountId: string })[] = seedAddresses.map((a) => ({ ...a }));
   const orders: Order[] = [];
   const refundCases: RefundCase[] = [];
+  /**
+   * เวลาที่ส่งถึงของแต่ละใบ — ชนิด `Order` ฝั่งแอปไม่มีช่องนี้ (เซิร์ฟเวอร์มี `delivered_at`)
+   * ถ้าไม่จำไว้ จอประวัติงานจะต้องเอาเวลา "ตอนสั่ง" มาโชว์เป็น "เวลาส่งถึง" ซึ่งผิด
+   */
+  const deliveredAtById = new Map<string, string>();
   let seq = 0;
 
   /**
@@ -281,6 +286,7 @@ export function createMockRepos(): Repos {
         if (!o) throw new Error(`ไม่พบออร์เดอร์ ${id}`);
         assertTransition(o.status, status); // โยน InvalidTransitionError ถ้าข้ามขั้น
         o.status = status;
+        if (status === 'delivered') deliveredAtById.set(o.id, new Date().toISOString());
         return { ...o };
       },
       async payWithPromptPay(orderId) {
@@ -421,6 +427,43 @@ export function createMockRepos(): Repos {
         Object.assign(item, patch);
         return { ...item };
       },
+
+      async summary(restaurantId) {
+        await delay();
+        const me = requireLogin();
+        const mine = restaurants.filter(
+          (r) => r.ownerUserId === me.id && (!restaurantId || r.id === restaurantId),
+        );
+        const ids = new Set(mine.map((r) => r.id));
+
+        const done = orders.filter((o) => ids.has(o.restaurantId) && o.status === 'delivered');
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const today = done.filter(
+          (o) => new Date(deliveredAtById.get(o.id) ?? o.createdAt) >= startOfToday,
+        );
+
+        // คอมมิชชัน 15% ของค่าอาหารเท่านั้น ไม่รวมค่าส่ง/ค่าบริการ (claude.md §6.1)
+        const salesOf = (rows: Order[]) => {
+          const foodSalesSatang = rows.reduce((s, o) => s + o.foodTotal, 0);
+          const commissionSatang = rows.reduce((s, o) => s + Math.round(o.foodTotal * 0.15), 0);
+          return {
+            orders: rows.length,
+            foodSalesSatang,
+            commissionSatang,
+            netSatang: foodSalesSatang - commissionSatang,
+          };
+        };
+
+        return {
+          today: salesOf(today),
+          last7Days: salesOf(done),
+          openQueue: orders.filter(
+            (o) => ids.has(o.restaurantId) && ['created', 'accepted', 'preparing'].includes(o.status),
+          ).length,
+          restaurantCount: mine.length,
+        };
+      },
     },
 
     rider: {
@@ -522,6 +565,34 @@ export function createMockRepos(): Repos {
           hours: Number(hours.toFixed(2)),
           delivered,
           ordersPerHour: hours > 0 ? Number((delivered / hours).toFixed(2)) : null,
+        };
+      },
+
+      async earnings() {
+        await delay();
+        const me = requireLogin();
+        const stats = await this.stats();
+
+        const mine = orders
+          .filter((o) => o.riderId === me.id && o.status === 'delivered')
+          .map((o) => ({
+            orderId: o.id,
+            reference: o.reference,
+            restaurantName:
+              restaurants.find((r) => r.id === o.restaurantId)?.name ?? o.restaurantId,
+            dropoffAddress: addresses.find((a) => a.accountId === o.customerId)?.addressText ?? '',
+            deliveredAt: deliveredAtById.get(o.id) ?? o.createdAt,
+            // รายได้ของไรเดอร์คือค่าส่ง ไม่ใช่ยอดที่ลูกค้าจ่าย
+            riderPaySatang: o.deliveryFee,
+            paymentMethod: o.paymentMethod,
+          }))
+          .sort((a, b) => b.deliveredAt.localeCompare(a.deliveredAt));
+
+        return {
+          ...stats,
+          sinceDays: 7,
+          totalPaySatang: mine.reduce((s, d) => s + d.riderPaySatang, 0),
+          deliveries: mine,
         };
       },
     },

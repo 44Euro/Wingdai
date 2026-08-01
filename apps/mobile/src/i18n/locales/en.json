@@ -449,6 +449,19 @@
       "sentBody": "Your restaurant is in the {{zone}} zone. We will review and get back to you.",
       "nextStep": "Meanwhile you can add at least 3 menu items. The shop stays closed until it is approved.",
       "entry": "Open your restaurant"
+    },
+    "summary": {
+      "title": "Restaurant sales",
+      "openQueue": "Orders still to make",
+      "goQueue": "Go to order queue",
+      "today": "Today",
+      "last7Days": "Last 7 days",
+      "orders": "{{count}} orders",
+      "foodSales": "Food sales",
+      "commission": "Commission 15%",
+      "net": "You receive",
+      "payoutTitle": "Payout schedule",
+      "payoutBody": "Automated payouts are not in this phase yet — we will transfer the amount above manually"
     }
   },
   "payment": {
@@ -471,7 +484,8 @@
       "hoursOnline": "Hours online",
       "cashHeld": "Cash in hand",
       "cashLimitWarning": "Near your cash ceiling — settle up to keep taking cash orders",
-      "locationNeeded": "Location permission is required before you can accept jobs"
+      "locationNeeded": "Location permission is required before you can accept jobs",
+      "seeEarnings": "Earnings & history"
     },
     "offer": {
       "title": "New job",
@@ -501,6 +515,17 @@
         "picked_up": "Picked up",
         "delivered": "Delivered"
       }
+    },
+    "earnings": {
+      "title": "My earnings",
+      "periodLabel": "Earned in the last {{days}} days",
+      "payNote": "From delivery fees only — food payments go to the restaurant",
+      "delivered": "Delivered",
+      "hours": "Hours online",
+      "perHour": "Orders/hour",
+      "history": "Completed deliveries",
+      "empty": "No completed deliveries in this period yet",
+      "paidCash": "Cash collected"
     }
   },
   "admin": {

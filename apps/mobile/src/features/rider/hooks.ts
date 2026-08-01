@@ -53,3 +53,8 @@ export function useAdvanceJob() {
 export function useRiderStats() {
   return useQuery({ queryKey: ['rider', 'stats'], queryFn: () => repos.rider.stats() });
 }
+
+/** จอรายได้ + ประวัติงาน (R4 · R6) — ตัวเลขย้อนหลัง ไม่ต้องดึงซ้ำถี่เหมือนจอรับงาน */
+export function useRiderEarnings() {
+  return useQuery({ queryKey: ['rider', 'earnings'], queryFn: () => repos.rider.earnings() });
+}

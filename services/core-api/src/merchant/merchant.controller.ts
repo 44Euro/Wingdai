@@ -10,6 +10,7 @@ import {
   RegisterRestaurantSchema, type RegisterRestaurantInput,
   SetApprovalSchema, type SetApprovalInput,
   ListOrdersQuerySchema, type ListOrdersQuery,
+  SummaryQuerySchema, type SummaryQuery,
   SetOpenSchema, type SetOpenInput,
   CreateMenuItemSchema, type CreateMenuItemInput,
   UpdateMenuItemSchema, type UpdateMenuItemInput,
@@ -51,6 +52,15 @@ export class MerchantController {
     @Query(new ZodBody(ListOrdersQuerySchema)) q: ListOrdersQuery,
   ) {
     return this.merchant.listOrders(me.sub, q);
+  }
+
+  /** จอสรุปของร้าน (M1 · M5) — ไม่ระบุร้าน = รวมทุกร้านที่บัญชีนี้เป็นเจ้าของ */
+  @Get('summary')
+  summary(
+    @CurrentAccount() me: SessionClaims,
+    @Query(new ZodBody(SummaryQuerySchema)) q: SummaryQuery,
+  ) {
+    return this.merchant.summary(me.sub, q.restaurantId);
   }
 
   @Patch('restaurants/:id/open')

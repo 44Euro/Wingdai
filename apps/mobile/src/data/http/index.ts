@@ -4,8 +4,8 @@ import type {
 } from '../repositories';
 import type {
   Account, Address, MenuItem, MerchantOrder, MerchantRestaurant, Order, OrderStatus,
-  Restaurant, RiderJob, RiderStatus, RefundCase, OrderException, AdminMetrics,
-  PendingRestaurant,
+  Restaurant, RiderJob, RiderStatus, RiderEarnings, RefundCase, OrderException, AdminMetrics,
+  PendingRestaurant, MerchantSummary,
 } from '../types';
 import { createClient, ApiError } from './client';
 import type { TokenStore } from './tokenStore';
@@ -210,6 +210,11 @@ export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
           token: auth(),
         });
       },
+
+      async summary(restaurantId): Promise<MerchantSummary> {
+        const q = restaurantId ? `?restaurantId=${restaurantId}` : '';
+        return request<MerchantSummary>(`/merchant/summary${q}`, { token: auth() });
+      },
     },
 
     rider: {
@@ -246,6 +251,10 @@ export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
           '/rider/stats',
           { token: auth() },
         );
+      },
+
+      async earnings(): Promise<RiderEarnings> {
+        return request<RiderEarnings>('/rider/earnings', { token: auth() });
       },
     },
 

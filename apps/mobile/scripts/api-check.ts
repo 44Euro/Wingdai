@@ -178,6 +178,25 @@ async function main() {
     repos.orders.updateStatus(order.id, 'picked_up'),
   );
 
+  console.log('\nยอดขายของร้าน (M1 · M5)');
+
+  const summary = await repos.merchant.summary();
+  check('ใบที่เพิ่งรับไปนับอยู่ในคิวที่ต้องทำ', summary.openQueue >= 1, `ได้ ${summary.openQueue}`);
+  check(
+    'ยอดที่ร้านได้ = ค่าอาหาร − คอมมิชชัน ทุกช่วงเวลา',
+    summary.today.netSatang === summary.today.foodSalesSatang - summary.today.commissionSatang
+      && summary.last7Days.netSatang
+         === summary.last7Days.foodSalesSatang - summary.last7Days.commissionSatang,
+  );
+  check(
+    'ทุกยอดเป็นจำนวนเต็มสตางค์ ไม่มีทศนิยมหลุดมา',
+    [
+      summary.today.foodSalesSatang, summary.today.commissionSatang, summary.today.netSatang,
+      summary.last7Days.foodSalesSatang, summary.last7Days.netSatang,
+    ].every(Number.isInteger),
+  );
+  check('ยอดวันนี้ไม่เกินยอด 7 วัน', summary.today.orders <= summary.last7Days.orders);
+
   await repos.auth.login('somchai', SEED_PASSWORD);
 
   console.log('\nที่อยู่จัดส่ง');
@@ -188,6 +207,33 @@ async function main() {
     'ที่อยู่มีพิกัดเป็นตัวเลข',
     typeof addresses[0]?.lat === 'number' && typeof addresses[0]?.lng === 'number',
   );
+
+  console.log('\nรายได้ไรเดอร์ (R4 · R6)');
+
+  await repos.auth.login('rider_ann', SEED_PASSWORD);
+  const earnings = await repos.rider.earnings();
+  check(
+    'ยอดรวมเท่ากับผลบวกค่าส่งของทุกงานในรายการ',
+    earnings.totalPaySatang === earnings.deliveries.reduce((s, d) => s + d.riderPaySatang, 0),
+  );
+  check('ทุกยอดค่าส่งเป็นจำนวนเต็มสตางค์', earnings.deliveries.every((d) => Number.isInteger(d.riderPaySatang)));
+  /*
+   * §8 — null แปลว่า "ยังวัดไม่ได้" ส่วน 0 แปลว่า "ออนไลน์แล้วแต่ยังไม่ได้ส่งงาน"
+   * สองอย่างนี้ต่างกันจริง ตัวหารเป็นชั่วโมงออนไลน์ กติกาคือ null ก็ต่อเมื่อยังไม่มีตัวหาร
+   */
+  check(
+    'งาน/ชั่วโมงเป็น null ก็ต่อเมื่อยังไม่เคยออนไลน์',
+    earnings.hours === 0
+      ? earnings.ordersPerHour === null
+      : typeof earnings.ordersPerHour === 'number',
+    `ชั่วโมง ${earnings.hours} · ได้ ${earnings.ordersPerHour}`,
+  );
+  check(
+    'ประวัติเรียงใหม่ไปเก่า',
+    earnings.deliveries.every((d, i) => i === 0 || d.deliveredAt <= earnings.deliveries[i - 1]!.deliveredAt),
+  );
+
+  await repos.auth.login('somchai', SEED_PASSWORD);
 
   console.log('\nGoogle sign-in');
 

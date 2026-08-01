@@ -59,6 +59,30 @@ export type MerchantRestaurant = {
 const QUEUE_STATUSES: OrderStatus[] = ['created', 'accepted', 'preparing'];
 const DONE_STATUSES: OrderStatus[] = ['picked_up', 'delivered', 'cancelled'];
 
+/** ยอดขายของช่วงเวลาหนึ่ง — ทุกช่องเป็นจำนวนเต็มสตางค์ (§5 กฎข้อ 1) */
+export type MerchantSales = {
+  orders: number;
+  foodSalesSatang: number;
+  commissionSatang: number;
+  /** ยอดที่ร้านจะได้รับจริง = ค่าอาหาร − คอมมิชชัน — ไม่รวมค่าส่ง/ค่าบริการซึ่งไม่ใช่ของร้าน */
+  netSatang: number;
+};
+
+const EMPTY_SALES: MerchantSales = {
+  orders: 0, foodSalesSatang: 0, commissionSatang: 0, netSatang: 0,
+};
+
+function salesOf(rows: { foodTotalSatang: number; commissionSatang: number }[]): MerchantSales {
+  const foodSalesSatang = rows.reduce((s, r) => s + r.foodTotalSatang, 0);
+  const commissionSatang = rows.reduce((s, r) => s + r.commissionSatang, 0);
+  return {
+    orders: rows.length,
+    foodSalesSatang,
+    commissionSatang,
+    netSatang: foodSalesSatang - commissionSatang,
+  };
+}
+
 @Injectable()
 export class MerchantService {
   constructor(@Inject(DB) private readonly db: Db) {}
@@ -93,6 +117,59 @@ export class MerchantService {
       .limit(1);
     if (!row) throw new NotFoundException({ message: 'ไม่พบร้านนี้' });
     return row;
+  }
+
+  /**
+   * ยอดขายของร้าน (design M1 · M5)
+   *
+   * นับเฉพาะใบที่ **ส่งถึงแล้ว** — ใบที่ยังทำอยู่หรือถูกยกเลิกยังไม่ใช่ยอดขาย
+   * การนับใบที่ยังไม่จบด้วยจะทำให้ตัวเลขแกว่งลงตอนมีคนยกเลิก ซึ่งอ่านเหมือนระบบผิด
+   *
+   * คอมมิชชันอ่านจาก `orders.commission_satang` ที่บันทึกไว้ตอนสั่ง **ไม่คำนวณใหม่**
+   * ถ้าอัตรา 15% (§6.1) เปลี่ยนวันหลัง ใบเก่าต้องยังโชว์ยอดตามอัตราที่ตกลงกันตอนนั้น
+   */
+  async summary(accountId: string, restaurantId?: string) {
+    const mine = await this.myRestaurants(accountId);
+    const allowed = restaurantId ? mine.filter((r) => r.id === restaurantId) : mine;
+    if (allowed.length === 0) {
+      return {
+        today: EMPTY_SALES, last7Days: EMPTY_SALES, openQueue: 0, restaurantCount: 0,
+      };
+    }
+
+    /*
+     * ดึงใบของ 7 วันมารวมเองใน TypeScript แทนที่จะเขียน SQL รวมยอด
+     * จำนวนใบต่อร้านใน 7 วันของเฟส 1 อยู่ในหลักร้อย การรวมในโค้ดจึงไม่ใช่ปัญหา
+     * และได้ตัวเลขที่เขียนเทสต์ตรง ๆ ได้ แทนที่จะต้องเชื่อ filter (...) ใน SQL
+     */
+    const rows = await this.db
+      .select({
+        deliveredAt: orders.deliveredAt,
+        foodTotalSatang: orders.foodTotalSatang,
+        commissionSatang: orders.commissionSatang,
+      })
+      .from(orders)
+      .where(
+        and(
+          inArray(orders.restaurantId, allowed.map((r) => r.id)),
+          eq(orders.status, 'delivered'),
+          sql`${orders.deliveredAt} > now() - interval '7 days'`,
+        ),
+      );
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const todayRows = rows.filter((r) => r.deliveredAt !== null && r.deliveredAt >= startOfToday);
+
+    const queue = await this.listOrders(accountId, { restaurantId, scope: 'queue' });
+
+    return {
+      today: salesOf(todayRows),
+      last7Days: salesOf(rows),
+      /** ใบที่ครัวยังต้องทำ — ตัวเลขที่ร้านต้องเห็นก่อนตัวเลขเงินเสมอ */
+      openQueue: queue.length,
+      restaurantCount: allowed.length,
+    };
   }
 
   /**
