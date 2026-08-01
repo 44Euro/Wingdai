@@ -117,11 +117,11 @@
       "deliveryFee": "Delivery",
       "empty": "No restaurants in this zone yet",
       "deliverTo": "Deliver to",
-      "defaultAddress": "Ari · Soi Ari 1",
       "searchPlaceholder": "Search kitchens or dishes",
       "announcementSub": "{{count}} kitchens within 1 km · avg 6 min",
       "seeAll": "See all",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "noAddress": "Add a delivery address"
     },
     "search": {
       "placeholder": "Search kitchens or dishes",

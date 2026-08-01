@@ -117,11 +117,11 @@
       "deliveryFee": "ค่าส่ง",
       "empty": "ยังไม่มีร้านในโซนนี้",
       "deliverTo": "จัดส่งไปที่",
-      "defaultAddress": "อารีย์ · ซอยอารีย์ 1",
       "searchPlaceholder": "ค้นหาร้านหรือเมนู",
       "announcementSub": "{{count}} ร้านในระยะ 1 กม. · เฉลี่ย 6 นาที",
       "seeAll": "ดูทั้งหมด",
-      "notifications": "การแจ้งเตือน"
+      "notifications": "การแจ้งเตือน",
+      "noAddress": "เพิ่มที่อยู่จัดส่ง"
     },
     "search": {
       "placeholder": "ค้นหาร้านหรือเมนู",

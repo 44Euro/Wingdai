@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useAuthStore } from '../features/auth/authStore';
 import { PendingApprovalScreen } from './navigators/AuthStack';
 import { AuthNavigator } from './navigators/AuthNavigator';
-import { PlaceholderStack } from './navigators/PlaceholderStack';
 import { RiderStack } from './navigators/RiderStack';
 import { AdminHomeScreen } from '../features/admin/screens/AdminHomeScreen';
 import { CustomerStack } from './navigators/CustomerStack';

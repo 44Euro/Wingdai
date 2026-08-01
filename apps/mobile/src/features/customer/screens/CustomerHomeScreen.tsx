@@ -14,7 +14,7 @@ import { TAB_BAR_CLEARANCE } from '../../../app/navigators/WingdaiTabBar';
 import { useAuthStore } from '../../auth/authStore';
 import { DELIVERY_FEE } from '../../cart/pricing';
 import { formatBaht, ratingLabel, joinMeta } from '../../../lib/format';
-import { useRestaurants, useNotifications } from '../hooks';
+import { useRestaurants, useNotifications, useDefaultAddress } from '../hooks';
 import { countUnread } from '../notifications';
 import type { CustomerStackParamList, CustomerTabParamList } from '../../../app/navigators/CustomerStack';
 import type { CuisineCategory, Restaurant } from '../../../data/types';
@@ -33,6 +33,7 @@ export function CustomerHomeScreen({ navigation }: Props) {
   const account = useAuthStore((s) => s.account);
   const [cat, setCat] = useState<CuisineCategory | 'all'>('all');
   const unread = countUnread(useNotifications());
+  const defaultAddress = useDefaultAddress();
 
   const shown = cat === 'all' ? restaurants : restaurants.filter((r) => r.cuisine === cat);
 
@@ -42,8 +43,7 @@ export function CustomerHomeScreen({ navigation }: Props) {
         contentContainerStyle={{ paddingBottom: TAB_BAR_CLEARANCE, gap: p.space.lg }}
         showsVerticalScrollIndicator={false}
       >
-        {/* C1 หัวจอ: ที่อยู่จัดส่ง + กระดิ่ง + อักษรย่อผู้ใช้
-            ยังไม่มีลูกศรเลือกที่อยู่เพราะจอจัดการที่อยู่ (C9/C29) ยังไม่ได้ทำ — ห้ามวางปุ่มที่กดแล้วไม่เกิดอะไร */}
+        {/* C1 หัวจอ: ที่อยู่จัดส่ง + กระดิ่ง + อักษรย่อผู้ใช้ */}
         <View
           style={{
             paddingHorizontal: p.space.screen,
@@ -53,12 +53,33 @@ export function CustomerHomeScreen({ navigation }: Props) {
             gap: p.space.md,
           }}
         >
-          <View style={{ flex: 1, minWidth: 0 }}>
+          {/*
+            ที่อยู่จริงของผู้ใช้ ไม่ใช่ข้อความตายตัว — ก่อนหน้านี้ตรงนี้โชว์ "อารีย์ · ซอยอารีย์ 1"
+            ให้ทุกคนเหมือนกันหมดไม่ว่าจะบันทึกที่อยู่อะไรไว้ ซึ่งคือการโกหกผู้ใช้เรื่องปลายทางที่ของจะไปส่ง
+            ยังไม่มีที่อยู่ = ชวนให้เพิ่ม ไม่ใช่เดาให้
+          */}
+          <Pressable
+            testID="btn-header-address"
+            accessibilityRole="button"
+            accessibilityLabel={t('customer.home.deliverTo')}
+            onPress={() => navigation.navigate(defaultAddress ? 'Addresses' : 'AddAddress')}
+            style={({ pressed }) => ({ flex: 1, minWidth: 0, opacity: pressed ? 0.7 : 1 })}
+          >
             <Text variant="kicker" color="link">{t('customer.home.deliverTo')}</Text>
-            <Text variant="bodyLg" bold numberOfLines={1} style={{ marginTop: 2 }}>
-              {t('customer.home.defaultAddress')}
-            </Text>
-          </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+              <Text
+                testID="header-address"
+                variant="bodyLg"
+                bold
+                numberOfLines={1}
+                color={defaultAddress ? 'primary' : 'muted'}
+                style={{ flexShrink: 1 }}
+              >
+                {defaultAddress?.addressText ?? t('customer.home.noAddress')}
+              </Text>
+              <Icon name="chevronDown" color={tokens.textFaint} size={16} strokeWidth={2.4} />
+            </View>
+          </Pressable>
 
           <Pressable
             testID="btn-notifications"

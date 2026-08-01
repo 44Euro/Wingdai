@@ -6,6 +6,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CustomerHomeScreen } from '../../src/features/customer/screens/CustomerHomeScreen';
 import { ThemeProvider } from '../../src/theme/ThemeProvider';
 import { initI18n } from '../../src/i18n';
+import { useAuthStore } from '../../src/features/auth/authStore';
+import { repos } from '../../src/data';
 import type { CustomerStackParamList } from '../../src/app/navigators/CustomerStack';
 
 beforeAll(async () => {
@@ -95,5 +97,53 @@ describe('CustomerHomeScreen', () => {
       findAll(result.root, 'link-see-all')[0].props.onPress();
     });
     expect(navigate).toHaveBeenCalledWith('Categories');
+  });
+
+  /**
+   * เดิมหัวจอโชว์ข้อความตายตัว "อารีย์ · ซอยอารีย์ 1" ให้ทุกคนเหมือนกันหมด
+   * ไม่ว่าจะบันทึกที่อยู่อะไรไว้ — คือการโกหกผู้ใช้เรื่องปลายทางที่ของจะไปส่ง
+   */
+  it('หัวจอโชว์ที่อยู่จริงของผู้ใช้ ไม่ใช่ข้อความตายตัว', async () => {
+    let saved = '';
+    await act(async () => {
+      await useAuthStore.getState().login('somchai', '1234');
+      saved = (await repos.addresses.list())[0]!.addressText;
+    });
+    const result = render({ navigate: jest.fn() });
+    await flush();
+
+    const shown = findAll(result.root, 'header-address')
+      .flatMap((n) => n.findAll((c) => typeof c.type === 'string' && typeof c.props?.children === 'string'))
+      .map((n) => String(n.props.children))
+      .join(' ');
+    expect(shown).toContain(saved);
+    expect(shown).not.toContain('ซอยอารีย์ 1');
+  });
+
+  it('กดที่อยู่บนหัวจอ → ไปจอจัดการที่อยู่', async () => {
+    await act(async () => {
+      await useAuthStore.getState().login('somchai', '1234');
+    });
+    const navigate = jest.fn();
+    const result = render({ navigate });
+    await flush();
+    act(() => {
+      findAll(result.root, 'btn-header-address')[0].props.onPress();
+    });
+    expect(navigate).toHaveBeenCalledWith('Addresses');
+  });
+
+  /** ยังไม่มีที่อยู่ = ชวนให้เพิ่ม ไม่ใช่เดาที่อยู่ให้ */
+  it('ยังไม่ล็อกอิน/ยังไม่มีที่อยู่ → ชวนเพิ่มที่อยู่แทนที่จะโชว์ที่อยู่มั่ว', async () => {
+    await act(async () => {
+      await useAuthStore.getState().logout();
+    });
+    const navigate = jest.fn();
+    const result = render({ navigate });
+    await flush();
+    act(() => {
+      findAll(result.root, 'btn-header-address')[0].props.onPress();
+    });
+    expect(navigate).toHaveBeenCalledWith('AddAddress');
   });
 });
