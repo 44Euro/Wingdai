@@ -146,7 +146,7 @@ HTTP one is a one-file change.
 ## Tests
 
 ```bash
-cd apps/mobile       && npx jest            # 354 tests — screens, stores, pricing, i18n, contrast
+cd apps/mobile       && npx jest            # 363 tests — screens, stores, pricing, i18n, contrast
 cd services/core-api && npm test            # 117 tests — ledger properties, dispatch scoring, refunds
 cd services/core-api && npm run api:smoke   # 185 checks against a live database
 cd apps/mobile       && npm run api:check   # 69 checks that the app's repo contract matches the API

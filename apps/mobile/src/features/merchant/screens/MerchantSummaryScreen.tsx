@@ -96,7 +96,7 @@ function SalesBlock({
   title, sales, testID,
 }: { title: string; sales?: MerchantSales; testID: string }) {
   const { t } = useTranslation();
-  const { primitives: p } = useTheme();
+  const { tokens, primitives: p } = useTheme();
   const s = sales ?? { orders: 0, foodSalesSatang: 0, commissionSatang: 0, netSatang: 0 };
 
   return (
@@ -115,7 +115,7 @@ function SalesBlock({
           label={t('merchant.summary.commission')}
           value={`−${formatBaht(s.commissionSatang)}`}
         />
-        <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)' }} />
+        <View style={{ height: 1, backgroundColor: tokens.borderSubtle }} />
         <Row label={t('merchant.summary.net')} value={formatBaht(s.netSatang)} strong />
       </View>
     </Card>
