@@ -32,6 +32,11 @@ const RiderApplicationSchema = z.object({
   acceptPdpa: z.boolean(),
 });
 
+/** ยอดนำส่งเป็นสตางค์จำนวนเต็ม — §5 กฎข้อ 1 ห้ามมีทศนิยมในเส้นทางเงิน */
+const SettleCashSchema = z.object({
+  amountSatang: z.number().int().positive('ยอดนำส่งต้องมากกว่าศูนย์'),
+});
+
 const DecideApplicationSchema = z.object({
   approve: z.boolean(),
   rejectionReason: z.string().trim().max(500).optional(),
@@ -139,6 +144,23 @@ export class AdminRidersController {
   @Get('pending')
   pending() {
     return this.rider.pendingApplications();
+  }
+
+  /** ไรเดอร์ที่ยังถือเงินสดของบริษัทอยู่ (§6.2) */
+  @Get('cash')
+  cash() {
+    return this.rider.ridersHoldingCash();
+  }
+
+  /** บันทึกว่าไรเดอร์นำเงินสดมาส่งแล้ว (§6.2) — แอดมินเป็นคนกด เพราะเป็นคนรับเงินจริง */
+  @Post(':accountId/settle-cash')
+  @HttpCode(200)
+  settleCash(
+    @Param('accountId', ParseUUIDPipe) accountId: string,
+    @Body(new ZodBody(SettleCashSchema)) body: z.infer<typeof SettleCashSchema>,
+    @CurrentAccount() me: SessionClaims,
+  ) {
+    return this.rider.settleCash(me.sub, accountId, body.amountSatang);
   }
 
   @Post(':accountId/approval')

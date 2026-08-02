@@ -293,6 +293,41 @@ async function main() {
     }),
   );
 
+  console.log('\nเงินสดในมือไรเดอร์ (§6.2)');
+
+  await repos.auth.login('admin_root', SEED_PASSWORD);
+  const holders = await repos.admin.ridersHoldingCash();
+  check(
+    'ทุกแถวมียอดมากกว่าศูนย์ ไม่มีแถวเปล่า',
+    holders.every((h) => h.cashHeldSatang > 0 && Number.isInteger(h.cashHeldSatang)),
+  );
+  check(
+    'ธงชนเพดานตรงกับยอดจริง',
+    holders.every((h) => h.atLimit === (h.cashHeldSatang >= h.cashLimitSatang)),
+  );
+
+  if (holders.length > 0) {
+    const target = holders[0]!;
+    // รับเกินยอดที่ถืออยู่ไม่ได้ — ฐานมี CHECK กันติดลบ แต่ต้องหยุดก่อนถึงตรงนั้น
+    await mustReject('รับเงินเกินยอดที่ไรเดอร์ถืออยู่ไม่ได้', () =>
+      repos.admin.settleRiderCash(target.accountId, target.cashHeldSatang + 1),
+    );
+    const settled = await repos.admin.settleRiderCash(target.accountId, 100);
+    check(
+      'รับนำส่งแล้วยอดลดลงจริง',
+      settled.cashHeldSatang === target.cashHeldSatang - 100,
+      `ได้ ${settled.cashHeldSatang}`,
+    );
+    check('ยอดคงเหลือยังเป็นจำนวนเต็มสตางค์', Number.isInteger(settled.cashHeldSatang));
+  } else {
+    check('ยังไม่มีไรเดอร์ถือเงินสด — ข้ามการทดสอบนำส่ง', true);
+  }
+
+  await repos.auth.login('somchai', SEED_PASSWORD);
+  await mustReject('บัญชีที่ไม่ใช่แอดมินดูยอดเงินสดไรเดอร์ไม่ได้', () =>
+    repos.admin.ridersHoldingCash(),
+  );
+
   console.log('\nGoogle sign-in');
 
   await mustReject('id_token ปลอมถูกปฏิเสธ', () => repos.auth.googleSignIn('ไม่ใช่ token จริง'));

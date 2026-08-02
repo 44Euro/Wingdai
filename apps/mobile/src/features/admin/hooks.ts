@@ -82,3 +82,27 @@ export function useDecideRider() {
     },
   });
 }
+
+/** ไรเดอร์ที่ยังถือเงินสดของบริษัทอยู่ (§6.2) */
+export function useRidersHoldingCash() {
+  return useQuery({
+    queryKey: ['admin', 'rider-cash'],
+    queryFn: () => repos.admin.ridersHoldingCash(),
+  });
+}
+
+/**
+ * บันทึกว่าไรเดอร์นำเงินสดมาส่งแล้ว
+ * ล้าง ['rider'] ด้วย เพราะจอไรเดอร์อ่านยอดเงินสดในมือจาก cache ก้อนนั้น
+ */
+export function useSettleRiderCash() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ accountId, amountSatang }: { accountId: string; amountSatang: number }) =>
+      repos.admin.settleRiderCash(accountId, amountSatang),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin'] });
+      qc.invalidateQueries({ queryKey: ['rider'] });
+    },
+  });
+}

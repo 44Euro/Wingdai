@@ -26,7 +26,7 @@ re-registering, and a rider can also order food.
 | Customer | browse, search, cart, checkout, PromptPay, live tracking, order history, receipts, report a problem, addresses, payment method |
 | Merchant | order queue with accept countdown, order detail, menu + sold-out toggle, sales summary, restaurant registration |
 | Rider | application + approval flow, go online/offline, 15-second job offers, active job, earnings + delivery history |
-| Admin | exception dashboard, semi-automated refund decisions, restaurant and rider approvals, manual dispatch override |
+| Admin | exception dashboard, semi-automated refund decisions, restaurant and rider approvals, rider cash settlement, manual dispatch override |
 
 Backend: auth (argon2id + JWT, username-or-phone login, phone OTP, Google sign-in), catalog,
 orders with a state machine, pricing, double-entry ledger, auto-dispatch, refunds, admin.
@@ -63,7 +63,10 @@ admin ever sees them. Expired licences and insurance are rejected at submission 
 `eligibility.ts` would silently stop offering that rider jobs and they would never learn why.
 
 **Riders never front money.** Cash collected by a rider is platform money held in
-`rider_cash_held`, not a loan from the rider. If a customer picks cash and can't pay, the app
+`rider_cash_held`, not a loan from the rider — and it flows back: an admin records the handover,
+which credits `rider_cash_held` and debits `cash` in the same transaction as the balance change.
+Without that leg a rider silently hits the ฿1,500 ceiling and stops being offered cash work
+forever, which is exactly the bug the smoke suite was hiding by zeroing the column with raw SQL. If a customer picks cash and can't pay, the app
 offers to switch that order to PromptPay — it never suggests a personal transfer to the rider,
 because money that skips the ledger silently breaks daily reconciliation.
 
@@ -143,10 +146,10 @@ HTTP one is a one-file change.
 ## Tests
 
 ```bash
-cd apps/mobile       && npx jest            # 347 tests — screens, stores, pricing, i18n, contrast
-cd services/core-api && npm test            # 112 tests — ledger properties, dispatch scoring, refunds
-cd services/core-api && npm run api:smoke   # 178 checks against a live database
-cd apps/mobile       && npm run api:check   # 65 checks that the app's repo contract matches the API
+cd apps/mobile       && npx jest            # 354 tests — screens, stores, pricing, i18n, contrast
+cd services/core-api && npm test            # 117 tests — ledger properties, dispatch scoring, refunds
+cd services/core-api && npm run api:smoke   # 185 checks against a live database
+cd apps/mobile       && npm run api:check   # 69 checks that the app's repo contract matches the API
 ```
 
 `api:check` is the suite that has caught the most real bugs — it drives the same repository
@@ -159,8 +162,6 @@ the UI.
 
 An honest list, because a portfolio that claims to be finished is easy to disprove:
 
-- **Rider cash settlement.** `cash_held_satang` only ever increases; there is no settlement path,
-  so a rider is eventually cut off from cash orders.
 - **Payouts and reconciliation.** The ledger is correct and double-entry, but the weekly payout run
   and daily gateway reconciliation aren't built.
 - **Real payments.** PromptPay is a mocked QR screen — the payment gateway hasn't been chosen.

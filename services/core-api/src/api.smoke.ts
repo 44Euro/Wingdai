@@ -197,12 +197,42 @@ async function dispatchChecks(
   const offline = await call('POST', '/rider/online', { isOnline: false }, annToken);
   check('ปิดรับงานได้', offline.status === 200 && offline.body?.isOnline === false);
 
-  // เก็บกวาดยอดเงินสดที่เทสต์ทำให้เพิ่ม ไม่ให้สะสมจนชนเพดานในรอบถัด ๆ ไป
-  const cleanupSql = createScriptClient();
+  /*
+   * §6.2 — ไรเดอร์นำเงินสดมาส่งคืนบริษัท
+   *
+   * ขานี้เคยไม่มีอยู่ทั้งระบบ: cash_held_satang มีแต่ทางเพิ่ม ไรเดอร์ที่ชนเพดาน ฿1,500
+   * จะถูก eligibility.ts ตัดจากงานเงินสดถาวร เทสต์นี้เคยล้างยอดด้วย SQL ตรง ๆ
+   * ซึ่งซ่อนปัญหานั้นไว้พอดี — ตอนนี้เดินผ่านเส้นทางจริงที่เขียน ledger ด้วย
+   */
+  const held = afterStatus.body?.cashHeldSatang as number;
+
+  const settleByRider = await call('POST', `/admin/riders/${annId}/settle-cash`, { amountSatang: held }, annToken);
+  check('ไรเดอร์กดล้างยอดเงินสดตัวเองไม่ได้', settleByRider.status === 403, `ได้ ${settleByRider.status}`);
+
+  const tooMuch = await call('POST', `/admin/riders/${annId}/settle-cash`, { amountSatang: held + 1 }, adminToken);
+  check('รับเงินเกินยอดที่ถืออยู่ไม่ได้', tooMuch.status === 409, `ได้ ${tooMuch.status}`);
+
+  const settled = await call('POST', `/admin/riders/${annId}/settle-cash`, { amountSatang: held }, adminToken);
+  check('แอดมินรับเงินนำส่งได้', settled.status === 200, JSON.stringify(settled.body));
+  check('ยอดเงินในมือกลับเป็นศูนย์', settled.body?.cashHeldSatang === 0, `ได้ ${settled.body?.cashHeldSatang}`);
+
+  const clearedStatus = await call('GET', '/rider/status', undefined, annToken);
+  check('ไรเดอร์เห็นยอดเป็นศูนย์แล้ว', clearedStatus.body?.cashHeldSatang === 0);
+
+  // §6.2 ข้อ 2 — ledger ต้องถูกเขียนในทรานแซกชันเดียวกัน และต้องสมดุล
+  const ledgerSql = createScriptClient();
   try {
-    await cleanupSql`update rider_profiles set cash_held_satang = 0 where account_id = ${annId}`;
+    const [row] = await ledgerSql`
+      select
+        coalesce(sum(debit_satang), 0)::int  as debit,
+        coalesce(sum(credit_satang), 0)::int as credit,
+        count(*)::int                        as lines
+      from ledger_entries
+      where reason = 'rider.cash_settled' and counterparty_account_id = ${annId}`;
+    check('การนำส่งเขียนลง ledger จริง', (row?.lines ?? 0) >= 2, `ได้ ${row?.lines} แถว`);
+    check('รายการนำส่งสมดุล เดบิต = เครดิต', row?.debit === row?.credit, `${row?.debit} vs ${row?.credit}`);
   } finally {
-    await cleanupSql.end();
+    await ledgerSql.end();
   }
 }
 

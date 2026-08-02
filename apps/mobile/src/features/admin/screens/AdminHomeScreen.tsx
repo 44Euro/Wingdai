@@ -12,9 +12,10 @@ import { useAuthStore } from '../../auth/authStore';
 import {
   useExceptions, useAdminMetrics, useOpenRefunds, useDecideRefund, useForceDispatch,
   usePendingRestaurants, useDecideRestaurant, usePendingRiders, useDecideRider,
+  useRidersHoldingCash, useSettleRiderCash,
 } from '../hooks';
 import type {
-  AdminMetrics, OrderException, RefundCase, PendingRestaurant, PendingRider,
+  AdminMetrics, OrderException, RefundCase, PendingRestaurant, PendingRider, RiderCashHolder,
 } from '../../../data/types';
 
 /**
@@ -33,6 +34,7 @@ export function AdminHomeScreen() {
   const { data: refunds = [] } = useOpenRefunds();
   const { data: pendingShops = [] } = usePendingRestaurants();
   const { data: pendingRiders = [] } = usePendingRiders();
+  const { data: cashHolders = [] } = useRidersHoldingCash();
   const logout = useAuthStore((s) => s.logout);
 
   return (
@@ -106,6 +108,19 @@ export function AdminHomeScreen() {
             </Text>
           ) : (
             pendingRiders.map((r) => <RiderCard key={r.accountId} rider={r} />)
+          )}
+        </View>
+
+        <View style={{ paddingHorizontal: p.space.screen, gap: p.space.md }}>
+          <Text variant="kicker" color="muted">
+            {t('admin.cash.title')} ({cashHolders.length})
+          </Text>
+          {cashHolders.length === 0 ? (
+            <Text testID="admin-no-cash" variant="body" color="muted">
+              {t('admin.cash.empty')}
+            </Text>
+          ) : (
+            cashHolders.map((h) => <CashCard key={h.accountId} holder={h} />)
           )}
         </View>
 
@@ -403,6 +418,58 @@ function RiderCard({ rider }: { rider: PendingRider }) {
         {decide.isError ? (
           <Text testID="rider-decide-error" variant="small" color="danger">
             {(decide.error as Error).message}
+          </Text>
+        ) : null}
+      </View>
+    </Card>
+  );
+}
+
+/**
+ * ไรเดอร์ที่ถือเงินสดของบริษัทอยู่ (claude.md §6.2)
+ *
+ * เงินก้อนนี้เป็นของแพลตฟอร์มตั้งแต่ลูกค้าจ่าย ไรเดอร์แค่ถือแทน — **ไม่ใช่หนี้ของไรเดอร์**
+ * และไรเดอร์ไม่เคยออกเงินเอง ข้อความบนจอจึงต้องไม่อ่านเหมือนทวงหนี้
+ *
+ * ปุ่มนี้อยู่ฝั่งแอดมินเพราะเงินเปลี่ยนมือจริงนอกแอป คนที่รับเงินต้องเป็นคนยืนยัน
+ * ถ้าให้ไรเดอร์กดเอง ก็ล้างยอดตัวเองได้โดยไม่ต้องจ่ายอะไรเลย
+ */
+function CashCard({ holder }: { holder: RiderCashHolder }) {
+  const { t } = useTranslation();
+  const { primitives: p } = useTheme();
+  const settle = useSettleRiderCash();
+
+  return (
+    <Card testID={`rider-cash-${holder.accountId}`}>
+      <View style={{ gap: p.space.sm }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: p.space.sm }}>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text variant="h3" numberOfLines={1}>{holder.fullName}</Text>
+            <Text variant="small" color="muted">{holder.phone}</Text>
+          </View>
+          <Text variant="h3" color={holder.atLimit ? 'danger' : 'primary'}>
+            {formatBaht(holder.cashHeldSatang)}
+          </Text>
+        </View>
+
+        {/* ชนเพดานแล้วระบบหยุดเสนองานเงินสด — แอดมินต้องรู้ว่าทำไมไรเดอร์คนนี้งานหาย */}
+        {holder.atLimit ? (
+          <Text testID={`cash-at-limit-${holder.accountId}`} variant="small" color="danger" bold>
+            {t('admin.cash.atLimit', { limit: formatBaht(holder.cashLimitSatang) })}
+          </Text>
+        ) : null}
+
+        <Button
+          testID={`btn-settle-cash-${holder.accountId}`}
+          label={t('admin.cash.settleAll', { amount: formatBaht(holder.cashHeldSatang) })}
+          disabled={settle.isPending}
+          onPress={() =>
+            settle.mutate({ accountId: holder.accountId, amountSatang: holder.cashHeldSatang })}
+        />
+
+        {settle.isError ? (
+          <Text testID="cash-settle-error" variant="small" color="danger">
+            {(settle.error as Error).message}
           </Text>
         ) : null}
       </View>

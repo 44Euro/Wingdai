@@ -6,6 +6,7 @@ import type {
   Account, Address, MenuItem, MerchantOrder, MerchantRestaurant, Order, OrderStatus,
   Restaurant, RiderJob, RiderStatus, RiderEarnings, RefundCase, OrderException, AdminMetrics,
   PendingRestaurant, MerchantSummary, Zone, RiderApplication, PendingRider,
+  CashSettlement, RiderCashHolder,
 } from '../types';
 import { createClient, ApiError } from './client';
 import type { TokenStore } from './tokenStore';
@@ -330,6 +331,16 @@ export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
         return request<RiderApplication>(`/admin/riders/${accountId}/approval`, {
           method: 'POST', body: input, token: auth(),
         });
+      },
+
+      async settleRiderCash(accountId, amountSatang): Promise<CashSettlement> {
+        return request<CashSettlement>(`/admin/riders/${accountId}/settle-cash`, {
+          method: 'POST', body: { amountSatang }, token: auth(),
+        });
+      },
+
+      async ridersHoldingCash(): Promise<RiderCashHolder[]> {
+        return request<RiderCashHolder[]>('/admin/riders/cash', { token: auth() });
       },
     },
   };

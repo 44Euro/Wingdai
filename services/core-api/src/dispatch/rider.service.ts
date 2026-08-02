@@ -6,8 +6,10 @@ import { and, eq, desc, inArray, isNull, sql } from 'drizzle-orm';
 import { DB, type Db } from '../db/db.module';
 import {
   accounts, riderProfiles, riderStatus, riderSessions, dispatchOffers,
-  orders, orderItems, restaurants, addresses, zones,
+  orders, orderItems, restaurants, addresses, zones, ledgerEntries,
 } from '../db/schema';
+import { randomUUID } from 'node:crypto';
+import { postCashSettlement } from '../ledger/postCashSettlement';
 import { DispatchService } from './dispatch.service';
 import { MAX_ACTIVE_JOBS } from './scoring';
 import { validateRiderApplication, bankNameMatchesLegalName } from './riderApplication';
@@ -228,6 +230,97 @@ export class RiderService {
       ...r,
       bankNameMatches: bankNameMatchesLegalName(r.bankAccountName, r.fullName),
     }));
+  }
+
+  /**
+   * ไรเดอร์ที่ยังถือเงินสดของบริษัทอยู่ (§6.2)
+   *
+   * เรียงคนที่ถือมากสุดก่อน — คนใกล้ชนเพดานคือคนที่กำลังจะรับงานเงินสดไม่ได้
+   * ซึ่งเป็นปัญหาที่ต้องตามเก็บก่อน ไม่ใช่เรียงตามชื่อหรือเวลา
+   */
+  async ridersHoldingCash() {
+    const rows = await this.db
+      .select({
+        accountId: riderProfiles.accountId,
+        fullName: accounts.fullName,
+        phone: accounts.phone,
+        cashHeldSatang: riderProfiles.cashHeldSatang,
+        cashLimitSatang: riderProfiles.cashLimitSatang,
+      })
+      .from(riderProfiles)
+      .innerJoin(accounts, eq(accounts.id, riderProfiles.accountId))
+      .where(sql`${riderProfiles.cashHeldSatang} > 0`)
+      .orderBy(desc(riderProfiles.cashHeldSatang));
+
+    return rows.map((r) => ({
+      ...r,
+      // ชนเพดานแล้ว = eligibility.ts จะไม่เสนองานเงินสดให้อีกจนกว่าจะเคลียร์
+      atLimit: r.cashHeldSatang >= r.cashLimitSatang,
+    }));
+  }
+
+  /**
+   * ไรเดอร์นำเงินสดมาส่งคืนบริษัท แล้วแอดมินบันทึก (claude.md §6.2)
+   *
+   * นี่คือขาที่หายไปทั้งระบบ: `cash_held_satang` เดิมมีแต่ทางเพิ่ม ไรเดอร์ที่เก็บเงินสด
+   * ครบเพดาน (฿1,500) จึงถูก eligibility.ts ตัดจากงานเงินสด **ถาวร** โดยไม่มีทางเคลียร์
+   *
+   * แอดมินเป็นคนบันทึก ไม่ใช่ไรเดอร์กดเอง — เงินเปลี่ยนมือจริงนอกแอป คนที่รับเงิน
+   * ต้องเป็นคนยืนยันว่ารับมาแล้วจริง ไม่งั้นไรเดอร์กดล้างยอดตัวเองได้โดยไม่ต้องจ่ายอะไร
+   *
+   * ledger เขียนในทรานแซกชันเดียวกับการลดยอด — §6.2 ข้อ 2 ห้ามแยก ไม่มีข้อยกเว้น
+   */
+  async settleCash(adminAccountId: string, riderAccountId: string, amountSatang: number) {
+    if (!Number.isInteger(amountSatang) || amountSatang <= 0) {
+      throw new BadRequestException({ fields: { amountSatang: 'ยอดนำส่งต้องเป็นจำนวนเต็มสตางค์ที่มากกว่าศูนย์' } });
+    }
+
+    return this.db.transaction(async (tx) => {
+      const [profile] = await tx
+        .select({ cashHeld: riderProfiles.cashHeldSatang })
+        .from(riderProfiles)
+        .where(eq(riderProfiles.accountId, riderAccountId))
+        .limit(1)
+        .for('update');
+
+      if (!profile) throw new NotFoundException({ message: 'ไม่พบโปรไฟล์ไรเดอร์' });
+
+      /*
+       * รับเกินยอดที่ถืออยู่ไม่ได้ — ฐานมี CHECK กัน cash_held ติดลบอยู่แล้ว แต่ถ้าปล่อยให้
+       * ชนตรงนั้นจะได้ error ของ Postgres ที่แอดมินอ่านไม่รู้เรื่อง และที่สำคัญกว่าคือ
+       * ยอดที่รับเกินแปลว่ามีบางอย่างผิด (นับเงินผิด หรือใบไหนไม่ได้ถูกบันทึก) ต้องหยุดก่อน
+       */
+      if (amountSatang > profile.cashHeld) {
+        throw new ConflictException({
+          message: `ยอดนำส่งเกินเงินสดที่ไรเดอร์ถืออยู่ (${profile.cashHeld} สตางค์)`,
+        });
+      }
+
+      await tx
+        .update(riderProfiles)
+        .set({ cashHeldSatang: sql`${riderProfiles.cashHeldSatang} - ${amountSatang}` })
+        .where(eq(riderProfiles.accountId, riderAccountId));
+
+      const entryGroupId = randomUUID();
+      await tx.insert(ledgerEntries).values(
+        postCashSettlement({ amountSatang }).map((l) => ({
+          entryGroupId,
+          account: l.account,
+          debitSatang: l.debitSatang,
+          creditSatang: l.creditSatang,
+          // ผูกกับไรเดอร์ ไม่ใช่ออร์เดอร์ — เงินก้อนนี้มาจากหลายใบรวมกัน
+          counterpartyAccountId: riderAccountId,
+          reason: 'rider.cash_settled',
+        })),
+      );
+
+      return {
+        riderAccountId,
+        settledSatang: amountSatang,
+        cashHeldSatang: profile.cashHeld - amountSatang,
+        recordedByAccountId: adminAccountId,
+      };
+    });
   }
 
   /** แอดมินอนุมัติ/ปฏิเสธ — ปฏิเสธต้องมีเหตุผล ไม่งั้นไรเดอร์ไม่รู้ว่าต้องแก้อะไรแล้วส่งใหม่ */

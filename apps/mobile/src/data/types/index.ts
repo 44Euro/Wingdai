@@ -288,6 +288,29 @@ export interface PendingRider extends RiderApplicationProfile {
   bankNameMatches: boolean;
 }
 
+/**
+ * ไรเดอร์ที่ยังถือเงินสดของบริษัทอยู่ (claude.md §6.2)
+ *
+ * เงินสดที่ลูกค้าจ่ายเป็นของแพลตฟอร์มตั้งแต่วินาทีแรก แค่บังเอิญอยู่ในกระเป๋าไรเดอร์
+ * ไม่ใช่หนี้ที่ไรเดอร์ติดบริษัท — ไรเดอร์ไม่เคยออกเงินเอง
+ */
+export interface RiderCashHolder {
+  accountId: string;
+  fullName: string;
+  phone: string;
+  cashHeldSatang: number;
+  cashLimitSatang: number;
+  /** ชนเพดานแล้ว = ไม่ได้รับงานเงินสดต่อจนกว่าจะนำเงินมาส่ง */
+  atLimit: boolean;
+}
+
+export interface CashSettlement {
+  riderAccountId: string;
+  settledSatang: number;
+  /** ยอดที่เหลือหลังนำส่ง */
+  cashHeldSatang: number;
+}
+
 /** เหตุผลที่ลูกค้าแจ้งปัญหาได้ — ตัวที่ตัดสินว่าใครรับผิดชอบตาม claude.md §6.4 */
 export type RefundReason =
   | 'wrong_item' | 'missing_item' | 'food_quality'

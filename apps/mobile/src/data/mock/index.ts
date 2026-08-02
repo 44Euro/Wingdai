@@ -21,6 +21,9 @@ export const MOCK_OTP = '123456';
 export const MOCK_VERIFICATION_TOKEN = 'mock-verification-token';
 const MOCK_GOOGLE_TOKEN = 'mock-google-token';
 
+/** เพดานเงินสดในมือ — ตรงกับ rider_profiles.cash_limit_satang ฝั่งเซิร์ฟเวอร์ (฿1,500) */
+const CASH_LIMIT_SATANG = 150000;
+
 /** โซนที่เปิดให้บริการใน mock — ของจริงมาจากตาราง zones ที่มีขอบเขต PostGIS */
 const MOCK_ZONES: Zone[] = [{ id: 'z-ari', name: 'อารีย์', type: 'mixed' }];
 
@@ -320,7 +323,20 @@ export function createMockRepos(): Repos {
         if (!o) throw new Error(`ไม่พบออร์เดอร์ ${id}`);
         assertTransition(o.status, status); // โยน InvalidTransitionError ถ้าข้ามขั้น
         o.status = status;
-        if (status === 'delivered') deliveredAtById.set(o.id, new Date().toISOString());
+        if (status === 'delivered') {
+          deliveredAtById.set(o.id, new Date().toISOString());
+          /*
+           * §6.2 — ลูกค้าจ่ายเงินสดตอนรับของ เงินก้อนนั้นเป็นของแพลตฟอร์มแต่ไปอยู่ในมือไรเดอร์
+           * ต้องทำใน mock ด้วย ไม่งั้นจอเงินสดในมือกับเพดานจะเป็นศูนย์ตลอด และเทสต์จะไม่เจอ
+           * ปัญหาที่ของจริงเจอ (ชนเพดานแล้วรับงานเงินสดไม่ได้)
+           */
+          if (o.paymentMethod === 'cash' && o.paymentStatus === 'pending') {
+            o.paymentStatus = 'paid';
+            if (o.riderId) {
+              riderState(o.riderId).cashHeld += o.foodTotal + o.deliveryFee + o.serviceFee;
+            }
+          }
+        }
         return { ...o };
       },
       async payWithPromptPay(orderId) {
@@ -861,6 +877,41 @@ export function createMockRepos(): Repos {
           });
         }
         return out;
+      },
+
+      async ridersHoldingCash() {
+        await delay();
+        requireLogin();
+        const out = [];
+        for (const [accountId, st] of riderStates) {
+          if (st.cashHeld <= 0) continue;
+          const person = accounts.find((a) => a.id === accountId);
+          if (!person) continue;
+          out.push({
+            accountId,
+            fullName: person.fullName,
+            phone: person.phone,
+            cashHeldSatang: st.cashHeld,
+            cashLimitSatang: CASH_LIMIT_SATANG,
+            atLimit: st.cashHeld >= CASH_LIMIT_SATANG,
+          });
+        }
+        return out.sort((a, b) => b.cashHeldSatang - a.cashHeldSatang);
+      },
+
+      async settleRiderCash(accountId, amountSatang) {
+        await delay();
+        requireLogin();
+        if (!Number.isInteger(amountSatang) || amountSatang <= 0) {
+          throw new Error('ยอดนำส่งต้องเป็นจำนวนเต็มสตางค์ที่มากกว่าศูนย์');
+        }
+        const st = riderState(accountId);
+        // รับเกินยอดที่ถืออยู่ไม่ได้ — เกินแปลว่านับเงินผิด หรือมีใบที่ไม่ได้ถูกบันทึก
+        if (amountSatang > st.cashHeld) {
+          throw new Error('ยอดนำส่งเกินเงินสดที่ไรเดอร์ถืออยู่');
+        }
+        st.cashHeld -= amountSatang;
+        return { riderAccountId: accountId, settledSatang: amountSatang, cashHeldSatang: st.cashHeld };
       },
 
       async decideRider(accountId, input) {

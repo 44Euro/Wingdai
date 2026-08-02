@@ -3,6 +3,7 @@ import type {
   Order, OrderStatus, PaymentMethod, Restaurant, RiderJob, RiderStatus, RiderEarnings,
   RefundCase, RefundReason, RefundFault, OrderException, AdminMetrics, PendingRestaurant,
   MerchantSummary, Zone, RiderApplication, RiderApplicationInput, PendingRider,
+  CashSettlement, RiderCashHolder,
 } from '../types';
 
 /** ฟอร์มเปิดร้าน (claude.md §4.3) — รูปหน้าร้าน/เอกสารยังไม่มี เพราะยังไม่ได้ต่อ Storage */
@@ -199,6 +200,13 @@ export interface AdminRepo {
     accountId: string,
     input: { approve: boolean; rejectionReason?: string },
   ): Promise<RiderApplication>;
+  /**
+   * บันทึกว่าไรเดอร์นำเงินสดมาส่งแล้ว (§6.2)
+   * แอดมินเป็นคนกดเพราะเป็นคนรับเงินจริง — ไรเดอร์กดล้างยอดตัวเองไม่ได้
+   */
+  settleRiderCash(accountId: string, amountSatang: number): Promise<CashSettlement>;
+  /** ไรเดอร์ที่ยังถือเงินสดของบริษัทอยู่ */
+  ridersHoldingCash(): Promise<RiderCashHolder[]>;
 }
 
 export interface Repos {

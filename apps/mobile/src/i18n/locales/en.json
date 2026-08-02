@@ -628,6 +628,12 @@
       "rejectReason": "Reason for rejection",
       "licenceExpiry": "Licence until",
       "insuranceExpiry": "Insurance until"
+    },
+    "cash": {
+      "title": "Cash held by riders",
+      "empty": "No rider is holding cash",
+      "atLimit": "At the {{limit}} ceiling — no more cash orders will be offered until this is settled",
+      "settleAll": "Record {{amount}} received"
     }
   }
 }
