@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ADD COLUMN "commission_rate_bp" integer DEFAULT 1500 NOT NULL;
