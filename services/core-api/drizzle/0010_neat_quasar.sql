@@ -1,0 +1,1 @@
+ALTER TABLE "rider_documents" ADD COLUMN "rejection_reason" text;
