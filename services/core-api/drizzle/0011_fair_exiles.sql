@@ -1,0 +1,3 @@
+ALTER TABLE "ledger_entries" ADD COLUMN "restaurant_id" uuid;--> statement-breakpoint
+ALTER TABLE "ledger_entries" ADD CONSTRAINT "ledger_entries_restaurant_id_restaurants_id_fk" FOREIGN KEY ("restaurant_id") REFERENCES "public"."restaurants"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "ledger_entries_restaurant_idx" ON "ledger_entries" USING btree ("restaurant_id");
