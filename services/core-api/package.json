@@ -11,6 +11,8 @@
     "db:setup": "tsx src/db/setup.ts",
     "db:verify": "tsx src/db/verify.ts",
     "db:seed": "tsx src/db/seed.ts",
+    "db:reset": "tsx src/db/reset.ts",
+    "db:demo-orders": "tsx scripts/seedDemoOrders.ts",
     "build": "nest build",
     "start": "node dist/main.js",
     "dev": "nest start --watch",

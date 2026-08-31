@@ -1,0 +1,62 @@
+name: Demo maintenance
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+    - cron: '0 19 * * *'
+  workflow_dispatch:
+    inputs:
+      task:
+        description: keepalive หรือ reset
+        required: true
+        default: keepalive
+        type: choice
+        options: [keepalive, reset]
+
+env:
+  API_URL: https://wingdai-api.vercel.app/api
+
+jobs:
+  # Supabase ระดับฟรีพักฐานเมื่อไม่มีใครใช้ครบ 7 วัน แล้วลิงก์สาธิตจะเหลือแค่ข้อมูลจำลอง
+  keepalive:
+    if: github.event.schedule == '0 */6 * * *' || github.event.inputs.task == 'keepalive'
+    runs-on: ubuntu-latest
+    steps:
+      - name: ping API
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$API_URL/health")
+          echo "health -> $code"
+          test "$code" = "200"
+      - name: ping ฐานข้อมูลผ่านเส้นทางที่ query จริง
+        run: |
+          count=$(curl -s --max-time 30 "$API_URL/catalog/restaurants" | grep -o '"id"' | wc -l)
+          echo "restaurants -> $count"
+          test "$count" -gt 0
+
+  # ใครก็ล็อกอินเป็น super_root แล้วแก้ค่าคอมหรือลบของได้ ตี 2 ตามเวลาไทยจึงล้างกลับเป็นชุดตั้งต้น
+  reset:
+    if: github.event.schedule == '0 19 * * *' || github.event.inputs.task == 'reset'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/core-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: services/core-api/package-lock.json
+      - run: npm ci
+      - run: npm run db:reset -- --yes
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: npm run db:setup
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: npm run db:seed
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: npm run db:demo-orders
+        env:
+          DEMO_API_URL: ${{ env.API_URL }}
