@@ -42,14 +42,16 @@ async function flush() {
   }
 }
 
-function render() {
+function render(navigation: { goBack: jest.Mock; replace: jest.Mock } = {
+  goBack: jest.fn(), replace: jest.fn(),
+}) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   act(() => {
     r = ReactTestRenderer.create(
       <QueryClientProvider client={qc}>
         <ThemeProvider forceScheme="light">
           <PromptPayScreen
-            navigation={{ goBack: jest.fn(), replace: jest.fn() } as never}
+            navigation={navigation as never}
             route={{ key: 'k', name: 'PromptPay', params: undefined } as never}
           />
         </ThemeProvider>
@@ -96,5 +98,21 @@ describe('PromptPayScreen', () => {
     const shown = JSON.stringify(err.props.children);
     expect(shown).toContain('ร้านปิดรับออร์เดอร์ชั่วคราว');
     expect(shown).not.toContain('ร้านของตัวเอง');
+  });
+
+  it('คิวอาร์หมดอายุแล้วพาไปจอจ่ายไม่สำเร็จ ไม่ใช่ทิ้งไว้กับปุ่มที่กดไม่ได้ (SY4)', async () => {
+    jest.useFakeTimers();
+    try {
+      const navigation = { goBack: jest.fn(), replace: jest.fn() };
+      render(navigation);
+
+      await act(async () => {
+        jest.advanceTimersByTime(5 * 60 * 1000);
+      });
+
+      expect(navigation.replace).toHaveBeenCalledWith('PaymentFailed', undefined);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });

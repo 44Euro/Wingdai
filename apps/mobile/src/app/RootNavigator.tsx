@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useAuthStore } from '../features/auth/authStore';
 import { usePlatformConfig } from '../features/payment/usePlatformConfig';
+import { useOnboardingStore } from '../features/onboarding/onboardingStore';
 import { RiderOnboardingStack } from './navigators/RiderOnboardingStack';
 import { AuthNavigator } from './navigators/AuthNavigator';
 import { RiderStack } from './navigators/RiderStack';
@@ -16,6 +17,8 @@ export function RootNavigator() {
   const active = useAuthStore((s) => s.activeCapability);
   const isRestoring = useAuthStore((s) => s.isRestoring);
   const restore = useAuthStore((s) => s.restore);
+  const onboardingLoading = useOnboardingStore((s) => s.isLoading);
+  const loadOnboarding = useOnboardingStore((s) => s.load);
 
   /** เรียกที่นี่ที่เดียว ช่องทางจ่ายเงินที่เปิดอยู่เป็นค่าระดับแอป ไม่ใช่ของจอใดจอหนึ่ง */
   usePlatformConfig();
@@ -23,10 +26,11 @@ export function RootNavigator() {
   useEffect(() => {
     // เช็คเซสชันที่ค้างอยู่ครั้งเดียวตอนเปิดแอป token เก็บไว้ใน Keychain
     void restore();
-  }, [restore]);
+    void loadOnboarding();
+  }, [restore, loadOnboarding]);
 
-  /** ยังไม่รู้ว่าล็อกอินอยู่ไหม ยังไม่วาดอะไร */
-  if (isRestoring) return null;
+  /** ยังไม่รู้ว่าล็อกอินอยู่ไหม หรือเคยดูจอแนะนำแล้วหรือยัง ยังไม่วาดอะไร */
+  if (isRestoring || onboardingLoading) return null;
 
   if (!account) return <AuthNavigator />;
 

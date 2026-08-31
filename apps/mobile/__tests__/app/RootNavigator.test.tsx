@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RootNavigator } from '../../src/app/RootNavigator';
 import { ThemeProvider } from '../../src/theme/ThemeProvider';
 import { useAuthStore } from '../../src/features/auth/authStore';
+import { useOnboardingStore } from '../../src/features/onboarding/onboardingStore';
 import { initI18n } from '../../src/i18n';
 
 // @testing-library/react-native ถูกถอดออกจากโปรเจกต์ (ใช้ไม่ได้กับ jest-expo 57 + React 19)
@@ -18,6 +19,8 @@ beforeAll(async () => {
 let currentRenderer: ReactTestRenderer.ReactTestRenderer | null = null;
 
 beforeEach(() => {
+  // เทสต์ชุดนี้ตรวจว่า capability พาไป stack ไหน จอต้อนรับครั้งแรกจึงต้องผ่านไปแล้ว
+  useOnboardingStore.setState({ introSeen: true, permissionsAsked: true, isLoading: false });
   useAuthStore.setState({
     account: null,
     restaurants: [],

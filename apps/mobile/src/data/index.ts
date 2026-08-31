@@ -23,6 +23,12 @@ export function getDataMode(): DataMode {
   return state.mode;
 }
 
+/** เซิร์ฟเวอร์ยังตอบอยู่ไหม โหมดข้อมูลจำลองไม่ได้คุยกับใคร จึงถือว่าต่อติดเสมอ */
+export async function pingApi(): Promise<boolean> {
+  if (!apiBaseUrl || state.mode === 'demo') return true;
+  return probeApi(apiBaseUrl);
+}
+
 /** เรียกครั้งเดียวตอนบูต ก่อนวาดจอแรก */
 export async function initDataSource(): Promise<DataMode> {
   if (!apiBaseUrl) return state.mode;

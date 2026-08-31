@@ -28,6 +28,9 @@ import { ReceiptScreen } from '../../features/customer/screens/ReceiptScreen';
 import { PaymentMethodScreen } from '../../features/customer/screens/PaymentMethodScreen';
 import { PromptPayScreen } from '../../features/customer/screens/PromptPayScreen';
 import { CardPayScreen } from '../../features/customer/screens/CardPayScreen';
+import { PaymentFailedScreen } from '../../features/customer/screens/PaymentFailedScreen';
+import { PermissionsScreen } from '../../features/onboarding/PermissionsScreen';
+import { useOnboardingStore } from '../../features/onboarding/onboardingStore';
 import { SupportScreen } from '../../features/customer/screens/SupportScreen';
 import { SupportTicketScreen } from '../../features/customer/screens/SupportTicketScreen';
 import { RateOrderScreen } from '../../features/customer/screens/RateOrderScreen';
@@ -44,6 +47,8 @@ export type CustomerTabParamList = {
 
 export type CustomerStackParamList = {
   Tabs: NavigatorScreenParams<CustomerTabParamList> | undefined;
+  /** C30 ขอสิทธิ์ตำแหน่ง/แจ้งเตือน เป็นจอแรกของ stack ครั้งเดียวตอนเข้าแอปครั้งแรก */
+  Permissions: undefined;
   RestaurantDetail: { restaurantId: string };
   MenuItem: { restaurantId: string; menuItemId: string };
   Cart: undefined;
@@ -53,6 +58,8 @@ export type CustomerStackParamList = {
   PromptPay: { orderId?: string } | undefined;
   /** จ่ายด้วยบัตร ใช้ตะกร้าปัจจุบันเสมอ ไม่มีโหมดจ่ายออร์เดอร์เก่าแบบพร้อมเพย์ */
   CardPay: undefined;
+  /** SY4 คิวอาร์หมดอายุก่อนจ่ายสำเร็จ `orderId` = มาจากโหมดจ่ายออร์เดอร์ที่ค้างอยู่ ไม่ใช่ตะกร้า */
+  PaymentFailed: { orderId?: string } | undefined;
   OrderPlaced: { orderId: string };
   /** design ไม่มีแท็บแจ้งเตือน เข้าจากกระดิ่งบนหัวจอ Home แทน (C20) */
   Notifications: undefined;
@@ -106,9 +113,11 @@ const Stack = createNativeStackNavigator<CustomerStackParamList>();
 
 export function CustomerStack() {
   const { tokens } = useTheme();
+  const permissionsAsked = useOnboardingStore((s) => s.permissionsAsked);
   return (
     // design วาดหัวจอเองในแต่ละหน้า (ปุ่มย้อนกลับสี่เหลี่ยมมนบนพื้นครีม) ปิด header ของ navigator
     <Stack.Navigator
+      initialRouteName={permissionsAsked ? 'Tabs' : 'Permissions'}
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: tokens.bgSurface },
@@ -116,6 +125,7 @@ export function CustomerStack() {
     >
       {/* flow สั่งอาหาร push เหนือ Tabs → tab bar หายตอน drill-down */}
       <Stack.Screen name="Tabs" component={CustomerTabs} />
+      <Stack.Screen name="Permissions" component={PermissionsScreen} />
       <Stack.Screen name="RestaurantDetail" component={RestaurantDetailScreen} />
       <Stack.Screen name="MenuItem" component={MenuItemScreen} />
       <Stack.Screen name="Cart" component={CartScreen} />
@@ -123,6 +133,7 @@ export function CustomerStack() {
       <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} />
       <Stack.Screen name="PromptPay" component={PromptPayScreen} />
       <Stack.Screen name="CardPay" component={CardPayScreen} />
+      <Stack.Screen name="PaymentFailed" component={PaymentFailedScreen} />
       <Stack.Screen name="OrderPlaced" component={OrderPlacedScreen} options={{ gestureEnabled: false }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />

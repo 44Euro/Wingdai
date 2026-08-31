@@ -52,6 +52,11 @@ export function PromptPayScreen({ navigation, route }: Props) {
   }, []);
 
   const expired = secondsLeft === 0;
+
+  useEffect(() => {
+    // หมดอายุแล้วยังยืนอยู่กับ QR ที่สแกนไม่ได้ ไม่ได้ช่วยอะไร พาไปหน้าที่กดลองใหม่ได้เลย (SY4)
+    if (expired) navigation.replace('PaymentFailed', orderId ? { orderId } : undefined);
+  }, [expired, navigation, orderId]);
   const amount = pendingOrder
     ? pendingOrder.foodTotal + pendingOrder.deliveryFee + pendingOrder.serviceFee
     : totals.grandTotal;
@@ -69,7 +74,6 @@ export function PromptPayScreen({ navigation, route }: Props) {
     }
     placeOrder({
       onSuccess: (order) => navigation.replace('OrderPlaced', { orderId: order.id }),
-      // เหตุผลเดียวที่ถูกบล็อกในเส้นทางสั่งของคือ guard สั่งร้านตัวเอง (map เป็น i18n key เดียว)
       onError: setError,
     });
   }

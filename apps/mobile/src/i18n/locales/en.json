@@ -639,6 +639,12 @@
   "payment": {
     "error": {
       "cannotSwitch": "This order can no longer change payment method"
+    },
+    "failed": {
+      "title": "Payment didn't go through",
+      "expired": "Your QR code expired before the payment was confirmed. No money was taken — your cart is saved.",
+      "retry": "Try again",
+      "changeMethod": "Change payment method"
     }
   },
   "rider": {
@@ -1175,11 +1181,49 @@
     "hint": "Local sample data. Tap to fill a test account.",
     "role": {
       "user": "Customer",
+      "merchant": "Merchant",
       "rider": "Rider",
       "admin": "Admin",
       "super_admin": "Super admin"
     },
     "badgeLive": "Test accounts",
     "hintLive": "Connected to the live API. Tap to fill an account."
+  },
+  "intro": {
+    "skip": "Skip",
+    "next": "Next",
+    "start": "Get started",
+    "near": {
+      "title": "Neighbourhood kitchens, at your door in 20 minutes",
+      "body": "Order from home-style Thai kitchens within 1 km — the ones you walk past every day."
+    },
+    "track": {
+      "title": "Always know where your food is",
+      "body": "Follow the rider on the map from the moment the kitchen accepts until it reaches your door."
+    },
+    "pay": {
+      "title": "Pay by PromptPay or cash",
+      "body": "Scan to pay upfront, or pay the rider on delivery. No card needed."
+    }
+  },
+  "permissions": {
+    "title": "A couple of quick permissions",
+    "subtitle": "So we can find kitchens near you and keep you posted on your order.",
+    "allow": "Allow & continue",
+    "later": "Not now",
+    "location": {
+      "title": "Location",
+      "body": "Show kitchens and delivery times near you."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "body": "Order updates, rider arrival, and receipts."
+    }
+  },
+  "connection": {
+    "title": "No connection",
+    "body": "We can't reach Wingdai right now. Check your internet and try again — your cart is saved.",
+    "retry": "Try again",
+    "reconnecting": "Reconnecting…"
   }
 }

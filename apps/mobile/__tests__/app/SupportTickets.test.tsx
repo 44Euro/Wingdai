@@ -8,6 +8,7 @@ import { AdminStack } from '../../src/app/navigators/AdminStack';
 import { ThemeProvider } from '../../src/theme/ThemeProvider';
 import { initI18n } from '../../src/i18n';
 import { useAuthStore } from '../../src/features/auth/authStore';
+import { useOnboardingStore } from '../../src/features/onboarding/onboardingStore';
 import { repos } from '../../src/data';
 
 beforeAll(async () => {
@@ -92,6 +93,7 @@ async function openTicketAsCustomer(subject = 'อาหารมาไม่ค
 
 describe('ตั๋วซัพพอร์ตฝั่งลูกค้า (AD4)', () => {
   beforeEach(async () => {
+    useOnboardingStore.setState({ introSeen: true, permissionsAsked: true, isLoading: false });
     await act(async () => {
       await useAuthStore.getState().login('somchai', '1234');
     });
