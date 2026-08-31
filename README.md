@@ -29,6 +29,7 @@ database on Supabase.
 | Role | Username | Password | What you get |
 |---|---|---|---|
 | Customer | `somchai` | `wingdai1234` | browse, cart, checkout, live tracking, receipts |
+| Merchant | `malee` | `wingdai1234` | incoming orders, menu and stock, store hours, payouts |
 | Rider | `rider_ann` | `wingdai1234` | go online, job offers, earnings, cash ceiling |
 | Admin | `admin_root` | `wingdai1234` | exception queue, refunds, approvals, payouts |
 | Super admin | `super_root` | `wingdai1234` | commission + fee config, feature flags, audit log |

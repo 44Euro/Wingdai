@@ -7,8 +7,17 @@ import { Card, Badge } from '../../ui/Surface';
 import { seedAccounts, MOCK_PASSWORD } from '../../data/mock/seed';
 import type { DataMode } from '../../data';
 
-// ไรเดอร์ที่ยังรออนุมัติถูกตัดออก กดแล้วจะเจอจอ "รอตรวจสอบ" ซึ่งคนที่เพิ่งเปิดลิงก์มาอ่านว่าแอปพัง
-const PICKS = ['somchai', 'rider_ann', 'admin_root', 'super_root'] as const;
+/**
+ * ไรเดอร์ที่ยังรออนุมัติถูกตัดออก กดแล้วจะเจอจอ "รอตรวจสอบ" ซึ่งคนที่เพิ่งเปิดลิงก์มาอ่านว่าแอปพัง
+ * `malee` เป็นบัญชีธรรมดาที่มีร้าน จึงเป็นทางเดียวที่จะเข้าจอฝั่งร้านได้ (§4.3)
+ */
+const PICKS = [
+  { role: 'user', username: 'somchai' },
+  { role: 'merchant', username: 'malee' },
+  { role: 'rider', username: 'rider_ann' },
+  { role: 'admin', username: 'admin_root' },
+  { role: 'super_admin', username: 'super_root' },
+] as const;
 
 /** รหัสผ่านของบัญชีทดลอง ต่างกันสองฝั่งเพราะ seed ของเซิร์ฟเวอร์ตั้งค่าไว้คนละค่ากับของในเครื่อง */
 const SERVER_SEED_PASSWORD = 'wingdai1234';
@@ -25,9 +34,8 @@ export function DemoAccounts({
   const { tokens, primitives: p } = useTheme();
 
   const password = mode === 'demo' ? MOCK_PASSWORD : SERVER_SEED_PASSWORD;
-  const accounts = PICKS.map((u) => seedAccounts.find((a) => a.username === u)).filter(
-    (a): a is NonNullable<typeof a> => !!a,
-  );
+  // ยึด seed ในเครื่องเป็นตัวตัดสินว่าปุ่มไหนมีอยู่จริง เปลี่ยนชื่อบัญชีใน seed แล้วปุ่มหายไปเอง
+  const picks = PICKS.filter((pick) => seedAccounts.some((a) => a.username === pick.username));
 
   return (
     <Card testID="demo-accounts" style={{ gap: p.space.sm }}>
@@ -39,7 +47,7 @@ export function DemoAccounts({
       </View>
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: p.space.xs }}>
-        {accounts.map((a) => (
+        {picks.map((a) => (
           <Pressable
             key={a.username}
             testID={`demo-pick-${a.username}`}
@@ -55,7 +63,7 @@ export function DemoAccounts({
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <Text variant="caption" bold>{t(`demo.role.${a.accountType}`)}</Text>
+            <Text variant="caption" bold>{t(`demo.role.${a.role}`)}</Text>
           </Pressable>
         ))}
       </View>

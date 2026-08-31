@@ -35,9 +35,10 @@ async function login(username: string): Promise<string> {
   return expect(`ล็อกอิน ${username}`, res).token as string;
 }
 
-/** จานแรกของร้านที่ยังขายอยู่ พร้อมตัวเลือกที่บังคับต้องเลือก */
-function pickDish(menu: any[]) {
-  const dish = menu.find((m) => m.isAvailable);
+/** จานที่ยังขายอยู่ พร้อมตัวเลือกที่บังคับต้องเลือก */
+function pickDish(menu: any[], nth: number) {
+  const open = menu.filter((m) => m.isAvailable);
+  const dish = open[nth % open.length];
   if (!dish) throw new Error('ร้านนี้ไม่มีเมนูที่ขายอยู่');
   const required = (dish.optionGroups ?? []).filter((g: any) => g.minSelect > 0);
   return {
@@ -48,7 +49,7 @@ function pickDish(menu: any[]) {
 
 async function main() {
   const [customer, merchant, rider, admin] = await Promise.all(
-    ['somchai', 'chai', 'rider_ann', 'admin_root'].map(login),
+    ['somchai', 'malee', 'rider_ann', 'admin_root'].map(login),
   );
 
   const existing = expect('อ่านออร์เดอร์เดิม', await call('GET', '/orders', undefined, customer));
@@ -57,29 +58,31 @@ async function main() {
     return;
   }
 
-  const shops = expect('อ่านรายชื่อร้าน', await call('GET', '/catalog/restaurants'));
-  const open = shops.filter((s: any) => s.isOpen);
-  if (open.length < 4) throw new Error(`ร้านที่เปิดอยู่มีแค่ ${open.length} ร้าน ต้องรัน seed ก่อน`);
+  /** ทุกใบมาลงร้านของบัญชีสาธิตฝั่งร้าน ไม่งั้นกดเข้าโหมดร้านแล้วเจอคิวว่าง */
+  const mine = expect('อ่านร้านของบัญชีร้านค้า', await call('GET', '/merchant/restaurants', undefined, merchant));
+  const shop = mine.find((s: any) => s.isApproved && s.isOpen);
+  if (!shop) throw new Error('บัญชีร้านค้าไม่มีร้านที่เปิดอยู่ ต้องรัน seed ก่อน');
 
-  async function place(shop: any, note: string) {
-    const menu = expect('อ่านเมนู', await call('GET', `/catalog/restaurants/${shop.id}/menu`));
-    const dish = pickDish(menu);
+  const menu = expect('อ่านเมนู', await call('GET', `/catalog/restaurants/${shop.id}/menu`));
+
+  let nth = 0;
+  async function place(note: string) {
     const order = expect(
       `สั่งจาก ${shop.name}`,
       await call('POST', '/orders', {
         restaurantId: shop.id,
-        items: [{ ...dish, quantity: 1, note }],
+        items: [{ ...pickDish(menu, nth++), quantity: 1, note }],
         paymentMethod: 'promptpay',
       }, customer),
     );
     return order.id as string;
   }
 
-  // ใบที่หนึ่ง ร้านยังไม่กด ค้างอยู่ในจอออร์เดอร์เข้าใหม่ของร้าน (design M4)
-  await place(open[0], 'ไม่ใส่ผักชี');
+  // ใบที่หนึ่ง ร้านยังไม่กด ค้างอยู่ในจอออร์เดอร์เข้าใหม่ของร้าน (design M2)
+  await place('ไม่ใส่ผักชี');
 
   // ใบที่สอง ร้านรับแล้วกำลังทำ ยังไม่มีไรเดอร์
-  const cooking = await place(open[1], 'เผ็ดน้อย');
+  const cooking = await place('เผ็ดน้อย');
   expect('ร้านรับใบที่สอง', await call('PATCH', `/orders/${cooking}/status`, { status: 'accepted' }, merchant));
   expect('ร้านเริ่มทำใบที่สอง', await call('PATCH', `/orders/${cooking}/status`, { status: 'preparing' }, merchant));
 
@@ -98,11 +101,11 @@ async function main() {
   }
 
   // ใบที่สาม กำลังเดินทาง จอติดตามของลูกค้าและงานที่ค้างของไรเดอร์มีของให้ดู
-  const enRoute = await place(open[2], '');
+  const enRoute = await place('');
   await toRider(enRoute);
 
   // ใบที่สี่ ส่งถึงแล้ว มีใบเสร็จ รีวิว ทิป และรายการบัญชีครบวง
-  const done = await place(open[3], 'ขอช้อนส้อมด้วย');
+  const done = await place('ขอช้อนส้อมด้วย');
   await toRider(done);
   const view = expect('ลูกค้าเปิดใบที่สี่', await call('GET', `/orders/${done}`, undefined, customer));
   expect(

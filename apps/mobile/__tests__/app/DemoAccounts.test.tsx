@@ -3,7 +3,7 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 import { DemoAccounts } from '../../src/features/auth/DemoAccounts';
 import { ThemeProvider } from '../../src/theme/ThemeProvider';
 import { initI18n, i18n } from '../../src/i18n';
-import { MOCK_PASSWORD } from '../../src/data/mock/seed';
+import { MOCK_PASSWORD, seedAccounts } from '../../src/data/mock/seed';
 
 beforeAll(async () => {
   await initI18n();
@@ -53,12 +53,24 @@ describe('DemoAccounts', () => {
     expect(onPick).not.toHaveBeenCalledWith('somchai', MOCK_PASSWORD);
   });
 
-  it('โผล่พร้อมบัญชีครบทั้งสี่บทบาทเมื่ออยู่โหมดสาธิต', () => {
+  it('โผล่พร้อมบัญชีครบทุกบทบาทเมื่ออยู่โหมดสาธิต', () => {
     const result = render(<DemoAccounts mode="demo" onPick={jest.fn()} />);
     expect(find(result.root, 'demo-accounts')).toBeTruthy();
-    for (const u of ['somchai', 'rider_ann', 'admin_root', 'super_root']) {
+    for (const u of ['somchai', 'malee', 'rider_ann', 'admin_root', 'super_root']) {
       expect(find(result.root, `demo-pick-${u}`)).toBeTruthy();
     }
+  });
+
+  it('บัญชีร้านค้าต้องเป็นคนที่มีร้านจริงใน seed ไม่งั้นกดแล้วไม่เจอจอฝั่งร้าน', () => {
+    const onPick = jest.fn();
+    const result = render(<DemoAccounts mode="demo" onPick={onPick} />);
+    act(() => {
+      find(result.root, 'demo-pick-malee').props.onPress();
+    });
+    expect(onPick).toHaveBeenCalledWith('malee', MOCK_PASSWORD);
+
+    const merchant = seedAccounts.find((a) => a.username === 'malee');
+    expect(merchant?.ownedRestaurantIds.length).toBeGreaterThan(0);
   });
 
   it('กดแล้วส่งทั้งชื่อผู้ใช้และรหัสผ่านกลับไป ไม่ใช่แค่ชื่อผู้ใช้', () => {
