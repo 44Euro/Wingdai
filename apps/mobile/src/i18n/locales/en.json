@@ -1235,5 +1235,19 @@
     "body": "We can't reach Wingdai right now. Check your internet and try again — your cart is saved.",
     "retry": "Try again",
     "reconnecting": "Reconnecting…"
+  },
+  "web": {
+    "title": "Wingdai",
+    "tagline": "A full food-delivery app. Customer, merchant, rider and staff in one codebase.",
+    "accountsTitle": "Test accounts",
+    "password": "Password for every account",
+    "hint": "Built for phones. The frame on the right is the real screen size.",
+    "role": {
+      "user": "Customer",
+      "merchant": "Merchant",
+      "rider": "Rider",
+      "admin": "Admin",
+      "super_admin": "Super admin"
+    }
   }
 }
