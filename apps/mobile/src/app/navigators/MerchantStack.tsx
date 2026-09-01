@@ -17,6 +17,7 @@ import { MerchantQrScreen } from '../../features/merchant/screens/MerchantQrScre
 import { MerchantHoursScreen } from '../../features/merchant/screens/MerchantHoursScreen';
 import { RejectOrderScreen } from '../../features/merchant/screens/RejectOrderScreen';
 import { EditMenuItemScreen } from '../../features/merchant/screens/EditMenuItemScreen';
+import { MerchantPayoutScreen } from '../../features/merchant/screens/MerchantPayoutScreen';
 import { SettingsScreen } from '../../features/customer/screens/SettingsScreen';
 
 /** สี่แท็บของฝั่งร้าน คิว เมนู ยอดขาย และร้านของฉัน */
@@ -44,6 +45,8 @@ export type MerchantStackParamList = {
   MerchantHours: { restaurantId: string };
   RejectOrder: { orderId: string };
   EditMenuItem: { restaurantId: string; menuItemId: string };
+  /** ร้านขอถอนยอดค้างจ่าย ทีมงานอนุมัติ (§6.2) */
+  MerchantPayout: { restaurantId: string };
 };
 
 const Tab = createBottomTabNavigator<MerchantTabParamList>();
@@ -85,6 +88,7 @@ export function MerchantStack() {
       <Stack.Screen name="MerchantHours" component={MerchantHoursScreen} />
       <Stack.Screen name="RejectOrder" component={RejectOrderScreen} />
       <Stack.Screen name="EditMenuItem" component={EditMenuItemScreen} />
+      <Stack.Screen name="MerchantPayout" component={MerchantPayoutScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
     </Stack.Navigator>
   );

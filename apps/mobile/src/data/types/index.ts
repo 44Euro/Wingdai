@@ -698,3 +698,34 @@ export interface Order {
 /** เหตุผลที่ร้านปฏิเสธออเดอร์ (design M12) รายการปิด ไม่ใช่ข้อความอิสระ */
 export type CancelReason = 'out_of_stock' | 'too_busy' | 'closing_soon' | 'other';
 export type CancelledBy = 'customer' | 'restaurant' | 'admin';
+
+/** ใบขอถอนเงินของร้าน (product-spec §6.2) */
+export type MerchantPayoutStatus = 'requested' | 'paid' | 'rejected';
+
+export interface MerchantPayout {
+  id: string;
+  restaurantId: string;
+  amountSatang: number;
+  status: MerchantPayoutStatus;
+  rejectionReason: string | null;
+  requestedAt: string;
+  decidedAt: string | null;
+}
+
+export interface MerchantPayoutBalance {
+  /** ยอดที่แพลตฟอร์มค้างจ่ายร้านนี้ อ่านจากสมุดบัญชี ไม่ใช่จากตารางออเดอร์ */
+  payableSatang: number;
+  /** ใบที่ขอไว้แล้วแต่ทีมงานยังไม่ตัดสิน */
+  pendingSatang: number;
+  withdrawableSatang: number;
+  pending: MerchantPayout | null;
+}
+
+/** ใบขอถอนที่รอทีมงานตัดสิน (จอ AD7) */
+export interface PendingMerchantPayout {
+  id: string;
+  restaurantId: string;
+  restaurantName: string;
+  amountSatang: number;
+  requestedAt: string;
+}

@@ -132,6 +132,27 @@ export function useDecideRiderPayout() {
   });
 }
 
+/** คำขอถอนของร้านที่รอตัดสิน (product-spec §6.2) */
+export function useMerchantPayouts() {
+  return useQuery({
+    queryKey: ['admin', 'merchant-payouts'],
+    queryFn: () => repos.admin.merchantPayouts(),
+  });
+}
+
+export function useDecideMerchantPayout() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ payoutId, ...input }: {
+      payoutId: string; approve: boolean; rejectionReason?: string;
+    }) => repos.admin.decideMerchantPayout(payoutId, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin'] });
+      qc.invalidateQueries({ queryKey: ['merchant'] });
+    },
+  });
+}
+
 /** จอเฝ้าออเดอร์ (design AD2) ตัวกรองอยู่ใน key เพื่อให้แต่ละชิปมี cache ของตัวเอง */
 export function useAdminOrders(filter: AdminOrderFilter) {
   return useQuery({

@@ -17,6 +17,8 @@ import {
   UpdateMenuItemSchema, type UpdateMenuItemInput,
   SetHoursSchema, type SetHoursInput,
   PauseSchema, type PauseInput,
+  RequestMerchantPayoutSchema, type RequestMerchantPayoutInput,
+  DecideMerchantPayoutSchema, type DecideMerchantPayoutInput,
 } from './dto';
 
 /** ฝั่งร้าน product-spec §4.3 ร้านเป็น "ความสามารถ" บนบัญชี type `user` ไม่ใช่ประเภทบัญชี */
@@ -105,6 +107,32 @@ export class MerchantController {
   ) {
     return this.merchant.updateMenuItem(me.sub, id, body);
   }
+
+  /** ยอดที่ถอนได้ของร้านนี้ พร้อมใบที่ค้างอยู่ */
+  @Get('restaurants/:id/payout')
+  payoutBalance(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentAccount() me: SessionClaims,
+  ) {
+    return this.merchant.payoutBalance(me.sub, id);
+  }
+
+  @Get('restaurants/:id/payout/history')
+  payoutHistory(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentAccount() me: SessionClaims,
+  ) {
+    return this.merchant.payoutHistory(me.sub, id);
+  }
+
+  @Post('restaurants/:id/payout')
+  requestPayout(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body(new ZodBody(RequestMerchantPayoutSchema)) body: RequestMerchantPayoutInput,
+    @CurrentAccount() me: SessionClaims,
+  ) {
+    return this.merchant.requestPayout(me.sub, id, body.amountSatang);
+  }
 }
 
 /** คิวอนุมัติร้านของแอดมิน (§4.3 §7) */
@@ -127,13 +155,17 @@ export class AdminRestaurantsController {
   ) {
     return this.merchant.setApproval(me.sub, id, body.approve);
   }
+
 }
 
 /** รอบจ่ายเงินร้าน (design AD7) */
 @Controller('admin/restaurants')
 @UseGuards(JwtGuard, AdminGuard)
 export class AdminRestaurantPayoutController {
-  constructor(private readonly payouts: RestaurantPayoutService) {}
+  constructor(
+    private readonly payouts: RestaurantPayoutService,
+    private readonly merchant: MerchantService,
+  ) {}
 
   @Get('payables')
   payables() {
@@ -145,4 +177,21 @@ export class AdminRestaurantPayoutController {
   settle(@Param('id', ParseUUIDPipe) id: string, @CurrentAccount() me: SessionClaims) {
     return this.payouts.settle(me.sub, id);
   }
+
+  /** คำขอถอนที่ร้านกดมาเอง รอทีมงานตัดสิน */
+  @Get('payout-requests')
+  pendingPayouts() {
+    return this.merchant.pendingPayouts();
+  }
+
+  @Post('payout-requests/:payoutId/decide')
+  @HttpCode(200)
+  decidePayout(
+    @Param('payoutId', ParseUUIDPipe) payoutId: string,
+    @Body(new ZodBody(DecideMerchantPayoutSchema)) body: DecideMerchantPayoutInput,
+    @CurrentAccount() me: SessionClaims,
+  ) {
+    return this.merchant.decidePayout(me.sub, payoutId, body.approve, body.rejectionReason);
+  }
+
 }

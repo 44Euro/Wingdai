@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { postRestaurantPayout, assertRestaurantPayoutAllowed } from './postRestaurantPayout';
+import {
+  postRestaurantPayout, assertRestaurantPayoutAllowed,
+  merchantWithdrawableSatang, assertMerchantWithdrawAllowed,
+} from './postRestaurantPayout';
 
 describe('postRestaurantPayout — รอบจ่ายร้าน (§6.2)', () => {
   it('เดบิต restaurant_payable เครดิต cash ตามตารางใน §6.2', () => {
@@ -49,5 +52,26 @@ describe('assertRestaurantPayoutAllowed', () => {
   it('ยอดค้างติดลบ จ่ายออกไม่ได้', () => {
     expect(() => assertRestaurantPayoutAllowed({ amountSatang: 100, payableSatang: -50 }))
       .toThrow(/ไม่เกิน/);
+  });
+});
+
+describe('ยอดที่ร้านขอถอนเองได้', () => {
+  it('หักใบที่ขอไว้แล้วแต่ยังไม่ตัดสินออกก่อน', () => {
+    expect(merchantWithdrawableSatang({ payableSatang: 20000, pendingSatang: 5000 })).toBe(15000);
+  });
+
+  it('ขอเกินยอดที่เหลือไม่ผ่าน กันกดขอซ้อนจนรวมแล้วเกินของจริง', () => {
+    expect(() => assertMerchantWithdrawAllowed({
+      amountSatang: 16000, payableSatang: 20000, pendingSatang: 5000,
+    })).toThrow();
+    expect(() => assertMerchantWithdrawAllowed({
+      amountSatang: 15000, payableSatang: 20000, pendingSatang: 5000,
+    })).not.toThrow();
+  });
+
+  it('ยอดต้องเป็นจำนวนเต็มสตางค์และมากกว่าศูนย์', () => {
+    const base = { payableSatang: 20000, pendingSatang: 0 };
+    expect(() => assertMerchantWithdrawAllowed({ ...base, amountSatang: 0 })).toThrow();
+    expect(() => assertMerchantWithdrawAllowed({ ...base, amountSatang: 1.5 })).toThrow();
   });
 });

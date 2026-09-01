@@ -5,7 +5,9 @@ import type {
 import type {
   Account, Address, MenuItem, MerchantOrder, MerchantRestaurant, Order, OrderStatus,
   Restaurant, RiderJob, RiderStatus, RiderEarnings, RefundCase, OrderException, AdminMetrics,
-  PendingRestaurant, MerchantSummary, Zone, RiderApplication, PendingRider,
+  PendingRestaurant, MerchantSummary, MerchantPayout, MerchantPayoutBalance,
+  PendingMerchantPayout,
+  Zone, RiderApplication, PendingRider,
   CashSettlement, RiderCashHolder, PendingRiderPayout, RiderBalance, RiderPayout, RiderWorkBase,
   EarningsPeriod, RiderDocument, RiderDocumentKind,
   AdminOrderRow, LiveOps, RestaurantPayable, OpsMapData, RiderDocumentWithUrl,
@@ -259,6 +261,26 @@ export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
         const q = restaurantId ? `?restaurantId=${restaurantId}` : '';
         return request<MerchantSummary>(`/merchant/summary${q}`, { token: auth() });
       },
+
+      async payoutBalance(restaurantId): Promise<MerchantPayoutBalance> {
+        return request<MerchantPayoutBalance>(
+          `/merchant/restaurants/${restaurantId}/payout`, { token: auth() },
+        );
+      },
+
+      async payoutHistory(restaurantId): Promise<MerchantPayout[]> {
+        return request<MerchantPayout[]>(
+          `/merchant/restaurants/${restaurantId}/payout/history`, { token: auth() },
+        );
+      },
+
+      async requestPayout(restaurantId, amountSatang): Promise<MerchantPayout> {
+        return request<MerchantPayout>(`/merchant/restaurants/${restaurantId}/payout`, {
+          method: 'POST',
+          body: { amountSatang },
+          token: auth(),
+        });
+      },
     },
 
     rider: {
@@ -467,6 +489,19 @@ export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
 
       async riderPayouts(): Promise<PendingRiderPayout[]> {
         return request<PendingRiderPayout[]>('/admin/riders/payouts', { token: auth() });
+      },
+
+      async merchantPayouts(): Promise<PendingMerchantPayout[]> {
+        return request<PendingMerchantPayout[]>('/admin/restaurants/payout-requests', {
+          token: auth(),
+        });
+      },
+
+      async decideMerchantPayout(payoutId, input): Promise<MerchantPayout> {
+        return request<MerchantPayout>(
+          `/admin/restaurants/payout-requests/${payoutId}/decide`,
+          { method: 'POST', body: input, token: auth() },
+        );
       },
 
       async decideRiderPayout(payoutId, input): Promise<RiderPayout> {

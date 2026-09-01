@@ -162,6 +162,13 @@
       "when": 1786205214636,
       "tag": "0022_favorites",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1788282872996,
+      "tag": "0023_crazy_jane_foster",
+      "breakpoints": true
     }
   ]
 }

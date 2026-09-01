@@ -7,6 +7,7 @@ import type {
   RiderDocument, RiderDocumentKind, PaymentMethod, FeatureFlagKey, PlatformPricing, AuditRow,
   TicketKind, TicketStatus, SupportTicket, Review, ReviewSummary, ChatChannel,
   WeeklyHours, MerchantRestaurant,
+  MerchantPayout,
 } from '../types';
 import { assertTransition, isActiveStatus } from '../orderStateMachine';
 import { matchesFilter } from '../../lib/adminOrders';
@@ -87,6 +88,29 @@ export function createMockRepos(): Repos {
   const menuItems: MenuItem[] = seedMenuItems.map((m) => ({ ...m }));
   const addresses: (Address & { accountId: string })[] = seedAddresses.map((a) => ({ ...a }));
   const orders: Order[] = [];
+  /** ใบขอถอนของร้าน อยู่ในหน่วยความจำเหมือนของอื่นในโหมดจำลอง */
+  const merchantPayouts: MerchantPayout[] = [];
+
+  /** ยอดถอนของร้าน คิดที่เดียวแล้วใช้ร่วมกันทั้งตอนอ่านและตอนขอถอน */
+  function payoutBalanceOf(restaurantId: string) {
+    const earned = orders
+      .filter((o) => o.restaurantId === restaurantId && o.status === 'delivered')
+      .reduce((sum, o) => sum + (o.foodTotal - Math.round(o.foodTotal * 0.15)), 0);
+    const paid = merchantPayouts
+      .filter((p) => p.restaurantId === restaurantId && p.status === 'paid')
+      .reduce((sum, p) => sum + p.amountSatang, 0);
+    const pending = merchantPayouts.find(
+      (p) => p.restaurantId === restaurantId && p.status === 'requested',
+    ) ?? null;
+    const payableSatang = earned - paid;
+    const pendingSatang = pending?.amountSatang ?? 0;
+    return {
+      payableSatang,
+      pendingSatang,
+      withdrawableSatang: payableSatang - pendingSatang,
+      pending,
+    };
+  }
   const refundCases: RefundCase[] = [];
   /** รีวิว (design C11) ของจริงคือตาราง `reviews` ผูกกับออเดอร์ หนึ่งใบหนึ่งรีวิว */
   const reviewList: (Review & { restaurantId: string })[] = [];
@@ -949,6 +973,45 @@ export function createMockRepos(): Repos {
           restaurantCount: mine.length,
         };
       },
+
+      /**
+       * ยอดถอนของร้านในโหมดข้อมูลจำลอง คิดจากยอดที่ร้านได้ของใบที่ส่งถึงแล้ว
+       * ลบใบที่ขอถอนไปแล้วในเซสชันนี้ พฤติกรรมเดียวกับฝั่งเซิร์ฟเวอร์ที่อ่านจากสมุดบัญชี
+       */
+      async payoutBalance(restaurantId) {
+        await delay();
+        const me = requireLogin();
+        const shop = restaurants.find((r) => r.id === restaurantId && r.ownerUserId === me.id);
+        if (!shop) throw new Error('ไม่พบร้านนี้');
+        return payoutBalanceOf(restaurantId);
+      },
+
+      async payoutHistory(restaurantId) {
+        await delay();
+        return merchantPayouts
+          .filter((p) => p.restaurantId === restaurantId)
+          .sort((a, b) => (a.requestedAt < b.requestedAt ? 1 : -1));
+      },
+
+      async requestPayout(restaurantId, amountSatang) {
+        await delay();
+        const b = payoutBalanceOf(restaurantId);
+        if (b.pending) throw new Error('มีคำขอถอนที่รอทีมงานยืนยันอยู่แล้ว');
+        if (amountSatang <= 0 || amountSatang > b.withdrawableSatang) {
+          throw new Error(`ถอนได้ไม่เกิน ${b.withdrawableSatang / 100} บาท`);
+        }
+        const created: MerchantPayout = {
+          id: `mp-${merchantPayouts.length + 1}`,
+          restaurantId,
+          amountSatang,
+          status: 'requested',
+          rejectionReason: null,
+          requestedAt: new Date().toISOString(),
+          decidedAt: null,
+        };
+        merchantPayouts.push(created);
+        return created;
+      },
     },
 
     rider: {
@@ -1524,6 +1587,35 @@ export function createMockRepos(): Repos {
           });
         }
         return out.sort((a, b) => a.requestedAt.localeCompare(b.requestedAt));
+      },
+
+      async merchantPayouts() {
+        await delay();
+        requireLogin();
+        return merchantPayouts
+          .filter((p) => p.status === 'requested')
+          .map((p) => ({
+            id: p.id,
+            restaurantId: p.restaurantId,
+            restaurantName: restaurants.find((r) => r.id === p.restaurantId)?.name ?? p.restaurantId,
+            amountSatang: p.amountSatang,
+            requestedAt: p.requestedAt,
+          }));
+      },
+
+      async decideMerchantPayout(payoutId, input) {
+        await delay();
+        requireLogin();
+        const row = merchantPayouts.find((p) => p.id === payoutId);
+        if (!row) throw new Error('ไม่พบคำขอถอน');
+        if (row.status !== 'requested') throw new Error('คำขอนี้ถูกตัดสินไปแล้ว');
+        if (!input.approve && !input.rejectionReason?.trim()) {
+          throw new Error('ปฏิเสธต้องบอกเหตุผล');
+        }
+        row.status = input.approve ? 'paid' : 'rejected';
+        row.rejectionReason = input.approve ? null : input.rejectionReason!.trim();
+        row.decidedAt = new Date().toISOString();
+        return row;
       },
 
       async decideRiderPayout(payoutId, input) {

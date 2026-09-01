@@ -594,8 +594,6 @@
       "foodSales": "Food sales",
       "commission": "Commission 15%",
       "net": "You receive",
-      "payoutTitle": "Payout schedule",
-      "payoutBody": "Automated payouts are not in this phase yet — we will transfer the amount above manually",
       "breakdown": "By day",
       "emptyPeriod": "No orders in this period yet"
     },
@@ -672,6 +670,22 @@
       "title": "My kitchen",
       "owner": "Owner",
       "noShop": "No kitchen yet — open one to use this mode"
+    },
+    "payout": {
+      "title": "Withdraw",
+      "available": "Available to withdraw",
+      "hint": "What you earned on delivered orders, after the 15% fee",
+      "amountLabel": "Amount to withdraw (THB)",
+      "submit": "Request withdrawal",
+      "pendingTitle": "Waiting on the team",
+      "pendingBody": "One request at a time. Wait for this one before asking again.",
+      "historyTitle": "Withdrawal history",
+      "empty": "No withdrawals yet",
+      "status": {
+        "requested": "Pending",
+        "paid": "Paid",
+        "rejected": "Rejected"
+      }
     }
   },
   "payment": {
@@ -1040,6 +1054,11 @@
       "close": "Close this ticket",
       "openRefundCase": "Go to the refund case for this order",
       "refundStartsWithCustomer": "Refunds cannot start from a ticket — the customer reports the problem from their receipt, then the case appears in the Money tab"
+    },
+    "shopPayouts": {
+      "title": "Merchant withdrawals",
+      "empty": "No merchant requests",
+      "approve": "Approve and pay"
     }
   },
   "super": {

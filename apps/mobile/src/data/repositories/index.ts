@@ -2,7 +2,8 @@ import type {
   Account, AccountType, Address, MenuItem, MerchantOrder, MerchantRestaurant,
   Order, OrderStatus, PaymentMethod, Restaurant, RiderJob, RiderStatus, RiderEarnings,
   RefundCase, RefundReason, RefundFault, OrderException, AdminMetrics, PendingRestaurant,
-  MerchantSummary, Zone, RiderApplication, RiderApplicationInput, PendingRider,
+  MerchantSummary, MerchantPayout, MerchantPayoutBalance, PendingMerchantPayout,
+  Zone, RiderApplication, RiderApplicationInput, PendingRider,
   CashSettlement, RiderCashHolder, PendingRiderPayout, RiderBalance, RiderPayout, RiderWorkBase,
   Review, ReviewSummary, ChatChannel, ChatThread,
   EarningsPeriod, RiderIssueKind, RiderDocument, RiderDocumentKind,
@@ -163,6 +164,11 @@ export interface MerchantRepo {
   ): Promise<MenuItem>;
   /** ยอดขายวันนี้ / 7 วัน (design M1 M5) ไม่ระบุร้าน = รวมทุกร้านของบัญชีนี้ */
   summary(restaurantId?: string): Promise<MerchantSummary>;
+  /** ยอดที่ร้านถอนได้ และใบที่ค้างอยู่ (§6.2) */
+  payoutBalance(restaurantId: string): Promise<MerchantPayoutBalance>;
+  payoutHistory(restaurantId: string): Promise<MerchantPayout[]>;
+  /** ขอถอน ทีมงานเป็นคนอนุมัติ เงินถึงจะขยับ */
+  requestPayout(restaurantId: string, amountSatang: number): Promise<MerchantPayout>;
 }
 
 /** ฝั่งไรเดอร์ (product-spec §6.3) */
@@ -254,6 +260,12 @@ export interface AdminRepo {
   /** คำขอถอนที่รอตัดสิน (design R12) ไรเดอร์ขอ แอดมินยืนยัน ไม่มีรอบจ่ายอัตโนมัติ (§10) */
   riderPayouts(): Promise<PendingRiderPayout[]>;
   /** ยืนยันหรือปฏิเสธคำขอถอน ปฏิเสธต้องบอกเหตุผล */
+  /** คำขอถอนของร้านที่รอทีมงานตัดสิน (§6.2) */
+  merchantPayouts(): Promise<PendingMerchantPayout[]>;
+  decideMerchantPayout(
+    payoutId: string,
+    input: { approve: boolean; rejectionReason?: string },
+  ): Promise<MerchantPayout>;
   decideRiderPayout(
     payoutId: string,
     input: { approve: boolean; rejectionReason?: string },

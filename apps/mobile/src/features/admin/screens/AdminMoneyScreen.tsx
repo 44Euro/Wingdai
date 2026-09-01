@@ -15,6 +15,7 @@ import { RefundCard } from '../components/RefundCard';
 import { CashCard } from '../components/CashCard';
 import { PayoutCard } from '../components/PayoutCard';
 import type { RestaurantPayable } from '../../../data/types';
+import { useMerchantPayouts, useDecideMerchantPayout } from '../hooks';
 
 /** AD5 + AD7 รวมเป็นแท็บเดียว "วันนี้เงินไปไหนบ้าง" */
 export function AdminMoneyScreen() {
@@ -25,6 +26,8 @@ export function AdminMoneyScreen() {
   const { data: payables = [] } = useRestaurantPayables();
   const { data: cashHolders = [] } = useRidersHoldingCash();
   const { data: payouts = [] } = useRiderPayouts();
+  const { data: shopPayouts = [] } = useMerchantPayouts();
+  const decideShopPayout = useDecideMerchantPayout();
 
   return (
     <SafeAreaView
@@ -77,6 +80,43 @@ export function AdminMoneyScreen() {
             </Text>
           ) : (
             payouts.map((r) => <PayoutCard key={r.id} payout={r} />)
+          )}
+        </View>
+
+        {/* คำขอถอนของร้าน โครงเดียวกับของไรเดอร์ แต่คนละบัญชีในสมุดบัญชี (§6.2) */}
+        <View style={{ gap: p.space.md }}>
+          <Text variant="kicker" color="muted">
+            {t('admin.shopPayouts.title')} ({shopPayouts.length})
+          </Text>
+          {shopPayouts.length === 0 ? (
+            <Text testID="admin-no-shop-payouts" variant="body" color="muted">
+              {t('admin.shopPayouts.empty')}
+            </Text>
+          ) : (
+            shopPayouts.map((r) => (
+              <Card key={r.id} testID={`shop-payout-${r.id}`}>
+                <View style={{ gap: p.space.sm }}>
+                  <View
+                    style={{
+                      flexDirection: 'row', alignItems: 'center',
+                      justifyContent: 'space-between', gap: p.space.md,
+                    }}
+                  >
+                    <Text variant="body" bold numberOfLines={1} style={{ flex: 1 }}>
+                      {r.restaurantName}
+                    </Text>
+                    <Text variant="body" bold>{formatBaht(r.amountSatang)}</Text>
+                  </View>
+                  <Button
+                    testID={`btn-approve-shop-payout-${r.id}`}
+                    label={t('admin.shopPayouts.approve')}
+                    disabled={decideShopPayout.isPending}
+                    onPress={() =>
+                      decideShopPayout.mutate({ payoutId: r.id, approve: true })}
+                  />
+                </View>
+              </Card>
+            ))
           )}
         </View>
 

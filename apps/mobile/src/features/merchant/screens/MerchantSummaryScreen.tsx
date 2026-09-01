@@ -11,7 +11,7 @@ import { Button } from '../../../ui/Button';
 import { Card, Chip } from '../../../ui/Surface';
 import { SkeletonCards } from '../../../ui/motion';
 import { formatBaht } from '../../../lib/format';
-import { useMerchantSummary, useMerchantOrders } from '../hooks';
+import { useMerchantSummary, useMerchantOrders, useMyRestaurants } from '../hooks';
 import { MERCHANT_TAB_CLEARANCE } from '../../../app/navigators/MerchantTabBar';
 import type { MerchantSales } from '../../../data/types';
 import type { MerchantStackParamList, MerchantTabParamList } from '../../../app/navigators/MerchantStack';
@@ -30,6 +30,8 @@ export function MerchantSummaryScreen({ navigation }: Props) {
   const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const { data, isLoading } = useMerchantSummary();
+  const { data: shops = [] } = useMyRestaurants();
+  const shopId = shops[0]?.id;
   const [period, setPeriod] = useState<EarningsPeriod>('week');
   const { data: history = [], isLoading: ordersLoading } = useMerchantOrders('history');
 
@@ -160,13 +162,15 @@ export function MerchantSummaryScreen({ navigation }: Props) {
           </>
         )}
 
-        {/* เฟส 1 ยังไม่มีรอบโอนอัตโนมัติ (product-spec §2 §6.2) บอกตรง ๆ ว่ายังไม่มี */}
-        <Card>
-          <View style={{ gap: p.space.xs }}>
-            <Text variant="kicker" color="muted">{t('merchant.summary.payoutTitle')}</Text>
-            <Text variant="small" color="muted">{t('merchant.summary.payoutBody')}</Text>
-          </View>
-        </Card>
+        {/* ทางไปขอถอนเงิน ร้านต้องรู้ว่าเงินที่ค้างอยู่เอาออกยังไง */}
+        {shopId ? (
+          <Button
+            testID="btn-go-payout"
+            variant="secondary"
+            label={t('merchant.payout.title')}
+            onPress={() => navigation.navigate('MerchantPayout', { restaurantId: shopId })}
+          />
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );

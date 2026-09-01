@@ -104,3 +104,15 @@ export type SetHoursInput = z.infer<typeof SetHoursSchema>;
 /** `0` = เลิกพักเดี๋ยวนี้ ปุ่ม "กลับมารับออเดอร์" ใช้ทางเดียวกับปุ่มพัก ไม่ต้องมีเส้นทางที่สอง */
 export const PauseSchema = z.object({ minutes: z.number().int().min(0).max(120) });
 export type PauseInput = z.infer<typeof PauseSchema>;
+
+/** ร้านขอถอนยอดค้างจ่าย (product-spec §6.2) */
+export const RequestMerchantPayoutSchema = z.object({
+  amountSatang: z.number().int().positive(),
+});
+export type RequestMerchantPayoutInput = z.infer<typeof RequestMerchantPayoutSchema>;
+
+export const DecideMerchantPayoutSchema = z.object({
+  approve: z.boolean(),
+  rejectionReason: z.string().trim().min(1).max(200).optional(),
+});
+export type DecideMerchantPayoutInput = z.infer<typeof DecideMerchantPayoutSchema>;

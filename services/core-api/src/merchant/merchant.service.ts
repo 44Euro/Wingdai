@@ -4,7 +4,13 @@ import {
 } from '@nestjs/common';
 import { and, eq, inArray, asc, desc, sql } from 'drizzle-orm';
 import { DB, type Db } from '../db/db.module';
-import { orders, orderItems, restaurants, menuItems, accounts } from '../db/schema';
+import {
+  orders, orderItems, restaurants, menuItems, accounts, ledgerEntries, merchantPayouts,
+} from '../db/schema';
+import { randomUUID } from 'node:crypto';
+import {
+  postRestaurantPayout, merchantWithdrawableSatang, assertMerchantWithdrawAllowed,
+} from '../ledger/postRestaurantPayout';
 import type { OrderStatus } from '../orders/stateMachine';
 import type {
   CreateMenuItemInput, UpdateMenuItemInput, RegisterRestaurantInput, SetHoursInput,
@@ -479,4 +485,149 @@ export class MerchantService {
       optionGroups: r.optionGroups as unknown[],
     };
   }
+
+  /**
+   * ยอดที่ร้านถอนได้ (product-spec §6.2)
+   * แถว restaurant_payable ติด restaurantId มาตั้งแต่ตอนลงบัญชี จึงแยกยอดต่อร้านได้ตรง ๆ
+   */
+  async payoutBalance(accountId: string, restaurantId: string) {
+    await this.assertOwns(accountId, restaurantId);
+
+    const [row] = await this.db.execute<{ payable: string }>(sql`
+      select coalesce(sum(${ledgerEntries.creditSatang} - ${ledgerEntries.debitSatang}), 0) as payable
+        from ${ledgerEntries}
+       where ${ledgerEntries.restaurantId} = ${restaurantId}
+         and ${ledgerEntries.account} = 'restaurant_payable'
+    `);
+
+    const [pending] = await this.db
+      .select()
+      .from(merchantPayouts)
+      .where(and(
+        eq(merchantPayouts.restaurantId, restaurantId),
+        eq(merchantPayouts.status, 'requested'),
+      ))
+      .limit(1);
+
+    const payableSatang = Number(row?.payable ?? 0);
+    const pendingSatang = pending?.amountSatang ?? 0;
+
+    return {
+      payableSatang,
+      pendingSatang,
+      withdrawableSatang: merchantWithdrawableSatang({ payableSatang, pendingSatang }),
+      pending: pending ?? null,
+    };
+  }
+
+  /** ประวัติการขอถอนของร้าน ร้านต้องเห็นว่าใบเก่าจบยังไง */
+  async payoutHistory(accountId: string, restaurantId: string) {
+    await this.assertOwns(accountId, restaurantId);
+    return this.db
+      .select()
+      .from(merchantPayouts)
+      .where(eq(merchantPayouts.restaurantId, restaurantId))
+      .orderBy(desc(merchantPayouts.requestedAt))
+      .limit(20);
+  }
+
+  async requestPayout(accountId: string, restaurantId: string, amountSatang: number) {
+    const b = await this.payoutBalance(accountId, restaurantId);
+    if (b.pending) {
+      throw new ConflictException({ message: 'มีคำขอถอนที่รอทีมงานยืนยันอยู่แล้ว' });
+    }
+
+    try {
+      assertMerchantWithdrawAllowed({
+        amountSatang, payableSatang: b.payableSatang, pendingSatang: b.pendingSatang,
+      });
+    } catch (e) {
+      throw new BadRequestException({ fields: { amountSatang: (e as Error).message } });
+    }
+
+    const [created] = await this.db
+      .insert(merchantPayouts)
+      .values({ restaurantId, amountSatang })
+      .returning();
+    return created;
+  }
+
+  /** คำขอถอนของร้านที่รอทีมงานตัดสิน (จอแอดมิน) */
+  async pendingPayouts() {
+    return this.db
+      .select({
+        id: merchantPayouts.id,
+        restaurantId: merchantPayouts.restaurantId,
+        restaurantName: restaurants.name,
+        amountSatang: merchantPayouts.amountSatang,
+        requestedAt: merchantPayouts.requestedAt,
+      })
+      .from(merchantPayouts)
+      .innerJoin(restaurants, eq(restaurants.id, merchantPayouts.restaurantId))
+      .where(eq(merchantPayouts.status, 'requested'))
+      .orderBy(asc(merchantPayouts.requestedAt));
+  }
+
+  /**
+   * ทีมงานอนุมัติหรือปฏิเสธ ปฏิเสธต้องบอกเหตุผล ไม่งั้นร้านไม่รู้ว่าต้องแก้อะไร
+   * อนุมัติแล้วลงบัญชีในทรานแซกชันเดียวกัน เงินขยับกับสมุดบัญชีพร้อมกันเสมอ (§6.2)
+   */
+  async decidePayout(
+    adminAccountId: string,
+    payoutId: string,
+    approve: boolean,
+    rejectionReason?: string,
+  ) {
+    if (!approve && !rejectionReason?.trim()) {
+      throw new BadRequestException({ fields: { rejectionReason: 'ปฏิเสธต้องบอกเหตุผล' } });
+    }
+
+    return this.db.transaction(async (tx) => {
+      const [p] = await tx
+        .select()
+        .from(merchantPayouts)
+        .where(eq(merchantPayouts.id, payoutId))
+        .limit(1)
+        .for('update');
+
+      if (!p) throw new NotFoundException({ message: 'ไม่พบคำขอถอน' });
+      if (p.status !== 'requested') {
+        throw new ConflictException({ message: 'คำขอนี้ถูกตัดสินไปแล้ว' });
+      }
+
+      if (!approve) {
+        const [rejected] = await tx
+          .update(merchantPayouts)
+          .set({
+            status: 'rejected',
+            rejectionReason: rejectionReason!.trim(),
+            decidedAt: new Date(),
+          })
+          .where(eq(merchantPayouts.id, payoutId))
+          .returning();
+        return { ...rejected, recordedByAccountId: adminAccountId };
+      }
+
+      const entryGroupId = randomUUID();
+      await tx.insert(ledgerEntries).values(
+        postRestaurantPayout({ amountSatang: p.amountSatang }).map((l) => ({
+          entryGroupId,
+          account: l.account,
+          debitSatang: l.debitSatang,
+          creditSatang: l.creditSatang,
+          restaurantId: l.account === 'restaurant_payable' ? p.restaurantId : null,
+          reason: 'merchant.payout',
+        })),
+      );
+
+      const [paid] = await tx
+        .update(merchantPayouts)
+        .set({ status: 'paid', decidedAt: new Date() })
+        .where(eq(merchantPayouts.id, payoutId))
+        .returning();
+
+      return { ...paid, recordedByAccountId: adminAccountId };
+    });
+  }
+
 }

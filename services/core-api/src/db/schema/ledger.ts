@@ -120,3 +120,37 @@ export const riderPayouts = pgTable(
     `),
   ],
 );
+
+/**
+ * ร้านขอถอนยอดที่ค้างจ่าย แล้วแอดมินอนุมัติ โครงเดียวกับของไรเดอร์ (design R12)
+ * §6.2 วางรอบโอนอัตโนมัติไว้เฟส 2 อันนี้คือฉบับที่คนกดอนุมัติ แต่ลงบัญชีแบบเดียวกัน
+ */
+export const merchantPayouts = pgTable(
+  'merchant_payouts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    restaurantId: uuid('restaurant_id')
+      .notNull()
+      .references(() => restaurants.id, { onDelete: 'restrict' }),
+    amountSatang: satang('amount_satang').notNull(),
+    status: payoutStatus('status').notNull().default('requested'),
+    rejectionReason: text('rejection_reason'),
+    requestedAt: timestamp('requested_at', { withTimezone: true }).notNull().defaultNow(),
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+  },
+  (t) => [
+    check('merchant_payouts_amount_positive', sql`${t.amountSatang} > 0`),
+    // ขอค้างได้ทีละใบต่อร้าน ไม่งั้นกดรัวแล้วถอนเกินยอดที่มี
+    uniqueIndex('merchant_payouts_one_pending')
+      .on(t.restaurantId)
+      .where(sql`${t.status} = 'requested'`),
+    index('merchant_payouts_restaurant_idx').on(t.restaurantId),
+    check('merchant_payouts_decided_has_time', sql`
+      (${t.status} = 'requested' and ${t.decidedAt} is null)
+      or (${t.status} <> 'requested' and ${t.decidedAt} is not null)
+    `),
+    check('merchant_payouts_rejected_has_reason', sql`
+      ${t.status} <> 'rejected' or ${t.rejectionReason} is not null
+    `),
+  ],
+);

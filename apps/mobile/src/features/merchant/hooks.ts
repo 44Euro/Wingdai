@@ -130,3 +130,31 @@ export function useTicker(active: boolean, intervalMs = 1000): number {
   }, [active, intervalMs]);
   return now;
 }
+
+/** ยอดที่ร้านถอนได้ และใบที่ค้างอยู่ (product-spec §6.2) */
+export function useMerchantPayout(restaurantId: string | undefined) {
+  return useQuery({
+    queryKey: ['merchant', 'payout', restaurantId],
+    queryFn: () => repos.merchant.payoutBalance(restaurantId!),
+    enabled: Boolean(restaurantId),
+  });
+}
+
+export function useMerchantPayoutHistory(restaurantId: string | undefined) {
+  return useQuery({
+    queryKey: ['merchant', 'payout', 'history', restaurantId],
+    queryFn: () => repos.merchant.payoutHistory(restaurantId!),
+    enabled: Boolean(restaurantId),
+  });
+}
+
+export function useRequestMerchantPayout(restaurantId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (amountSatang: number) =>
+      repos.merchant.requestPayout(restaurantId!, amountSatang),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['merchant', 'payout'] });
+    },
+  });
+}
