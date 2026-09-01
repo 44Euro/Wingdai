@@ -2,21 +2,26 @@ import React, { useState } from 'react';
 import { View, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Icon } from '../../../ui/Icon';
-import { Badge, Card, Chip, RoundButton, Toggle } from '../../../ui/Surface';
-import { RoleSwitcher } from '../../../app/RoleSwitcher';
+import { Badge, Card, Chip, Toggle } from '../../../ui/Surface';
 import { formatBaht } from '../../../lib/format';
 import {
   useMerchantOrders, useMyRestaurants, useSetRestaurantOpen, useTicker,
 } from '../hooks';
 import { secondsLeftToAccept, acceptUrgency } from '../acceptWindow';
+import { MERCHANT_TAB_CLEARANCE } from '../../../app/navigators/MerchantTabBar';
 import type { MerchantOrder } from '../../../data/types';
-import type { MerchantStackParamList } from '../../../app/navigators/MerchantStack';
+import type { MerchantStackParamList, MerchantTabParamList } from '../../../app/navigators/MerchantStack';
 
-type Props = NativeStackScreenProps<MerchantStackParamList, 'MerchantOrders'>;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MerchantTabParamList, 'MerchantOrders'>,
+  NativeStackScreenProps<MerchantStackParamList>
+>;
 
 /** M3 คิวออร์เดอร์ของร้าน */
 export function MerchantOrdersScreen({ navigation }: Props) {
@@ -41,7 +46,7 @@ export function MerchantOrdersScreen({ navigation }: Props) {
       style={{ flex: 1, backgroundColor: tokens.bgSurface }}
     >
       <ScrollView
-        contentContainerStyle={{ paddingBottom: p.space.xxl, gap: p.space.lg }}
+        contentContainerStyle={{ paddingBottom: MERCHANT_TAB_CLEARANCE, gap: p.space.lg }}
         showsVerticalScrollIndicator={false}
       >
         <View
@@ -60,22 +65,6 @@ export function MerchantOrdersScreen({ navigation }: Props) {
                 {t('merchant.orders.waiting', { count: waiting })}
               </Text>
             ) : null}
-          </View>
-          <View style={{ flexDirection: 'row', gap: p.space.sm }}>
-            <RoundButton
-              testID="btn-go-summary"
-              icon="history"
-              tone="surface"
-              accessibilityLabel={t('merchant.summary.title')}
-              onPress={() => navigation.navigate('MerchantSummary')}
-            />
-            <RoundButton
-              testID="btn-go-menu"
-              icon="menu"
-              tone="surface"
-              accessibilityLabel={t('merchant.menu.title')}
-              onPress={() => navigation.navigate('MerchantMenu')}
-            />
           </View>
         </View>
 
@@ -102,10 +91,6 @@ export function MerchantOrdersScreen({ navigation }: Props) {
             </Card>
           </View>
         ) : null}
-
-        <View style={{ paddingHorizontal: p.space.screen }}>
-          <RoleSwitcher />
-        </View>
 
         <ScrollView
           horizontal

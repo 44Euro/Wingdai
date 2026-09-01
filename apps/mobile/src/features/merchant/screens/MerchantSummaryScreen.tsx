@@ -2,26 +2,29 @@ import React from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Button } from '../../../ui/Button';
 import { Card } from '../../../ui/Surface';
-import { ScreenHeader } from '../../../ui/ScreenHeader';
 import { formatBaht } from '../../../lib/format';
-import { useMerchantSummary, useMyRestaurants } from '../hooks';
+import { useMerchantSummary } from '../hooks';
+import { MERCHANT_TAB_CLEARANCE } from '../../../app/navigators/MerchantTabBar';
 import type { MerchantSales } from '../../../data/types';
-import type { MerchantStackParamList } from '../../../app/navigators/MerchantStack';
+import type { MerchantStackParamList, MerchantTabParamList } from '../../../app/navigators/MerchantStack';
 
-type Props = NativeStackScreenProps<MerchantStackParamList, 'MerchantSummary'>;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MerchantTabParamList, 'MerchantSummary'>,
+  NativeStackScreenProps<MerchantStackParamList>
+>;
 
 /** M1 + M5 สรุปยอดขายของร้าน */
 export function MerchantSummaryScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const { data, isLoading } = useMerchantSummary();
-  const { data: myShops = [] } = useMyRestaurants();
-  const myRestaurantId = myShops[0]?.id ?? null;
 
   return (
     <SafeAreaView
@@ -29,14 +32,14 @@ export function MerchantSummaryScreen({ navigation }: Props) {
       edges={['top']}
       style={{ flex: 1, backgroundColor: tokens.bgSurface }}
     >
-      <ScreenHeader title={t('merchant.summary.title')} onBack={() => navigation.goBack()} />
-
       <ScrollView
         contentContainerStyle={{
-          padding: p.space.screen, paddingBottom: p.space.xxl, gap: p.space.lg,
+          padding: p.space.screen, paddingBottom: MERCHANT_TAB_CLEARANCE, gap: p.space.lg,
         }}
         showsVerticalScrollIndicator={false}
       >
+        <Text variant="h1">{t('merchant.summary.title')}</Text>
+
         {/* คิวมาก่อนเงินเสมอ ใบที่ยังไม่ได้ทำคือสิ่งที่ทำให้เสียลูกค้า ไม่ใช่ยอดเมื่อวาน */}
         <Card tone="teal">
           <View style={{ gap: p.space.xs }}>
@@ -69,36 +72,6 @@ export function MerchantSummaryScreen({ navigation }: Props) {
             />
           </>
         )}
-
-        {/* M9 ทางเข้ารีวิว โผล่ก็ต่อเมื่อรู้ว่าร้านไหน ไม่งั้นปุ่มนี้ไม่มีปลายทาง */}
-        {myRestaurantId ? (
-          <Button
-            testID="btn-go-reviews"
-            variant="secondary"
-            label={t('reviews.title')}
-            onPress={() => navigation.navigate('MerchantReviews', { restaurantId: myRestaurantId })}
-          />
-        ) : null}
-
-        {/* M11 ตารางเวลาเปิดปิด และปุ่มพักตอนครัวล้นมือ */}
-        {myRestaurantId ? (
-          <Button
-            testID="btn-go-hours"
-            variant="secondary"
-            label={t('merchant.hours.title')}
-            onPress={() => navigation.navigate('MerchantHours', { restaurantId: myRestaurantId })}
-          />
-        ) : null}
-
-        {/* QR ติดหน้าร้าน ทางดึงลูกค้าที่ §4.3 วางไว้ ตอนที่ยังไม่มีเว็บสั่งอาหาร */}
-        {myRestaurantId ? (
-          <Button
-            testID="btn-go-qr"
-            variant="secondary"
-            label={t('merchant.qr.title')}
-            onPress={() => navigation.navigate('MerchantQr', { restaurantId: myRestaurantId })}
-          />
-        ) : null}
 
         {/* เฟส 1 ยังไม่มีรอบโอนอัตโนมัติ (product-spec §2 §6.2) บอกตรง ๆ ว่ายังไม่มี */}
         <Card>

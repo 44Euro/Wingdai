@@ -2,19 +2,22 @@ import React from 'react';
 import { View, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
-import { Icon } from '../../../ui/Icon';
 import { Card, PhotoBlock, RoundButton, Toggle } from '../../../ui/Surface';
-import { RoleSwitcher } from '../../../app/RoleSwitcher';
 import { useMenu } from '../../customer/hooks';
 import { useOwnerRestaurantId, useToggleMenuItem } from '../hooks';
 import { formatBaht } from '../../../lib/format';
-import { useAuthStore } from '../../auth/authStore';
-import type { MerchantStackParamList } from '../../../app/navigators/MerchantStack';
+import { MERCHANT_TAB_CLEARANCE } from '../../../app/navigators/MerchantTabBar';
+import type { MerchantStackParamList, MerchantTabParamList } from '../../../app/navigators/MerchantStack';
 
-type Props = NativeStackScreenProps<MerchantStackParamList, 'MerchantMenu'>;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MerchantTabParamList, 'MerchantMenu'>,
+  NativeStackScreenProps<MerchantStackParamList>
+>;
 
 export function MerchantMenuScreen({ navigation }: Props) {
   const { t } = useTranslation();
@@ -22,12 +25,11 @@ export function MerchantMenuScreen({ navigation }: Props) {
   const restaurantId = useOwnerRestaurantId();
   const { data: menu = [] } = useMenu(restaurantId ?? '');
   const toggle = useToggleMenuItem(restaurantId ?? '');
-  const logout = useAuthStore((s) => s.logout);
 
   return (
     <SafeAreaView testID="screen-merchant-menu" edges={['top']} style={{ flex: 1, backgroundColor: tokens.bgSurface }}>
       <ScrollView
-        contentContainerStyle={{ paddingBottom: p.space.xxl, gap: p.space.lg }}
+        contentContainerStyle={{ paddingBottom: MERCHANT_TAB_CLEARANCE, gap: p.space.lg }}
         showsVerticalScrollIndicator={false}
       >
         {/* หัวจอ: ชื่อ + ปุ่มบวกสี่เหลี่ยมมนสีแบรนด์ ตาม design (menu manager) */}
@@ -40,17 +42,7 @@ export function MerchantMenuScreen({ navigation }: Props) {
             paddingTop: p.space.md,
           }}
         >
-          {/* จอนี้ถูก push มาจากคิวออร์เดอร์แล้ว จึงต้องมีทางกลับ ไม่ใช่ทางตันของ stack */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: p.space.md, flex: 1 }}>
-            <RoundButton
-              testID="btn-back"
-              icon="chevronLeft"
-              tone="surface"
-              accessibilityLabel={t('common.back')}
-              onPress={() => navigation.goBack()}
-            />
-            <Text variant="h1">{t('merchant.menu.title')}</Text>
-          </View>
+          <Text variant="h1">{t('merchant.menu.title')}</Text>
           <RoundButton
             testID="btn-add-menu"
             icon="plus"
@@ -58,10 +50,6 @@ export function MerchantMenuScreen({ navigation }: Props) {
             accessibilityLabel={t('merchant.menu.add')}
             onPress={() => restaurantId && navigation.navigate('AddMenuItem', { restaurantId })}
           />
-        </View>
-
-        <View style={{ paddingHorizontal: p.space.screen }}>
-          <RoleSwitcher />
         </View>
 
         <View style={{ paddingHorizontal: p.space.screen, gap: p.space.md }}>
@@ -112,24 +100,6 @@ export function MerchantMenuScreen({ navigation }: Props) {
             ))
           )}
         </View>
-
-        <Pressable
-          testID="btn-logout"
-          accessibilityRole="button"
-          onPress={() => logout()}
-          hitSlop={8}
-          style={({ pressed }) => ({
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: p.space.sm,
-            paddingVertical: p.space.lg,
-            opacity: pressed ? 0.7 : 1,
-          })}
-        >
-          <Icon name="logout" color={tokens.danger} size={18} strokeWidth={2.2} />
-          <Text variant="small" color="danger" bold>{t('merchant.menu.logout')}</Text>
-        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );

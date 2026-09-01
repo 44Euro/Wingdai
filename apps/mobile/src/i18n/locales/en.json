@@ -634,6 +634,17 @@
       "availableOff": "Hidden — customers can't order it",
       "optionsNote": "This dish has {{count}} option group(s) — editing options isn't supported yet, because past orders still reference the current ones.",
       "save": "Save changes"
+    },
+    "tabs": {
+      "orders": "Orders",
+      "menu": "Menu",
+      "summary": "Sales",
+      "profile": "My kitchen"
+    },
+    "profile": {
+      "title": "My kitchen",
+      "owner": "Owner",
+      "noShop": "No kitchen yet — open one to use this mode"
     }
   },
   "payment": {
