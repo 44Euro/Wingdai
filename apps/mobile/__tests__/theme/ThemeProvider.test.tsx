@@ -24,7 +24,7 @@ describe('ThemeProvider', () => {
     }
   });
 
-  it('โหมดมืดให้พื้นดำอมเขียวตามจอ C32 ไม่ใช่พื้น teal แบบเดิม', () => {
+  it('โหมดมืดให้พื้นเทากลาง ไม่ใช่พื้น teal และไม่อมเขียว', () => {
     let result;
     act(() => {
       result = ReactTestRenderer.create(
@@ -35,7 +35,7 @@ describe('ThemeProvider', () => {
     });
     const tree = result!.toJSON();
     if (tree && !Array.isArray(tree) && tree.type === 'Text') {
-      expect(tree.children).toEqual(['dark:#0F1A19']);
+      expect(tree.children).toEqual(['dark:#141517']);
     }
   });
 

@@ -1,5 +1,18 @@
 import { semanticLight, semanticDark } from '../../src/theme/tokens';
-import { contrastRatio } from '../../src/theme/tokens/contrast';
+import { contrastRatio, relativeLuminance } from '../../src/theme/tokens/contrast';
+
+/** ความสว่างที่ตาคนรับรู้ (CIE L*) 0 = ดำ 100 = ขาว */
+function lightness(hex: string): number {
+  const y = relativeLuminance(hex);
+  return y <= 216 / 24389 ? y * (24389 / 27) : Math.cbrt(y) * 116 - 16;
+}
+
+/** ช่วงห่างระหว่างช่องสีที่มากที่สุด ยิ่งน้อยยิ่งเป็นเทากลาง */
+function channelSpread(hex: string): number {
+  const h = hex.replace('#', '');
+  const ch = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
+  return Math.max(...ch) - Math.min(...ch);
+}
 
 const modes = [
   ['light', semanticLight],
@@ -59,6 +72,27 @@ describe('semantic tokens', () => {
       it('ป้ายแท็บที่ไม่ได้เลือกผ่าน AA บนแถบนำทาง', () => {
         expect(contrastRatio(t.navIdle, t.navSurface)).toBeGreaterThanOrEqual(4.5);
       });
+
+      /**
+       * contrast ratio วัดเรื่องนี้ไม่ได้ พื้นผิวมืดสองชั้นที่ตาแยกออกชัด ๆ ยังได้แค่ ~1.2
+       * เพราะพจน์ +0.05 ในสูตร ต้องวัดด้วย L* ซึ่งเป็นความสว่างที่ตาคนรับรู้จริง
+       */
+      it('การ์ดต้องแยกออกจากพื้นแอปด้วยตาเปล่า', () => {
+        expect(lightness(t.bgRaised) - lightness(t.bgSurface)).toBeGreaterThanOrEqual(4);
+      });
+
     });
+  });
+
+  // โหมดสว่างให้ร่องในเป็นสีครีมเท่าพื้นแอปโดยตั้งใจ เพราะร่องไปอยู่บนการ์ดขาว ไม่ได้อยู่บนพื้น
+  it('ร่องในของโหมดมืดต้องจมกว่าพื้นแอป ไม่ใช่สีเดียวกัน', () => {
+    expect(lightness(semanticDark.bgSurface)).toBeGreaterThan(lightness(semanticDark.bgSunken));
+  });
+
+  /** teal เป็นสีของแบรนด์ ไม่ใช่สีของพื้น พื้นที่อมเขียวทั้งจออ่านแล้วขุ่น */
+  it('พื้นผิวของโหมดมืดต้องเป็นเทากลาง', () => {
+    for (const hex of [semanticDark.bgSurface, semanticDark.bgRaised, semanticDark.navSurface]) {
+      expect(channelSpread(hex)).toBeLessThanOrEqual(6);
+    }
   });
 });

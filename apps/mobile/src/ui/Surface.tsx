@@ -21,7 +21,9 @@ export function Card({
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }) {
-  const { tokens, primitives: p } = useTheme();
+  const { tokens, primitives: p, scheme } = useTheme();
+  // เงาเป็นสีดำจาง บนพื้นมืดจึงมองไม่เห็นเลย โหมดมืดใช้เส้นขอบแทนเพื่อให้การ์ดมีขอบให้ตาจับ
+  const outlined = scheme === 'dark';
   return (
     <View
       testID={testID}
@@ -30,6 +32,8 @@ export function Card({
           backgroundColor: tone === 'teal' ? tokens.tealSolid : tokens.bgRaised,
           borderRadius: p.radius.xl,
           padding: padded ? p.space.card : 0,
+          borderWidth: outlined ? 1 : 0,
+          borderColor: tokens.borderSubtle,
         },
         tone === 'teal' ? p.shadow.teal : p.shadow.card,
         style,
