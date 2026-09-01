@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Pressable, ViewStyle, StyleProp } from 'react-native';
+import React, { useState } from 'react';
+import { View, Pressable, Image, ViewStyle, StyleProp } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../theme/ThemeProvider';
 import { Icon, IconName } from './Icon';
@@ -286,15 +286,22 @@ export function PhotoBlock({
   height,
   radius,
   style,
+  uri,
 }: {
   icon?: IconName;
   size?: number;
   height?: number;
   radius?: number;
   style?: StyleProp<ViewStyle>;
+  /** รูปจริงจากเซิร์ฟเวอร์ ไม่มีหรือโหลดไม่ขึ้นก็เหลือกล่องไล่สีข้างล่าง */
+  uri?: string | null;
 }) {
   const { primitives: p } = useTheme();
+  const [broken, setBroken] = useState(false);
   const h = height ?? size ?? 64;
+  // กล่องไล่สีอยู่ข้างล่างเสมอ มันเป็นทั้งจอตอนรูปยังไม่มา และตัวสำรองตอนรูปพัง
+  const showPhoto = Boolean(uri) && !broken;
+
   return (
     <LinearGradient
       colors={['#D6D3D0', '#A5A19E']}
@@ -313,6 +320,14 @@ export function PhotoBlock({
       ]}
     >
       <Icon name={icon} color="rgba(255,255,255,0.78)" size={Math.min(32, h * 0.4)} strokeWidth={1.4} />
+      {showPhoto ? (
+        <Image
+          source={{ uri: uri as string }}
+          onError={() => setBroken(true)}
+          resizeMode="cover"
+          style={{ position: 'absolute', width: '100%', height: '100%' }}
+        />
+      ) : null}
     </LinearGradient>
   );
 }

@@ -33,6 +33,8 @@ export interface Restaurant {
   prepTimeMinutes: number;
   /** คะแนนเฉลี่ย 0–5 `null` = ยังไม่มีใครรีวิว (ระบบรีวิวอยู่คลื่นที่ 3) */
   rating: number | null;
+  /** รูปหน้าร้าน `null`/ไม่มี = จอวาดกล่องไล่สีพร้อมไอคอนหมวดแทน */
+  photoUrl?: string | null;
 }
 
 export interface OptionChoice {
@@ -61,6 +63,8 @@ export interface MenuItem {
   price: number;
   category: CuisineCategory;
   isAvailable: boolean;
+  /** รูปจาน `null`/ไม่มี = จอวาดกล่องไล่สีพร้อมไอคอนหมวดแทน */
+  photoUrl?: string | null;
   optionGroups?: OptionGroup[];
 }
 

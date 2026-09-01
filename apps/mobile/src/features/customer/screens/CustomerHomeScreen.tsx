@@ -271,7 +271,7 @@ function RestaurantCard({ r, onPress }: { r: Restaurant; onPress: () => void }) 
       ]}
     >
       <View>
-        <PhotoBlock icon={CUISINE_ICON[r.cuisine]} height={104} radius={0} />
+        <PhotoBlock icon={CUISINE_ICON[r.cuisine]} uri={r.photoUrl} height={104} radius={0} />
         <View
           style={{
             position: 'absolute',

@@ -108,7 +108,7 @@ export function CartScreen({ navigation }: Props) {
       >
         {cart.lines.map((l) => (
           <Card key={l.lineId} style={{ flexDirection: 'row', alignItems: 'center', gap: p.space.md }}>
-            <PhotoBlock size={56} radius={p.radius.sm} />
+            <PhotoBlock uri={l.photoUrl} size={56} radius={p.radius.sm} />
 
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text variant="small" bold numberOfLines={1}>{l.name}</Text>

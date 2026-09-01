@@ -71,7 +71,7 @@ export function MenuItemScreen({ navigation, route }: Props) {
     <SafeAreaView testID="screen-menu-item" edges={['bottom']} style={{ flex: 1, backgroundColor: tokens.bgSurface }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 130 }} showsVerticalScrollIndicator={false}>
         <View>
-          <PhotoBlock height={200} radius={0} />
+          <PhotoBlock uri={item?.photoUrl} height={200} radius={0} />
           <View style={{ position: 'absolute', top: insets.top + p.space.sm, left: p.space.lg }}>
             <RoundButton icon="chevronLeft" onPress={() => navigation.goBack()} accessibilityLabel={t('common.back')} />
           </View>

@@ -8,6 +8,7 @@ export type CartLine = {
   lineId: string;
   menuItemId: string;
   name: string;
+  photoUrl?: string | null;
   basePrice: number;
   selectedChoices: SelectedChoice[];
   /** basePrice + ผลรวม priceDelta ของ option ที่เลือก */
@@ -68,6 +69,7 @@ export const useCartStore = create<CartState>((set, get) => ({
             lineId,
             menuItemId: menuItem.id,
             name: menuItem.name,
+            photoUrl: menuItem.photoUrl,
             basePrice: menuItem.price,
             selectedChoices,
             unitPrice,

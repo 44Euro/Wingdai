@@ -60,7 +60,7 @@ export function RestaurantDetailScreen({ navigation, route }: Props) {
       <ScrollView contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
         {/* รูปหน้าร้านเต็มความกว้าง + ปุ่มย้อนกลับลอยทับ ตาม design */}
         <View>
-          <PhotoBlock height={188} radius={0} />
+          <PhotoBlock uri={restaurant?.photoUrl} height={188} radius={0} />
           {/* รูปไหลขึ้นไปใต้แถบสถานะ ปุ่มย้อนกลับต้องเผื่อ inset เอง ไม่งั้นชนรอยบาก */}
           <View style={{ position: 'absolute', top: insets.top + 14, left: 16 }}>
             <RoundButton icon="chevronLeft" onPress={() => navigation.goBack()} accessibilityLabel={t('common.back')} />
@@ -160,7 +160,7 @@ export function RestaurantDetailScreen({ navigation, route }: Props) {
 
               {/* รูปเมนู + ปุ่มบวกมุมล่างขวาตาม design */}
               <View>
-                <PhotoBlock size={74} radius={p.radius.md} />
+                <PhotoBlock uri={item.photoUrl} size={74} radius={p.radius.md} />
                 <View
                   style={[
                     {

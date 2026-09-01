@@ -1,6 +1,7 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { sql, eq, and, asc, desc } from 'drizzle-orm';
 import { DB, type Db } from '../db/db.module';
+import { StorageService } from '../storage/storage.service';
 import { restaurants, menuItems, addresses, reviews, favorites } from '../db/schema';
 import { MAX_DELIVERY_RADIUS_KM } from '../orders/deliveryRadius';
 import { effectiveIsOpen, nextOpenAt, parseWeeklyHours } from '../merchant/openingHours';
@@ -19,11 +20,16 @@ export type PublicRestaurant = {
   distanceKm: number | null;
   prepTimeMinutes: number;
   rating: number | null;
+  /** รูปหน้าร้าน `null` = ร้านยังไม่ได้ใส่ จอจะวาดกล่องไล่สีแทน */
+  photoUrl: string | null;
 };
 
 @Injectable()
 export class CatalogService {
-  constructor(@Inject(DB) private readonly db: Db) {}
+  constructor(
+    @Inject(DB) private readonly db: Db,
+    private readonly storage: StorageService,
+  ) {}
 
   /** ระยะทางจากที่อยู่ตั้งต้นของลูกค้าถึงร้าน เป็นกิโลเมตร ปัดทศนิยมหนึ่งตำแหน่ง */
   private distanceExpr(fromAddressId: string | null) {
@@ -48,6 +54,7 @@ export class CatalogService {
       prepTimeMinutes: restaurants.prepTimeMinutes,
       openingHours: restaurants.openingHours,
       pausedUntil: restaurants.pausedUntil,
+      storefrontPhotoPath: restaurants.storefrontPhotoPath,
       distanceKm: this.distanceExpr(fromAddressId),
       rating: this.ratingExpr(),
     };
@@ -59,13 +66,15 @@ export class CatalogService {
     pausedUntil: Date | null;
     isApproved: boolean;
     isOpen: boolean;
-  } & Omit<PublicRestaurant, 'isOpen' | 'opensAt' | 'isApproved'>): PublicRestaurant {
-    const { openingHours, pausedUntil, ...rest } = row;
+    storefrontPhotoPath: string | null;
+  } & Omit<PublicRestaurant, 'isOpen' | 'opensAt' | 'isApproved' | 'photoUrl'>): PublicRestaurant {
+    const { openingHours, pausedUntil, storefrontPhotoPath, ...rest } = row;
     const hours = parseWeeklyHours(openingHours);
     const at = new Date();
     const opensAt = nextOpenAt(hours, at);
     return {
       ...rest,
+      photoUrl: storefrontPhotoPath ? this.storage.publicUrl(storefrontPhotoPath) : null,
       isOpen: effectiveIsOpen({
         isOpen: row.isOpen, isApproved: row.isApproved, hours, pausedUntil, at,
       }),
@@ -212,6 +221,7 @@ export class CatalogService {
       price: m.priceSatang,
       category: m.category,
       isAvailable: m.isAvailable,
+      photoUrl: m.photoPath ? this.storage.publicUrl(m.photoPath) : null,
       optionGroups: m.optionGroups,
     }));
   }

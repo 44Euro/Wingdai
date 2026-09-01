@@ -186,7 +186,7 @@ function SearchResultRow({ r, onPress }: { r: Restaurant; onPress: () => void })
         p.shadow.card,
       ]}
     >
-      <PhotoBlock icon={CUISINE_ICON[r.cuisine]} size={62} radius={15} />
+      <PhotoBlock icon={CUISINE_ICON[r.cuisine]} uri={r.photoUrl} size={62} radius={15} />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text variant="body" bold numberOfLines={1}>
           {r.name}

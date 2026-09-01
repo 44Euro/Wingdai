@@ -66,7 +66,7 @@ export function MerchantMenuScreen({ navigation }: Props) {
                 testID={`menu-row-${m.id}`}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: p.space.md }}
               >
-                <PhotoBlock size={52} radius={p.radius.sm} />
+                <PhotoBlock uri={m.photoUrl} size={52} radius={p.radius.sm} />
                 {/* M13 แตะทั้งแถวเพื่อแก้จาน ส่วนสวิตช์ขวามือยังเป็นทางลัด "ของหมด" */}
                 <Pressable
                   testID={`btn-edit-${m.id}`}
