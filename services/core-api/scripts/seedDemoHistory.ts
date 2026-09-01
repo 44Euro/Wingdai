@@ -23,6 +23,13 @@ const DELIVERED = 56;
 const CANCELLED = 3;
 const DAYS = 7;
 
+/**
+ * ร้านของบัญชีสาธิตฝั่งร้าน สุ่มเท่ากันทั้ง 19 ร้านแล้วร้านนี้จะได้ราวสามใบ
+ * จอยอดขายกับจอถอนเงินของร้านจึงว่างจนอ่านเหมือนยังทำไม่เสร็จ ทั้งที่ทั้งฐานมีของครบ
+ */
+const DEMO_SHOP = 'ครัวมาลี';
+const DEMO_SHOP_SHARE = 0.35;
+
 /** ผลลัพธ์ต้องเหมือนเดิมทุกครั้งที่รัน ไม่งั้นเทียบก่อนหลังไม่ได้ */
 let seed = 20260901;
 function rnd(): number {
@@ -31,6 +38,13 @@ function rnd(): number {
 }
 const pick = <T>(xs: T[]): T => xs[Math.floor(rnd() * xs.length)]!;
 const between = (lo: number, hi: number) => lo + rnd() * (hi - lo);
+
+/** ร้านสาธิตได้ส่วนแบ่งที่ตั้งไว้ ที่เหลือสุ่มเท่ากันตามเดิม */
+function pickShop(choices: any[]): any {
+  const demo = choices.find((r: any) => r.name === DEMO_SHOP);
+  if (demo && rnd() < DEMO_SHOP_SHARE) return demo;
+  return pick(choices);
+}
 
 type Res = { status: number; body: any };
 type Placed = { id: string; at: Date; cancelled: boolean; rider?: string; customerToken?: string };
@@ -110,7 +124,7 @@ async function main() {
     const customer = pick(CUSTOMERS);
     const choices = nearby.get(customer) ?? [];
     if (choices.length === 0) continue;
-    const shop = pick(choices);
+    const shop = pickShop(choices);
     const open = (menus.get(shop.id) ?? []).filter((m: any) => m.isAvailable);
     if (open.length === 0) continue;
     const dish = open[Math.floor(rnd() * open.length)]!;
