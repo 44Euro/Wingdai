@@ -53,6 +53,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "build:web": "expo export --platform web && node scripts/prepare-web.mjs",
+    "verify:web": "node scripts/verify-web.mjs",
     "test": "jest",
     "test:watch": "jest --watch",
     "api:check": "tsx scripts/api-check.ts"
