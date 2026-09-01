@@ -55,7 +55,8 @@
       "required": "Please fill in all required fields",
       "submit": "Create account",
       "passwordTooShort": "Password must be at least 8 characters",
-      "phoneTaken": "This number is already registered, or too many code requests"
+      "phoneTaken": "This number is already registered, or too many code requests",
+      "readTerms": "Read the terms and privacy policy"
     },
     "otp": {
       "title": "Verify your phone",
@@ -1248,6 +1249,38 @@
       "rider": "Rider",
       "admin": "Admin",
       "super_admin": "Super admin"
+    }
+  },
+  "consent": {
+    "title": "Terms of Service and Privacy",
+    "demoNotice": "Sample document for the demo. Not legally binding. Written to the headings Thailand's PDPA requires, to show what a real app has to disclose.",
+    "intro": "Wingdai collects only what it needs to take your order, find a rider and get the food to you. The details are below.",
+    "updated": "Last updated September 2026",
+    "section": {
+      "collect": {
+        "title": "What we collect",
+        "body": "Name, phone, email, delivery address with coordinates, order history and your chosen payment method. Riders also submit identity documents and share location while on a job."
+      },
+      "purpose": {
+        "title": "What it is used for",
+        "body": "Sending orders to restaurants, dispatching the nearest rider, pricing delivery by distance, showing you live status, and reviewing what happened when something goes wrong."
+      },
+      "retain": {
+        "title": "How long we keep it",
+        "body": "Receipts and ledger entries for 5 years as tax law requires. Rider location for 30 days after a job closes. Account data is deleted as soon as you ask."
+      },
+      "share": {
+        "title": "Who sees your data",
+        "body": "The restaurant sees your name, items and special instructions. The rider sees your name, phone and drop-off address only while the delivery is open. Staff see it when you open a support ticket. We do not sell data."
+      },
+      "rights": {
+        "title": "Your rights",
+        "body": "Access, correct, export, delete, or withdraw consent at any time. Withdrawing means you can no longer use the app, because the data withdrawn is the data delivery depends on."
+      },
+      "contact": {
+        "title": "Data controller contact",
+        "body": "A real app names the legal entity, its registered address and the data protection officer's email here. This demo has no legal entity behind it, so the field is deliberately left blank."
+      }
     }
   }
 }

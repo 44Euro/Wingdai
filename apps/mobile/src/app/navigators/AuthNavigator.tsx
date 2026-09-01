@@ -8,6 +8,7 @@ import { OtpVerifyScreen } from './OtpVerifyScreen';
 import { ChooseAccountTypeScreen } from './ChooseAccountTypeScreen';
 import { ForgotPasswordScreen } from './ForgotPasswordScreen';
 import { AppIntroScreen } from '../../features/onboarding/AppIntroScreen';
+import { ConsentScreen } from '../../features/onboarding/ConsentScreen';
 import { useOnboardingStore } from '../../features/onboarding/onboardingStore';
 
 /** Param list เต็มของ auth flow (5 หน้าตามแผน) Login/Register/OtpVerify/ChooseAccountType */
@@ -31,6 +32,8 @@ export type AuthStackParamList = {
     google?: GoogleHandoff;
   };
   ForgotPassword: undefined;
+  /** A8 ข้อตกลงและความเป็นส่วนตัว อ่านอย่างเดียว เข้าจากลิงก์บนจอสมัคร */
+  Consent: undefined;
 };
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
@@ -54,6 +57,7 @@ export function AuthNavigator() {
       <Stack.Screen name="OtpVerify" component={OtpVerifyScreen} />
       <Stack.Screen name="ChooseAccountType" component={ChooseAccountTypeScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Stack.Screen name="Consent" component={ConsentScreen} />
     </Stack.Navigator>
   );
 }

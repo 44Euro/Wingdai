@@ -267,6 +267,15 @@ export function RegisterScreen({ navigation, route }: Props) {
             onChange={setAcceptedTerms}
             label={t('auth.register.terms')}
           />
+          {/* ติ๊กยอมรับโดยไม่มีทางอ่านว่ายอมรับอะไร คือช่องติ๊กที่ไม่มีความหมาย */}
+          <Pressable
+            testID="link-terms"
+            accessibilityRole="link"
+            onPress={() => navigation.navigate('Consent')}
+            style={{ paddingVertical: p.space.xs }}
+          >
+            <Text variant="caption" color="brand" bold>{t('auth.register.readTerms')}</Text>
+          </Pressable>
 
         </ScrollView>
 
