@@ -63,6 +63,8 @@ jobs:
           case "$DATABASE_URL" in
             *YOUR-PASSWORD*|*'[YOUR'*)
               echo "สายนี้ยังเป็นตัวอย่างจากหน้า Supabase ยังไม่ได้แทนรหัสผ่านจริง"; exit 1 ;;
+            *'*'*)
+              echo "รหัสผ่านในสายนี้เป็นดอกจัน คือค่าที่ถูกปิดบังไว้ตอนแสดงผล ไม่ใช่รหัสจริง"; exit 1 ;;
           esac
           case "$DATABASE_URL" in
             *pooler.supabase.com:5432*) echo "ok — session pooler" ;;
