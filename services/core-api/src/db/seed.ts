@@ -121,6 +121,63 @@ const MENU_TEMPLATE: Record<Cuisine, { name: string; priceSatang: number }[]> = 
   ],
 };
 
+// ตัวเลือกต่อหมวด กลุ่มแรกบังคับเลือกหนึ่งอย่าง กลุ่มที่สองเลือกได้หลายอย่างและบวกราคา
+const OPTIONS_TEMPLATE: Record<Cuisine, { id: string; name: string; minSelect: number; maxSelect: number; choices: { id: string; name: string; priceDelta: number }[] }[]> = {
+  rice: [
+    { id: 'spicy', name: 'ระดับเผ็ด', minSelect: 1, maxSelect: 1, choices: [
+      { id: 'spicy-none', name: 'ไม่เผ็ด', priceDelta: 0 },
+      { id: 'spicy-mild', name: 'เผ็ดน้อย', priceDelta: 0 },
+      { id: 'spicy-hot', name: 'เผ็ดมาก', priceDelta: 0 },
+    ] },
+    { id: 'extra', name: 'เพิ่มพิเศษ', minSelect: 0, maxSelect: 2, choices: [
+      { id: 'extra-egg', name: 'ไข่ดาว', priceDelta: 1000 },
+      { id: 'extra-rice', name: 'ข้าวเพิ่ม', priceDelta: 500 },
+    ] },
+  ],
+  noodle: [
+    { id: 'noodle-type', name: 'เส้น', minSelect: 1, maxSelect: 1, choices: [
+      { id: 'noodle-sen-lek', name: 'เส้นเล็ก', priceDelta: 0 },
+      { id: 'noodle-sen-yai', name: 'เส้นใหญ่', priceDelta: 0 },
+      { id: 'noodle-bamee', name: 'บะหมี่', priceDelta: 0 },
+    ] },
+    { id: 'noodle-extra', name: 'เพิ่มพิเศษ', minSelect: 0, maxSelect: 2, choices: [
+      { id: 'noodle-extra-meat', name: 'เนื้อเพิ่ม', priceDelta: 2000 },
+      { id: 'noodle-extra-ball', name: 'ลูกชิ้นเพิ่ม', priceDelta: 1500 },
+    ] },
+  ],
+  somtam: [
+    { id: 'tam-spicy', name: 'ระดับเผ็ด', minSelect: 1, maxSelect: 1, choices: [
+      { id: 'tam-1', name: '1 เม็ด', priceDelta: 0 },
+      { id: 'tam-3', name: '3 เม็ด', priceDelta: 0 },
+      { id: 'tam-5', name: '5 เม็ด', priceDelta: 0 },
+    ] },
+    { id: 'tam-extra', name: 'เพิ่มพิเศษ', minSelect: 0, maxSelect: 2, choices: [
+      { id: 'tam-pu', name: 'ปูดอง', priceDelta: 2000 },
+      { id: 'tam-khai-kem', name: 'ไข่เค็ม', priceDelta: 1500 },
+    ] },
+  ],
+  drink: [
+    { id: 'sweet', name: 'ความหวาน', minSelect: 1, maxSelect: 1, choices: [
+      { id: 'sweet-0', name: 'ไม่หวาน', priceDelta: 0 },
+      { id: 'sweet-50', name: 'หวานน้อย', priceDelta: 0 },
+      { id: 'sweet-100', name: 'หวานปกติ', priceDelta: 0 },
+    ] },
+    { id: 'drink-extra', name: 'เพิ่มพิเศษ', minSelect: 0, maxSelect: 2, choices: [
+      { id: 'drink-shot', name: 'ช็อตเพิ่ม', priceDelta: 1500 },
+      { id: 'drink-pearl', name: 'ไข่มุก', priceDelta: 1000 },
+    ] },
+  ],
+  dessert: [
+    { id: 'dessert-serve', name: 'เสิร์ฟแบบ', minSelect: 1, maxSelect: 1, choices: [
+      { id: 'dessert-cold', name: 'เย็น', priceDelta: 0 },
+      { id: 'dessert-warm', name: 'อุ่น', priceDelta: 0 },
+    ] },
+    { id: 'dessert-extra', name: 'เพิ่มพิเศษ', minSelect: 0, maxSelect: 1, choices: [
+      { id: 'dessert-topping', name: 'ท็อปปิ้งเพิ่ม', priceDelta: 1000 },
+    ] },
+  ],
+};
+
 const demoMenu = DEMO.flatMap((s) =>
   MENU_TEMPLATE[s.cuisine].map((item, i) => ({
     key: `${s.key}-${i + 1}`,
@@ -130,7 +187,12 @@ const demoMenu = DEMO.flatMap((s) =>
     category: s.cuisine,
     // จานสุดท้ายของทุกร้านหมด เพื่อให้ป้าย "วันนี้หมดแล้ว" มีของให้เห็นทุกร้าน
     isAvailable: i < MENU_TEMPLATE[s.cuisine].length - 1,
-    optionGroups: [],
+    // id ของตัวเลือกต้องไม่ชนกันข้ามจาน เพราะตะกร้าอ้างถึงมันตรง ๆ ตอนสั่งซ้ำ
+    optionGroups: OPTIONS_TEMPLATE[s.cuisine].map((g) => ({
+      ...g,
+      id: `${s.key}-${i + 1}-${g.id}`,
+      choices: g.choices.map((c) => ({ ...c, id: `${s.key}-${i + 1}-${c.id}` })),
+    })),
   })),
 );
 
