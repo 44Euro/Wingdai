@@ -13,6 +13,7 @@
     "db:seed": "tsx src/db/seed.ts",
     "db:reset": "tsx src/db/reset.ts",
     "db:demo-orders": "tsx scripts/seedDemoOrders.ts",
+    "db:demo-history": "tsx scripts/seedDemoHistory.ts",
     "db:photos": "tsx scripts/seedPhotos.ts",
     "build": "nest build",
     "start": "node dist/main.js",

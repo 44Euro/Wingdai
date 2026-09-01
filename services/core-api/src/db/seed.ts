@@ -21,6 +21,14 @@ function id(key: string): string {
 /** รหัสผ่านของทุกบัญชีทดสอบ ยาว 8 ตัวขึ้นไปตามเกณฑ์จริงของระบบ */
 const SEED_PASSWORD = 'wingdai1234';
 
+/** ชื่อบัญชีธนาคารต้องตรงกับชื่อตามกฎหมาย เป็นด่านกันบัญชีม้า (product-spec §7) */
+const RIDER_LEGAL_NAME: Record<string, string> = {
+  rider_ann: 'อรอนงค์ ว่องไว',
+  rider_som: 'สมหมาย ขยันดี',
+  rider_kai: 'ไก่ นำทาง',
+  rider_new: 'ณัฐพล เพิ่งสมัคร',
+};
+
 /** PostGIS เรียงพิกัดเป็น (x, y) = (ลองจิจูด, ละติจูด) ซึ่งสลับกับที่คนไทยพูดกันว่า "lat, lng" */
 const at = (lng: number, lat: number) => ({ x: lng, y: lat });
 
@@ -225,7 +233,15 @@ async function main() {
       { key: 'somchai', accountType: 'user', fullName: 'สมชาย ใจดี', phone: '0812345678' },
       { key: 'malee', accountType: 'user', fullName: 'มาลี ศรีสุข', phone: '0823456789' },
       { key: 'chai', accountType: 'user', fullName: 'ชัย รุ่งเรือง', phone: '0867890123' },
+      /** ลูกค้าเพิ่มอีกสี่คน ประวัติการสั่งย้อนหลังกระจายไปหลายคน ตัวเลขในจอแอดมินจึงอ่านเหมือนของจริง */
+      { key: 'nid', accountType: 'user', fullName: 'นิด แสงทอง', phone: '0891112221' },
+      { key: 'ploy', accountType: 'user', fullName: 'พลอย จันทรา', phone: '0891112222' },
+      { key: 'wut', accountType: 'user', fullName: 'วุฒิ ตั้งมั่น', phone: '0891112223' },
+      { key: 'fah', accountType: 'user', fullName: 'ฟ้า ชื่นบาน', phone: '0891112224' },
       { key: 'rider_ann', accountType: 'rider', fullName: 'อรอนงค์ ว่องไว', phone: '0834567890' },
+      /** ไรเดอร์ที่อนุมัติแล้วต้องมีมากกว่าคนเดียว ไม่งั้นออเดอร์ต่อชั่วโมงต่อไรเดอร์เพี้ยน */
+      { key: 'rider_som', accountType: 'rider', fullName: 'สมหมาย ขยันดี', phone: '0834567891' },
+      { key: 'rider_kai', accountType: 'rider', fullName: 'ไก่ นำทาง', phone: '0834567892' },
       { key: 'rider_new', accountType: 'rider', fullName: 'ณัฐพล เพิ่งสมัคร', phone: '0845678901' },
       { key: 'admin_root', accountType: 'admin', fullName: 'ผู้ดูแลระบบ', phone: '0856789012' },
       /** ซูเปอร์แอดมิน (product-spec §7 คลื่น 2) */
@@ -252,9 +268,11 @@ async function main() {
         });
     }
 
-    // ไรเดอร์อนุมัติแล้วหนึ่งคน รออนุมัติหนึ่งคน ต้องมีทั้งสองสถานะไว้ทดสอบจอ "รอการอนุมัติ"
+    // ไรเดอร์อนุมัติแล้วสามคน รออนุมัติหนึ่งคน ต้องมีทั้งสองสถานะไว้ทดสอบจอ "รอการอนุมัติ"
     const riders = [
       { key: 'rider_ann', approval: 'approved' as const, nationalId: '1103700000011', plate: 'กข 1234 กทม' },
+      { key: 'rider_som', approval: 'approved' as const, nationalId: '1103700000037', plate: 'ขค 2345 กทม' },
+      { key: 'rider_kai', approval: 'approved' as const, nationalId: '1103700000045', plate: 'คง 3456 กทม' },
       { key: 'rider_new', approval: 'pending' as const, nationalId: '1103700000029', plate: 'งจ 5678 กทม' },
     ];
     for (const r of riders) {
@@ -270,7 +288,7 @@ async function main() {
         bankName: 'กสิกรไทย',
         bankAccountNumber: '1234567890',
         // ต้องตรงกับชื่อตามกฎหมาย เป็นด่านกันบัญชีม้า (product-spec §7)
-        bankAccountName: r.key === 'rider_ann' ? 'อรอนงค์ ว่องไว' : 'ณัฐพล เพิ่งสมัคร',
+        bankAccountName: RIDER_LEGAL_NAME[r.key]!,
         emergencyContactName: 'ญาติใกล้ชิด',
         emergencyContactPhone: '0899999999',
         preferredZoneId: id('zone:ari'),
@@ -437,6 +455,11 @@ async function main() {
     const addresses = [
       { key: 'somchai-home', account: 'somchai', label: 'บ้าน', addressText: 'ซอยอารีย์ 3 คอนโดอารีย์เพลส ห้อง 502', note: 'ฝากไว้ที่นิติได้', lng: 100.5450, lat: 13.7815 },
       { key: 'somchai-work', account: 'somchai', label: 'ที่ทำงาน', addressText: 'อาคารพหลโยธินเพลส ชั้น 12', note: null, lng: 100.5395, lat: 13.7789 },
+      /** ลูกค้าคนอื่นต้องมีที่อยู่ ไม่งั้นสั่งไม่ได้ และรายการร้านจะไม่รู้ระยะทาง */
+      { key: 'nid-home', account: 'nid', label: 'บ้าน', addressText: 'ซอยอารีย์ 5 บ้านเลขที่ 12', note: null, lng: 100.5423, lat: 13.7838 },
+      { key: 'ploy-home', account: 'ploy', label: 'บ้าน', addressText: 'ซอยพหลโยธิน 9 ห้อง 301', note: null, lng: 100.5471, lat: 13.7854 },
+      { key: 'wut-home', account: 'wut', label: 'บ้าน', addressText: 'ซอยราชครู แขวงสามเสนใน', note: null, lng: 100.5372, lat: 13.7861 },
+      { key: 'fah-home', account: 'fah', label: 'บ้าน', addressText: 'ซอยเสนานิคม 1 ห้อง 88', note: null, lng: 100.5498, lat: 13.7793 },
     ];
     for (const a of addresses) {
       const row = {

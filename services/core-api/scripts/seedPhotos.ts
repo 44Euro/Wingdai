@@ -151,6 +151,19 @@ async function download(url: string): Promise<Buffer> {
 const pathFor = (prefix: 'shop' | 'dish', name: string) =>
   `catalog/${prefix}-${createHash('sha1').update(name).digest('hex').slice(0, 10)}.jpg`;
 
+/** รายชื่อ ชื่อ → เส้นทางในบักเก็ต ให้โหมด --relink ใช้ตอนรีเซ็ตรายคืน */
+async function writeManifest(client: ReturnType<typeof createScriptClient>) {
+  const shops = await client<{ name: string; p: string }[]>`
+    select name, storefront_photo_path as p from restaurants
+    where storefront_photo_path is not null order by name`;
+  const dishes = await client<{ name: string; p: string }[]>`
+    select name, max(photo_path) as p from menu_items
+    where photo_path is not null group by name order by name`;
+  const map = Object.fromEntries([...shops, ...dishes].map((r) => [r.name, r.p]));
+  await writeFile(MANIFEST, `${JSON.stringify(map, null, 2)}\n`);
+  console.log(`บันทึกรายชื่อรูป ${Object.keys(map).length} รายการ`);
+}
+
 /**
  * เครดิตผู้ถ่ายกับสัญญาอนุญาต ทุกรูปที่ Commons ให้มาต้องให้เครดิต
  * รวมกับของเดิมในไฟล์เสมอ เพราะการรันรอบหนึ่งอัปแค่รูปที่ยังขาด ไม่ใช่ทั้งชุด
@@ -182,7 +195,37 @@ async function writeCredits(picked: Picked[]) {
   await writeFile(target, doc);
 }
 
+const MANIFEST = resolve(__dirname, 'photo-manifest.json');
+
+/**
+ * ต่อเส้นทางรูปกลับเข้าฐานโดยไม่แตะเน็ตเลย
+ * ไฟล์อยู่ในบักเก็ตอยู่แล้ว truncate ลบแค่คอลัมน์ในฐาน ไม่ได้ลบไฟล์
+ * รอบรีเซ็ตรายคืนจึงใช้โหมดนี้ ไม่ต้องไปกวน Commons ทุกคืนและไม่ต้องใช้กุญแจ Supabase
+ */
+async function relink() {
+  const manifest: Record<string, string> = JSON.parse(await readFile(MANIFEST, 'utf8'));
+  const client = createScriptClient();
+  let shops = 0;
+  let dishes = 0;
+  for (const [name, path] of Object.entries(manifest)) {
+    const kind = path.includes('/shop-') ? 'shop' : 'dish';
+    if (kind === 'shop') {
+      const r = await client`update restaurants set storefront_photo_path = ${path}
+        where name = ${name} returning id`;
+      shops += r.length;
+    } else {
+      const r = await client`update menu_items set photo_path = ${path}
+        where name = ${name} returning id`;
+      dishes += r.length;
+    }
+  }
+  await client.end();
+  console.log(`ต่อเส้นทางรูปกลับเข้าฐาน ร้าน ${shops} · จาน ${dishes}`);
+}
+
 async function main() {
+  if (process.argv.includes('--relink')) return relink();
+
   const supabaseUrl = process.env.SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !serviceKey) throw new Error('ต้องตั้ง SUPABASE_URL และ SUPABASE_SERVICE_ROLE_KEY');
@@ -236,6 +279,7 @@ async function main() {
   }
 
   await writeCredits(credits);
+  await writeManifest(client);
   await client.end();
   console.log(`\nอัปรูป ${credits.length} ใบ · เครดิตอยู่ที่ docs/photo-credits.md`);
 }

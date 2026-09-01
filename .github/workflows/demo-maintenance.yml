@@ -84,6 +84,15 @@ jobs:
       - run: npm run db:seed
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      # รูปอยู่ในบักเก็ตอยู่แล้ว truncate ลบแค่คอลัมน์ในฐาน ต่อเส้นทางกลับจากรายชื่อที่ commit ไว้
+      - run: npm run db:photos -- --relink
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - run: npm run db:demo-orders
         env:
           DEMO_API_URL: ${{ env.API_URL }}
+      # ประวัติเจ็ดวันย้อนหลัง ไม่มีอันนี้ตัวเลขในจอแอดมินจะคำนวณจากออเดอร์ไม่กี่ใบแล้วอ่านเพี้ยน
+      - run: npm run db:demo-history
+        env:
+          DEMO_API_URL: ${{ env.API_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

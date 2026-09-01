@@ -15,6 +15,7 @@
 | Bua Loi with sweet egg, taro flesh and coconut flesh.JPG | Bestyful | CC BY-SA 3.0 |
 | Cha-Yen (Thai iced tea) - Namo 2026-07-30.jpg | Andy Li | CC0 |
 | Chim chum.jpg | Takeaway | CC BY-SA 3.0 |
+| Coconut Drink, Ubud, Bali, 20220822 1345 0126.jpg | Jakub Hałun | CC BY-SA 4.0 |
 | Coconut Ice Cream, Bangkok.jpg | Anilakeo | CC BY-SA 4.0 |
 | Coconut water at restaurant in Ko Samui.jpg | Superraptor123 | CC BY-SA 4.0 |
 | Crab Pad Thai - Otus Thai Kitchen & Coffee, West Hollywood-(July 2023).jpg | Benoît Prieur | CC0 |
