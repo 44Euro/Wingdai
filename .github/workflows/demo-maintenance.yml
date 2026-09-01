@@ -52,6 +52,27 @@ jobs:
           cache: npm
           cache-dependency-path: services/core-api/package-lock.json
       - run: npm ci
+      # ล้มตรงนี้อ่านออกว่าต้องแก้อะไร ต่างจากปล่อยให้ไปตายที่ ENETUNREACH ตอน connect
+      - name: ตรวจสาย DATABASE_URL ก่อนแตะฐาน
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "ยังไม่ได้ตั้ง secret DATABASE_URL"; exit 1
+          fi
+          case "$DATABASE_URL" in
+            *YOUR-PASSWORD*|*'[YOUR'*)
+              echo "สายนี้ยังเป็นตัวอย่างจากหน้า Supabase ยังไม่ได้แทนรหัสผ่านจริง"; exit 1 ;;
+          esac
+          case "$DATABASE_URL" in
+            *pooler.supabase.com:5432*) echo "ok — session pooler" ;;
+            *pooler.supabase.com:6543*)
+              echo "ตอนนี้ชี้ไปพอร์ต 6543 (transaction mode) รัน migration ไม่ได้ ให้เปลี่ยนเป็น 5432"; exit 1 ;;
+            *)
+              echo "ตอนนี้ชี้ไปสายตรง db.<ref>.supabase.co ซึ่งมีแต่ระเบียน AAAA"
+              echo "runner ของ GitHub ต่อ IPv6 ไม่ได้ ให้ใช้สาย session pooler (pooler.supabase.com พอร์ต 5432)"
+              exit 1 ;;
+          esac
       - run: npm run db:reset -- --yes
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
