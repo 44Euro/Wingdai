@@ -458,7 +458,9 @@
   },
   "order": {
     "error": {
-      "ownRestaurant": "You can't order from your own restaurant"
+      "ownRestaurant": "You can't order from your own restaurant",
+      "signedOut": "Sign in before placing an order",
+      "cartEmpty": "Your cart is empty. Pick something first."
     }
   },
   "merchant": {

@@ -70,7 +70,7 @@ export function PromptPayScreen({ navigation, route }: Props) {
     placeOrder({
       onSuccess: (order) => navigation.replace('OrderPlaced', { orderId: order.id }),
       // เหตุผลเดียวที่ถูกบล็อกในเส้นทางสั่งของคือ guard สั่งร้านตัวเอง (map เป็น i18n key เดียว)
-      onError: () => setError('order.error.ownRestaurant'),
+      onError: setError,
     });
   }
 
@@ -196,7 +196,7 @@ export function PromptPayScreen({ navigation, route }: Props) {
             bold
             style={{ color: '#FFB4AB', marginTop: p.space.md, textAlign: 'center' }}
           >
-            {t(error)}
+            {t(error, { defaultValue: error })}
           </Text>
         ) : null}
       </ScrollView>
@@ -207,6 +207,7 @@ export function PromptPayScreen({ navigation, route }: Props) {
           label={t('customer.promptpay.paid')}
           variant="ghostOnDark"
           disabled={expired || busy || !canConfirm}
+          loading={busy}
           onPress={handlePaid}
         />
       </View>

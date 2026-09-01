@@ -40,7 +40,7 @@ export function CheckoutScreen({ navigation }: Props) {
     }
     placeOrder({
       onSuccess: (order) => navigation.replace('OrderPlaced', { orderId: order.id }),
-      onError: () => setError('order.error.ownRestaurant'),
+      onError: setError,
     });
   }
 
@@ -110,7 +110,7 @@ export function CheckoutScreen({ navigation }: Props) {
 
         {error ? (
           <Text testID="checkout-error" variant="small" color="danger" bold>
-            {t(error)}
+            {t(error, { defaultValue: error })}
           </Text>
         ) : null}
       </ScrollView>
@@ -121,6 +121,7 @@ export function CheckoutScreen({ navigation }: Props) {
           label={t('customer.cart.placeOrder')}
           trailingLabel={formatBaht(totals.grandTotal)}
           disabled={isPending || !canPlace || !address}
+          loading={isPending}
           onPress={handlePlaceOrder}
         />
       </View>

@@ -115,8 +115,13 @@ export function usePlaceOrder() {
   const { data: restaurant } = useRestaurant(cart.restaurantId ?? '');
   const totals = orderTotals(cart.foodTotal(), restaurant?.distanceKm ?? null);
 
-  function placeOrder(handlers: { onSuccess: (order: Order) => void; onError: () => void }) {
-    if (!cart.restaurantId || !account) return;
+  // ผู้เรียกได้รับเหตุผลเสมอ ปุ่มที่กดแล้วเงียบอ่านว่าแอปพัง ไม่ใช่ว่ายังทำอะไรไม่ได้
+  function placeOrder(handlers: {
+    onSuccess: (order: Order) => void;
+    onError: (message: string) => void;
+  }) {
+    if (!account) return handlers.onError('order.error.signedOut');
+    if (!cart.restaurantId || cart.lines.length === 0) return handlers.onError('order.error.cartEmpty');
     createOrder.mutate(
       {
         restaurantId: cart.restaurantId,
@@ -136,7 +141,8 @@ export function usePlaceOrder() {
           cart.clear();
           handlers.onSuccess(order);
         },
-        onError: handlers.onError,
+        // เซิร์ฟเวอร์รู้เหตุผลจริง ร้านปิด ของหมด เกินรัศมี ส่งต่อให้ผู้ใช้เห็นแทนการเดา
+        onError: (e) => handlers.onError(e instanceof Error && e.message ? e.message : 'common.errorGeneric'),
       },
     );
   }

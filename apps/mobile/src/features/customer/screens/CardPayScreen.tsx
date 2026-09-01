@@ -25,7 +25,7 @@ export function CardPayScreen({ navigation }: Props) {
     setError(null);
     placeOrder({
       onSuccess: (order) => navigation.replace('OrderPlaced', { orderId: order.id }),
-      onError: () => setError('order.error.ownRestaurant'),
+      onError: setError,
     });
   }
 
@@ -139,7 +139,7 @@ export function CardPayScreen({ navigation }: Props) {
             bold
             style={{ color: '#FFB4AB', marginTop: p.space.md, textAlign: 'center' }}
           >
-            {t(error)}
+            {t(error, { defaultValue: error })}
           </Text>
         ) : null}
       </ScrollView>
@@ -150,6 +150,7 @@ export function CardPayScreen({ navigation }: Props) {
           label={t('customer.card.pay')}
           variant="ghostOnDark"
           disabled={isPending || !canPlace}
+          loading={isPending}
           onPress={handlePay}
         />
       </View>
