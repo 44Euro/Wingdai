@@ -130,7 +130,6 @@
       "km": "km",
       "announcement": "Now serving a new neighbourhood — order today",
       "announcementKicker": "Announcement",
-      "greeting": "Near you right now",
       "deliveryFee": "Delivery",
       "empty": "No restaurants in this zone yet",
       "deliverTo": "Deliver to",
@@ -257,7 +256,7 @@
       "serviceFee": "Service fee",
       "grandTotal": "Total",
       "placeOrder": "Place order",
-      "emptyBody": "Find something delicious from kitchens near you — it only takes a couple of taps.",
+      "emptyBody": "Pick a kitchen near you and add what you feel like eating.",
       "browse": "Browse kitchens",
       "remove": "Remove",
       "from": "From",
@@ -273,7 +272,7 @@
     },
     "orderPlaced": {
       "title": "Order placed",
-      "body": "The restaurant is preparing your food",
+      "body": "Sent to the kitchen. Waiting for them to accept.",
       "orderNo": "Order number",
       "backHome": "Back to home"
     },
