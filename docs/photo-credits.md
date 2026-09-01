@@ -49,3 +49,4 @@
 | Thai Style Minced Pork Fried Rice in Hong Kong.jpg | Ceeseven | CC BY-SA 4.0 |
 | Thai green chicken curry at Highgate Cricket Club, Crouch End, London 3.jpg | Acabashi | CC BY-SA 4.0 |
 | Tom Yum Goong Noodle Soup - Nok Nok Kitchen at The Cow 2024-03-28.jpg | Andy Li | CC0 |
+| Tom chuet taohu.jpg | Takeaway | CC BY-SA 3.0 |

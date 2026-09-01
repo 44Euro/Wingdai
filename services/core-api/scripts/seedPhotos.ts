@@ -61,7 +61,7 @@ const DISH_QUERY: Record<string, string> = {
   'ข้าวไข่เจียว': 'Khai jiao',
   'ก๋วยเตี๋ยวหมูน้ำใส': 'Thai pork noodle soup clear broth',
   'บะหมี่แห้ง': 'Egg noodles Thailand',
-  'เกาเหลารวมมิตร': 'Tom jued clear soup Thai',
+  'เกาเหลารวมมิตร': 'Kaeng chuet',
   'ส้มตำไทย': 'Som tam Thai green papaya salad',
   'ไก่ย่าง': 'Grilled chicken gai yang Thai',
   'ข้าวเหนียว': 'Sticky rice bamboo basket Thai',
