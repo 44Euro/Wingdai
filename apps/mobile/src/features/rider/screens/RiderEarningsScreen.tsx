@@ -15,6 +15,9 @@ import { useRiderEarnings } from '../hooks';
 import type { RiderDelivery, EarningsPeriod } from '../../../data/types';
 import { RIDER_TAB_CLEARANCE } from '../../../app/navigators/RiderTabBar';
 import type { RiderStackParamList, RiderTabParamList } from '../../../app/navigators/RiderStack';
+import { groupByDay, bangkokDayKey } from '../../../lib/groupByDay';
+import { DaySection, dayLabel } from '../../../ui/DaySection';
+
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<RiderTabParamList, 'RiderEarnings'>,
@@ -25,7 +28,10 @@ const PERIODS: EarningsPeriod[] = ['today', 'week', 'month'];
 
 /** R4 + R6 รายได้และประวัติงานของไรเดอร์ */
 export function RiderEarningsScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const todayKey = bangkokDayKey(new Date());
+  const yesterdayKey = bangkokDayKey(new Date(Date.now() - 86_400_000));
+  const dayLabels = { today: t('common.day.today'), yesterday: t('common.day.yesterday') };
   const { tokens, primitives: p } = useTheme();
   const [period, setPeriod] = useState<EarningsPeriod>('week');
   const { data, isLoading } = useRiderEarnings(period);
@@ -128,7 +134,18 @@ export function RiderEarningsScreen() {
               </Text>
             </Card>
           ) : (
-            data!.deliveries.map((d) => <DeliveryRow key={d.orderId} delivery={d} />)
+            /* จับกลุ่มตามวัน แทนรายการยาวเป็นพืดที่ดูไม่ออกว่าวันไหนเป็นวันไหน */
+            groupByDay(data!.deliveries, (d) => d.deliveredAt, (d) => d.riderPaySatang)
+              .map((group) => (
+                <View key={group.key} style={{ gap: p.space.md }}>
+                  <DaySection
+                    testID={`earnings-day-${group.key}`}
+                    label={dayLabel(group.key, todayKey, yesterdayKey, dayLabels, i18n.language)}
+                    total={formatBaht(group.total)}
+                  />
+                  {group.items.map((d) => <DeliveryRow key={d.orderId} delivery={d} />)}
+                </View>
+              ))
           )}
         </View>
       </ScrollView>

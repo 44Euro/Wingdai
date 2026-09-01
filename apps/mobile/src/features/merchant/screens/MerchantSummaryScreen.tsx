@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, ScrollView } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { CompositeScreenProps } from '@react-navigation/native';
@@ -8,13 +8,17 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Button } from '../../../ui/Button';
-import { Card } from '../../../ui/Surface';
+import { Card, Chip } from '../../../ui/Surface';
 import { SkeletonCards } from '../../../ui/motion';
 import { formatBaht } from '../../../lib/format';
-import { useMerchantSummary } from '../hooks';
+import { useMerchantSummary, useMerchantOrders } from '../hooks';
 import { MERCHANT_TAB_CLEARANCE } from '../../../app/navigators/MerchantTabBar';
 import type { MerchantSales } from '../../../data/types';
 import type { MerchantStackParamList, MerchantTabParamList } from '../../../app/navigators/MerchantStack';
+import type { EarningsPeriod } from '../../../data/types';
+import { periodStart } from '../../../lib/period';
+import { DaySection, dayLabel } from '../../../ui/DaySection';
+import { groupByDay, bangkokDayKey } from '../../../lib/groupByDay';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MerchantTabParamList, 'MerchantSummary'>,
@@ -23,9 +27,33 @@ type Props = CompositeScreenProps<
 
 /** M1 + M5 สรุปยอดขายของร้าน */
 export function MerchantSummaryScreen({ navigation }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const { data, isLoading } = useMerchantSummary();
+  const [period, setPeriod] = useState<EarningsPeriod>('week');
+  const { data: history = [], isLoading: ordersLoading } = useMerchantOrders('history');
+
+  const todayKey = bangkokDayKey(new Date());
+  const yesterdayKey = bangkokDayKey(new Date(Date.now() - 86_400_000));
+  const dayLabels = { today: t('common.day.today'), yesterday: t('common.day.yesterday') };
+
+  /**
+   * ตัวเลขสรุปกับรายการข้างล่างมาจากชุดเดียวกัน ไม่งั้นบวกแล้วไม่ตรงกับหัว
+   * นับเฉพาะใบที่ส่งถึงแล้ว ใบที่ถูกยกเลิกหรือยังอยู่กับไรเดอร์ยังไม่ใช่ยอดขายของร้าน (§6.1)
+   */
+  const inPeriod = useMemo(() => {
+    const from = periodStart(period, new Date()).getTime();
+    return history.filter(
+      (o) => o.status === 'delivered' && new Date(o.createdAt).getTime() >= from,
+    );
+  }, [history, period]);
+
+  const periodSales = useMemo(() => ({
+    orders: inPeriod.length,
+    foodSalesSatang: inPeriod.reduce((s, o) => s + o.foodTotal, 0),
+    commissionSatang: inPeriod.reduce((s, o) => s + o.commission, 0),
+    netSatang: inPeriod.reduce((s, o) => s + o.restaurantPayout, 0),
+  }), [inPeriod]);
 
   return (
     <SafeAreaView
@@ -57,20 +85,78 @@ export function MerchantSummaryScreen({ navigation }: Props) {
           </View>
         </Card>
 
-        {isLoading ? (
+        {/* เลือกช่วงก่อน แล้วตัวเลขกับรายการข้างล่างเปลี่ยนตามชุดเดียวกัน */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ flexGrow: 0 }}
+          contentContainerStyle={{ alignItems: 'center', gap: p.space.sm }}
+        >
+          {(['today', 'week', 'month'] as EarningsPeriod[]).map((key) => (
+            <Chip
+              key={key}
+              testID={`sales-period-${key}`}
+              label={t(`rider.earnings.period.${key}`)}
+              active={key === period}
+              onPress={() => setPeriod(key)}
+            />
+          ))}
+        </ScrollView>
+
+        {isLoading || ordersLoading ? (
           <SkeletonCards testID="summary-skeleton" count={2} photoHeight={0} />
         ) : (
           <>
             <SalesBlock
-              testID="sales-today"
-              title={t('merchant.summary.today')}
-              sales={data?.today}
+              testID="sales-period"
+              title={t(`rider.earnings.period.${period}`)}
+              sales={periodSales}
             />
-            <SalesBlock
-              testID="sales-week"
-              title={t('merchant.summary.last7Days')}
-              sales={data?.last7Days}
-            />
+
+            <Text variant="kicker" color="muted">{t('merchant.summary.breakdown')}</Text>
+
+            {inPeriod.length === 0 ? (
+              <Card>
+                <Text testID="sales-empty" variant="body" color="muted">
+                  {t('merchant.summary.emptyPeriod')}
+                </Text>
+              </Card>
+            ) : (
+              /* จับกลุ่มตามวัน ร้านจึงเห็นว่าวันไหนขายได้เท่าไหร่ ไม่ใช่รายการยาวเป็นพืด */
+              groupByDay(inPeriod, (o) => o.createdAt, (o) => o.restaurantPayout).map((group) => (
+                <View key={group.key} style={{ gap: p.space.sm }}>
+                  <DaySection
+                    testID={`sales-day-${group.key}`}
+                    label={dayLabel(group.key, todayKey, yesterdayKey, dayLabels, i18n.language)}
+                    total={formatBaht(group.total)}
+                  />
+                  {group.items.map((o) => (
+                    <Pressable
+                      key={o.id}
+                      testID={`sales-order-${o.id}`}
+                      onPress={() => navigation.navigate('MerchantOrderDetail', { orderId: o.id })}
+                    >
+                      <Card>
+                        <View
+                          style={{
+                            flexDirection: 'row', alignItems: 'center',
+                            justifyContent: 'space-between', gap: p.space.md,
+                          }}
+                        >
+                          <View style={{ flex: 1, minWidth: 0 }}>
+                            <Text variant="small" bold numberOfLines={1}>{o.reference}</Text>
+                            <Text variant="caption" color="muted" numberOfLines={1}>
+                              {o.items.map((i) => `${i.quantity}× ${i.name}`).join(' · ')}
+                            </Text>
+                          </View>
+                          <Text variant="small" bold>{formatBaht(o.restaurantPayout)}</Text>
+                        </View>
+                      </Card>
+                    </Pressable>
+                  ))}
+                </View>
+              ))
+            )}
           </>
         )}
 

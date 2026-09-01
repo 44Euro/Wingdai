@@ -20,6 +20,7 @@ import { useRestaurants, useNotifications, useDefaultAddress } from '../hooks';
 import { countUnread } from '../notifications';
 import type { CustomerStackParamList, CustomerTabParamList } from '../../../app/navigators/CustomerStack';
 import type { CuisineCategory, Restaurant } from '../../../data/types';
+import { AnnouncementCarousel } from '../components/AnnouncementCarousel';
 
 // Home อยู่ในแท็บ แต่ navigate ไป RestaurantDetail ซึ่งอยู่ใน stack แม่ → composite
 type Props = CompositeScreenProps<
@@ -161,29 +162,7 @@ export function CustomerHomeScreen({ navigation }: Props) {
           </Text>
         </Pressable>
 
-        {/* แบนเนอร์ประกาศ (ข้อมูลล้วน ห้ามส่วนลด/ราคาตัด ตาม product-spec §2/§3) */}
-        <Card tone="teal" style={{ marginHorizontal: p.space.screen, overflow: 'hidden' }}>
-          <Text variant="kicker" style={{ color: p.brand[300] }}>
-            {t('customer.home.announcementKicker')}
-          </Text>
-          <Text variant="bodyLg" color="onTeal" bold style={{ marginTop: 6, maxWidth: '80%' }}>
-            {t('customer.home.announcement')}
-          </Text>
-          <Text variant="caption" color="onTealMuted" style={{ marginTop: 5, maxWidth: '80%' }}>
-            {t('customer.home.announcementSub', { count: restaurants.length })}
-          </Text>
-          <View
-            style={{
-              position: 'absolute',
-              right: -24,
-              bottom: -24,
-              width: 110,
-              height: 110,
-              borderRadius: 55,
-              backgroundColor: 'rgba(241,90,34,0.35)',
-            }}
-          />
-        </Card>
+        <AnnouncementCarousel restaurantCount={restaurants.length} />
 
         {/* ชิปหมวดหมู่ (กรอง client-side) */}
         <ScrollView

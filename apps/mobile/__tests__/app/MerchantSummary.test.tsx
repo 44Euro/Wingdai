@@ -103,7 +103,7 @@ describe('MerchantSummaryScreen — ยอดขายของร้าน (M1 
     await flush();
 
     expect(findAll(result.root, 'screen-merchant-summary').length).toBe(1);
-    expect(textOf(result.root, 'sales-today')).toContain(formatBaht(0));
+    expect(textOf(result.root, 'sales-period')).toContain(formatBaht(0));
   });
 
   /** product-spec §6.1 คอมมิชชัน 15% คิดจากค่าอาหารอย่างเดียว */
@@ -112,12 +112,12 @@ describe('MerchantSummaryScreen — ยอดขายของร้าน (M1 
     const result = render(nav());
     await flush();
 
-    const today = textOf(result.root, 'sales-today');
+    const shown = textOf(result.root, 'sales-period');
     const commission = Math.round(order.foodTotal * 0.15);
 
-    expect(today).toContain(formatBaht(order.foodTotal));
-    expect(today).toContain(formatBaht(commission));
-    expect(today).toContain(formatBaht(order.foodTotal - commission));
+    expect(shown).toContain(formatBaht(order.foodTotal));
+    expect(shown).toContain(formatBaht(commission));
+    expect(shown).toContain(formatBaht(order.foodTotal - commission));
   });
 
   /** ค่าส่งกับค่าบริการไม่ใช่เงินของร้าน โผล่บนจอนี้เมื่อไหร่ร้านจะคิดว่าตัวเองควรได้ด้วย */
@@ -126,10 +126,10 @@ describe('MerchantSummaryScreen — ยอดขายของร้าน (M1 
     const result = render(nav());
     await flush();
 
-    const today = textOf(result.root, 'sales-today');
+    const shown = textOf(result.root, 'sales-period');
     const gross = order.foodTotal + order.deliveryFee + order.serviceFee;
-    expect(today).not.toContain(formatBaht(gross));
-    expect(today).not.toContain(formatBaht(order.deliveryFee));
+    expect(shown).not.toContain(formatBaht(gross));
+    expect(shown).not.toContain(formatBaht(order.deliveryFee));
   });
 
   it('กดจากยอดคิวไปหน้าคิวออร์เดอร์ได้', async () => {

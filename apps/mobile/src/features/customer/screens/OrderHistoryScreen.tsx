@@ -15,6 +15,8 @@ import { formatBaht } from '../../../lib/format';
 import type { Order, OrderStatus } from '../../../data/types';
 import type { ReorderPlan } from '../reorder';
 import type { CustomerStackParamList, CustomerTabParamList } from '../../../app/navigators/CustomerStack';
+import { groupByDay, bangkokDayKey } from '../../../lib/groupByDay';
+import { DaySection, dayLabel } from '../../../ui/DaySection';
 
 // อยู่ในแท็บ แต่ต้อง navigate ไปจอที่อยู่ใน stack แม่ (ใบเสร็จ/ติดตาม) → composite
 type Props = CompositeScreenProps<
@@ -26,7 +28,10 @@ type Filter = 'all' | 'active' | 'past';
 const DONE: OrderStatus[] = ['delivered', 'cancelled'];
 
 export function OrderHistoryScreen({ navigation }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const todayKey = bangkokDayKey(new Date());
+  const yesterdayKey = bangkokDayKey(new Date(Date.now() - 86_400_000));
+  const dayLabels = { today: t('common.day.today'), yesterday: t('common.day.yesterday') };
   const { tokens, primitives: p } = useTheme();
   const { data: orders = [] } = useCustomerOrders();
   const { data: restaurants = [] } = useRestaurants();
@@ -71,7 +76,13 @@ export function OrderHistoryScreen({ navigation }: Props) {
           {shown.length === 0 ? (
             <Text testID="orders-empty" variant="body" color="muted">{t('customer.orders.empty')}</Text>
           ) : (
-            shown.map((o) => (
+            groupByDay(shown, (o) => o.createdAt).map((group) => (
+              <View key={group.key} style={{ gap: p.space.md }}>
+                <DaySection
+                  testID={`orders-day-${group.key}`}
+                  label={dayLabel(group.key, todayKey, yesterdayKey, dayLabels, i18n.language)}
+                />
+                {group.items.map((o) => (
               <OrderCard
                 key={o.id}
                 order={o}
@@ -100,6 +111,8 @@ export function OrderHistoryScreen({ navigation }: Props) {
                 reorderResult={reorder.variables?.id === o.id ? reorder.data : undefined}
                 onGoToCart={() => navigation.navigate('Cart')}
               />
+                ))}
+              </View>
             ))
           )}
         </View>

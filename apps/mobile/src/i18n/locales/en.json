@@ -13,6 +13,11 @@
       "hoursAgo": "{{count}} h ago",
       "yesterday": "Yesterday",
       "daysAgo": "{{count}} d ago"
+    },
+    "day": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "dayTotal": "Total"
     }
   },
   "auth": {
@@ -140,7 +145,26 @@
       "notifications": "Notifications",
       "noAddress": "Add a delivery address",
       "deliveryFeeFrom": "from {{amount}}",
-      "opensAt": "Closed · opens {{time}}"
+      "opensAt": "Closed · opens {{time}}",
+      "banner": {
+        "slides": [
+          {
+            "kicker": "News",
+            "title": "Now delivering in your area",
+            "body": "{{count}} kitchens within 1 km, about 6 minutes away"
+          },
+          {
+            "kicker": "Payment",
+            "title": "Scan PromptPay or pay on delivery",
+            "body": "No card required. Choose every time you order."
+          },
+          {
+            "kicker": "Tracking",
+            "title": "Always know where your food is",
+            "body": "Watch the rider on the map from pickup to your door"
+          }
+        ]
+      }
     },
     "search": {
       "placeholder": "Search kitchens or dishes",
@@ -571,7 +595,9 @@
       "commission": "Commission 15%",
       "net": "You receive",
       "payoutTitle": "Payout schedule",
-      "payoutBody": "Automated payouts are not in this phase yet — we will transfer the amount above manually"
+      "payoutBody": "Automated payouts are not in this phase yet — we will transfer the amount above manually",
+      "breakdown": "By day",
+      "emptyPeriod": "No orders in this period yet"
     },
     "qr": {
       "title": "Kitchen QR & link",

@@ -181,7 +181,8 @@ export class MerchantService {
         ),
       )
       .orderBy(queue ? asc(orders.createdAt) : desc(orders.createdAt))
-      .limit(queue ? 100 : 50);
+      // จอยอดขายรวมยอดจากรายการชุดนี้ ตัดที่ 50 แล้วยอดเดือนจะขาด
+      .limit(queue ? 100 : 400);
 
     if (rows.length === 0) return [];
 
