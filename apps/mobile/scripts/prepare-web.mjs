@@ -53,6 +53,14 @@ async function main() {
   }
 
   await writeFile(join(DIST, 'vercel.json'), `${JSON.stringify(ROUTING, null, 2)}\n`);
+
+  /**
+   * expo export เขียน lang="en" ตายตัว เบราว์เซอร์จึงตัดบรรทัดภาษาไทยด้วยกฎของภาษาอังกฤษ
+   * คือตัดตรงไหนก็ได้ที่พอดีขอบ ทำให้คำขาดกลางคำ ต้องบอกว่าเป็นภาษาไทยถึงจะใช้พจนานุกรมตัดคำ
+   */
+  const indexPath = join(DIST, 'index.html');
+  const html = await readFile(indexPath, 'utf8');
+  await writeFile(indexPath, html.replace('<html lang="en">', '<html lang="th">'));
   // `!assets/node_modules` ไม่เคยปลุกไฟล์กลับมาได้ ทิ้งไว้มีแต่จะหลอกคนอ่านว่าแก้แล้ว
   await rm(join(DIST, '.vercelignore'), { force: true });
 

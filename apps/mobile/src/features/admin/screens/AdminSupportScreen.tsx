@@ -44,7 +44,9 @@ export function AdminSupportScreen({ navigation }: Props) {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={{ flexGrow: 0 }}
         contentContainerStyle={{
+          alignItems: 'center',
           paddingHorizontal: p.space.screen, paddingVertical: p.space.md, gap: p.space.sm,
         }}
       >

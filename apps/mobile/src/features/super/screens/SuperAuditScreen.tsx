@@ -44,10 +44,13 @@ export function SuperAuditScreen() {
         <Text variant="small" color="muted">{t('super.audit.subtitle')}</Text>
       </View>
 
+      {/* flexGrow: 0 กันแถบกินที่ว่างที่เหลือทั้งจอ ไม่งั้นชิปจะยืดสูงตามไปด้วย */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={{ flexGrow: 0 }}
         contentContainerStyle={{
+          alignItems: 'center',
           paddingHorizontal: p.space.screen, paddingVertical: p.space.md, gap: p.space.sm,
         }}
       >

@@ -96,7 +96,9 @@ export function MerchantOrdersScreen({ navigation }: Props) {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: p.space.sm, paddingHorizontal: p.space.screen }}
+          style={{ flexGrow: 0 }}
+          contentContainerStyle={{
+            alignItems: 'center', gap: p.space.sm, paddingHorizontal: p.space.screen }}
         >
           {(['queue', 'history'] as const).map((s) => (
             <Chip

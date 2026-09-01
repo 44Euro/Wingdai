@@ -1024,7 +1024,6 @@
     },
     "home": {
       "title": "Platform overview",
-      "subtitle": "Is the model still profitable — not what is on fire right now",
       "window": "{{count}} days",
       "metricsUnavailable": "Numbers unavailable. Try again.",
       "manageRoles": "Manage admin access"

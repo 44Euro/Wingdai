@@ -86,10 +86,17 @@ const DayHoursSchema = z
   })
   .nullable();
 
+/**
+ * วันที่ไม่ได้ส่งมา = ยังไม่ได้ตั้ง ซึ่ง `parseWeeklyHours` รองรับอยู่แล้วและชนิด `WeeklyHours`
+ * ก็เป็น Partial มาตั้งแต่ต้น ก่อนหน้านี้ DTO บังคับครบเจ็ดวัน จอเวลาเปิด-ปิดจึงบันทึกไม่ได้เลย
+ * ถ้าเปิดไว้แค่วันเดียว
+ */
 export const SetHoursSchema = z.object({
   hours: z.object({
-    sun: DayHoursSchema, mon: DayHoursSchema, tue: DayHoursSchema, wed: DayHoursSchema,
-    thu: DayHoursSchema, fri: DayHoursSchema, sat: DayHoursSchema,
+    sun: DayHoursSchema.optional(), mon: DayHoursSchema.optional(),
+    tue: DayHoursSchema.optional(), wed: DayHoursSchema.optional(),
+    thu: DayHoursSchema.optional(), fri: DayHoursSchema.optional(),
+    sat: DayHoursSchema.optional(),
   }),
 });
 export type SetHoursInput = z.infer<typeof SetHoursSchema>;

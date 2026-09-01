@@ -226,7 +226,8 @@ function DayRow({
               placeholder="09:00"
               keyboardType="numbers-and-punctuation"
               maxLength={5}
-              style={{ flex: 1, textAlign: 'center' }}
+              containerStyle={{ flex: 1, minWidth: 0 }}
+              style={{ paddingHorizontal: 0, textAlign: 'center' }}
             />
             <Text variant="body" color="muted">–</Text>
             <Input
@@ -236,7 +237,8 @@ function DayRow({
               placeholder="21:00"
               keyboardType="numbers-and-punctuation"
               maxLength={5}
-              style={{ flex: 1, textAlign: 'center' }}
+              containerStyle={{ flex: 1, minWidth: 0 }}
+              style={{ paddingHorizontal: 0, textAlign: 'center' }}
             />
           </View>
         )}

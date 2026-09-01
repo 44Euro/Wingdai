@@ -47,7 +47,6 @@ export function SuperHomeScreen({ navigation }: Props) {
       >
         <View style={{ paddingHorizontal: p.space.screen, paddingTop: p.space.md }}>
           <Text variant="h1">{t('super.home.title')}</Text>
-          <Text variant="small" color="muted">{t('super.home.subtitle')}</Text>
         </View>
 
         <View
