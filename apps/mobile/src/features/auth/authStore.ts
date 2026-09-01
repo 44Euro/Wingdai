@@ -28,9 +28,13 @@ type AuthState = {
   setActiveCapability: (cap: Capability) => void;
 };
 
-/** ลำดับความสำคัญของ stack เริ่มต้นเมื่อมีหลาย capability */
+/**
+ * ลำดับความสำคัญของ stack เริ่มต้นเมื่อมีหลาย capability
+ * ซูเปอร์แอดมินมาก่อนแอดมิน เพราะเครื่องมือระดับแพลตฟอร์มเป็นสิ่งที่บทบาทนี้มีอยู่คนเดียว
+ * ส่วนงานแอดมินประจำวันเข้าได้จากปุ่มสลับโหมด ไม่ได้หายไปไหน
+ */
 function defaultCapability(caps: Capability[]): Capability | null {
-  const order: Capability[] = ['admin', 'rider', 'merchant', 'customer'];
+  const order: Capability[] = ['superAdmin', 'admin', 'rider', 'merchant', 'customer'];
   return order.find((c) => caps.includes(c)) ?? null;
 }
 

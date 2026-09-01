@@ -127,20 +127,20 @@ describe('RootNavigator', () => {
     expectPresent(result.root, 'stack-admin');
   });
 
-  /** ซูเปอร์แอดมินตกที่ AdminStack ก่อนโดยตั้งใจ งานที่เปิดบ่อยกว่าคืองานประจำวัน */
-  it('ซูเปอร์แอดมินเริ่มที่ AdminStack', async () => {
+  /** เครื่องมือระดับแพลตฟอร์มคือสิ่งที่บทบาทนี้มีคนเดียว ซ่อนไว้หลังปุ่มสลับโหมดแล้วไม่มีใครเจอ */
+  it('ซูเปอร์แอดมินเริ่มที่ SuperAdminStack', async () => {
     await useAuthStore.getState().login('super_root', '1234');
-    const result = renderApp();
-    expectPresent(result.root, 'stack-admin');
-  });
-
-  /** ถ้าสลับไปไม่ได้ จอ SA1–SA6 จะไม่มีทางเข้าเลยแม้แต่ทางเดียว */
-  it('ซูเปอร์แอดมินสลับไป SuperAdminStack ได้', async () => {
-    await useAuthStore.getState().login('super_root', '1234');
-    useAuthStore.getState().setActiveCapability('superAdmin');
     const result = renderApp();
     expectPresent(result.root, 'screen-super-home');
-    expectAbsent(result.root, 'stack-admin');
+  });
+
+  /** งานแอดมินประจำวันยังต้องเข้าถึงได้ ไม่ใช่ตัดทิ้ง */
+  it('ซูเปอร์แอดมินสลับไป AdminStack ได้', async () => {
+    await useAuthStore.getState().login('super_root', '1234');
+    useAuthStore.getState().setActiveCapability('admin');
+    const result = renderApp();
+    expectPresent(result.root, 'stack-admin');
+    expectAbsent(result.root, 'screen-super-home');
   });
 
   /** แอดมินธรรมดาต้องไม่มี capability นั้น สลับไปก็ต้องไม่เกิดอะไร */
