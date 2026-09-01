@@ -38,7 +38,7 @@ async function flush() {
   }
 }
 
-function render(nav: { navigate: jest.Mock }) {
+function render(nav: { navigate: jest.Mock; goBack?: jest.Mock }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   act(() => {
     r = ReactTestRenderer.create(
@@ -112,6 +112,21 @@ describe('buildNotifications', () => {
 });
 
 describe('NotificationsScreen (C20)', () => {
+  // บนเว็บไม่มีทั้งปัดกลับและปุ่ม back ของเครื่อง จอที่ push ทับแล้วไม่มีปุ่มบนจอ = ออกไม่ได้จริง ๆ
+  it('ออกจากจอนี้ได้ ไม่ว่ามีแจ้งเตือนหรือไม่มี', async () => {
+    useAuthStore.setState({ account: null });
+    const goBack = jest.fn();
+    const result = render({ navigate: jest.fn(), goBack });
+    await flush();
+
+    const back = findAll(result.root, 'btn-back');
+    expect(back.length).toBeGreaterThanOrEqual(1);
+    act(() => {
+      back[0].props.onPress();
+    });
+    expect(goBack).toHaveBeenCalled();
+  });
+
   it('ยังไม่มีออร์เดอร์ → ขึ้น empty state ไม่มีลิงก์อ่านทั้งหมด', async () => {
     useAuthStore.setState({ account: null });
     const result = render({ navigate: jest.fn() });

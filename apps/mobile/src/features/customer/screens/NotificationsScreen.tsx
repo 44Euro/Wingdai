@@ -6,7 +6,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Icon } from '../../../ui/Icon';
-import { IconChip } from '../../../ui/Surface';
+import { IconChip, RoundButton } from '../../../ui/Surface';
 import { relativeTime } from '../../../lib/format';
 import { useNotifications } from '../hooks';
 import { useNotificationStore } from '../notificationStore';
@@ -37,7 +37,15 @@ export function NotificationsScreen({ navigation }: Props) {
           paddingBottom: p.space.md,
         }}
       >
-        <Text variant="h1">{t('customer.notifications.title')}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: p.space.md, flex: 1 }}>
+          <RoundButton
+            testID="btn-back"
+            icon="chevronLeft"
+            onPress={() => navigation.goBack()}
+            accessibilityLabel={t('common.back')}
+          />
+          <Text variant="h1">{t('customer.notifications.title')}</Text>
+        </View>
         {list.length > 0 ? (
           <Pressable
             testID="link-mark-all-read"
