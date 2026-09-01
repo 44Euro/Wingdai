@@ -34,7 +34,9 @@
 | Kao Rad Pad Kra-pao - Unithai 2023-07-08.jpg | Andy Li | CC0 |
 | Kao Rad Pad Kra-pao with chicken and fried egg - Unithai 2025-07-30.jpg | Andy Li | CC0 |
 | Khai Jiao.jpg | Vee Satayamas | CC BY 4.0 |
+| Khao kha moo thailand.jpg | Amin | CC BY-SA 4.0 |
 | Korean shaved ice-Coffee bingsu-01.jpg | by Tales of an LA Addict (Abby) at Flickr | CC BY-SA 2.0 |
+| Lao green papaya salad.jpg | Jpatokal | CC BY-SA 4.0 |
 | Massaman Curry - Tasty Thai (2470167423).jpg | Alpha from Melbourne, Australia | CC BY-SA 2.0 |
 | Noodle dishes in Bangkok.jpg | Phoebus 28 | CC BY-SA 4.0 |
 | Pearl Milk Tea in Chun Shui Tang.jpg | Battlesnake1 | CC0 |
