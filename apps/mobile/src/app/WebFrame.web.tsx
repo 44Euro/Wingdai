@@ -31,8 +31,9 @@ export function WebFrame({ children }: { children: ReactNode }) {
   const phone = (
     <View
       style={{
+        // flex คุมความกว้างในแถว ส่วนความสูงต้องบอกเอง ไม่งั้นกรอบยุบเหลือศูนย์แล้วจอดำทั้งใบ
         flex: 1,
-        width: '100%',
+        height: '100%',
         maxWidth: PHONE_WIDTH,
         backgroundColor: tokens.bgSurface,
         overflow: 'hidden',
@@ -41,6 +42,7 @@ export function WebFrame({ children }: { children: ReactNode }) {
           ? {
               borderRadius: p.radius.xl,
               maxHeight: 932,
+              alignSelf: 'center',
               boxShadow: '0 24px 60px rgba(0,0,0,0.28)',
             }
           : null),
@@ -57,7 +59,8 @@ export function WebFrame({ children }: { children: ReactNode }) {
         // นอกกรอบใช้พื้นจมของธีม เพื่อให้ตัวแอปดูลอยขึ้นมาโดยไม่ต้องเพิ่มสีใหม่นอกระบบโทเคน
         backgroundColor: framed ? tokens.bgSunken : tokens.bgSurface,
         flexDirection: 'row',
-        alignItems: 'center',
+        // ต้องเป็น stretch ลูกในแถวจึงได้ความสูงเต็ม แผงข้างค่อยจัดกลางด้วย alignSelf ของตัวเอง
+        alignItems: 'stretch',
         justifyContent: 'center',
         gap: withAside ? 72 : 0,
       }}
@@ -78,7 +81,10 @@ function Aside() {
   const live = getDataMode() === 'live';
 
   return (
-    <View testID="web-aside" style={{ width: 380, gap: p.space.lg }}>
+    <View
+      testID="web-aside"
+      style={{ width: 380, flexShrink: 0, alignSelf: 'center', gap: p.space.lg }}
+    >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: p.space.md }}>
         <Image
           source={require('../../assets/logo-mark.png')}
