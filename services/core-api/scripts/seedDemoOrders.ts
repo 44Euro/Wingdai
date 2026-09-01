@@ -108,9 +108,19 @@ async function main() {
   const done = await place('ขอช้อนส้อมด้วย');
   await toRider(done);
   const view = expect('ลูกค้าเปิดใบที่สี่', await call('GET', `/orders/${done}`, undefined, customer));
+  /** ปิดงานต้องมีทั้งรูปและรหัสสี่หลัก (design R11) ขอเส้นทางในบักเก็ตก่อน ไม่ได้ตั้งชื่อเอง */
+  const proof = expect(
+    'ขอที่วางรูปยืนยันส่ง',
+    await call('POST', '/storage/delivery-proof/sign-upload', { orderId: done, ext: 'jpg' }, rider),
+    [200, 201],
+  );
   expect(
     'ไรเดอร์ปิดงาน',
-    await call('PATCH', `/orders/${done}/status`, { status: 'delivered', deliveryPin: view.deliveryPin }, rider),
+    await call('PATCH', `/orders/${done}/status`, {
+      status: 'delivered',
+      deliveryPin: view.deliveryPin,
+      photoPath: proof.path,
+    }, rider),
   );
   expect(
     'ลูกค้ารีวิว',

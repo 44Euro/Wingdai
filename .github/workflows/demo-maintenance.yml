@@ -34,6 +34,10 @@ jobs:
           test "$count" -gt 0
 
   # ใครก็ล็อกอินเป็น super_root แล้วแก้ค่าคอมหรือลบของได้ ตี 2 ตามเวลาไทยจึงล้างกลับเป็นชุดตั้งต้น
+  #
+  # secret DATABASE_URL ต้องเป็นสาย session pooler (pooler.supabase.com พอร์ต 5432)
+  # ไม่ใช่สายตรง db.<ref>.supabase.co เพราะโฮสต์นั้นมีแต่ระเบียน AAAA ส่วน runner ของ GitHub
+  # ต่อ IPv6 ไม่ได้ ใช้สายตรงแล้วจะล้มตั้งแต่ก่อนแตะฐาน · พอร์ต 6543 เป็น transaction mode รัน migration ไม่ได้
   reset:
     if: github.event.schedule == '0 19 * * *' || github.event.inputs.task == 'reset'
     runs-on: ubuntu-latest

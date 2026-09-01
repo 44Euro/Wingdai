@@ -21,6 +21,6 @@
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*.ts", "drizzle.config.ts"],
+  "include": ["src/**/*.ts", "scripts/**/*.ts", "drizzle.config.ts"],
   "exclude": ["dist", "node_modules"]
 }

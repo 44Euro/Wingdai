@@ -3,8 +3,8 @@
 Wingdai backend — auth, catalog, order, payment, ledger, notification.
 NestJS + Drizzle บน Supabase Postgres ดูเหตุผลที่เลือกสแตกนี้ได้ที่ `docs/product-spec.md` §5
 
-ตอนนี้มี **ฐานข้อมูล + คณิตศาสตร์บัญชี + โมดูล auth** ส่วน catalog / order / payment ยังไม่ได้ทำ
-แอปมือถือยังใช้รีโปจำลองอยู่
+auth · catalog · order · dispatch · ledger · refund · payout · support · review ใช้งานได้ครบ
+แอปมือถือคุยกับ API ตัวนี้จริง แล้วถอยไปใช้ข้อมูลจำลองเองเมื่อเรียกไม่ติด
 
 ## ตั้งเครื่องครั้งแรก
 
@@ -22,6 +22,25 @@ NestJS + Drizzle บน Supabase Postgres ดูเหตุผลที่เ�
 
 > `db:setup` ทำแทน `drizzle-kit migrate` เพราะ CLI ตัวนั้นกลืน error แล้วจบด้วย exit 0
 > ทั้งที่ไม่ได้สร้างตารางอะไรเลย เสียเวลาไล่หาสาเหตุนานมาก
+
+## ล้างฐานสาธิตกลับเป็นชุดตั้งต้น
+
+ฐานสาธิตเปิดให้ใครก็ล็อกอินเป็นแอดมินได้ ของจึงเพี้ยนไปเรื่อย ๆ ชุดคำสั่งนี้ล้างแล้วสร้างใหม่ทั้งหมด
+
+```bash
+npm run db:reset -- --yes   # truncate ทุกตารางใน schema public (ต้องพิมพ์ --yes เอง)
+npm run db:setup            # migration ที่เพิ่มมาใหม่
+npm run db:seed             # โซน บัญชี ร้าน เมนู ที่อยู่
+DEMO_API_URL=https://wingdai-api.vercel.app/api npm run db:demo-orders
+```
+
+`db:demo-orders` ยิง HTTP จริงใส่ API ที่รันอยู่ ไม่ได้ insert ลงตารางตรง ๆ เพราะเส้นทางเดียวกันนี้
+เป็นตัวลง ledger เปลี่ยนสถานะ และตรวจกติกาทั้งหมด (§6.2) ได้ออร์เดอร์สี่ใบครบวงจร
+รอร้านรับ · กำลังทำ · กำลังส่ง · ส่งถึงแล้วพร้อมรีวิวและทิป ทุกใบลงร้านของบัญชีสาธิตฝั่งร้าน
+
+GitHub Actions (`.github/workflows/demo-maintenance.yml`) รันชุดนี้ให้เองตี 2 ตามเวลาไทย
+secret `DATABASE_URL` ที่นั่นต้องเป็นสาย **session pooler** (`pooler.supabase.com` พอร์ต 5432)
+ไม่ใช่สายตรง `db.<ref>.supabase.co` เพราะโฮสต์สายตรงมีแต่ระเบียน AAAA แล้ว runner ต่อ IPv6 ไม่ได้
 
 ## รันเซิร์ฟเวอร์
 
