@@ -1,35 +1,59 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
-import maplibregl from 'maplibre-gl';
-// CSS ของ maplibre-gl ไม่ใส่แล้วชั้น canvas กับปุ่มซูมจะวางผิดตำแหน่ง
-import 'maplibre-gl/dist/maplibre-gl.css';
+import { useTranslation } from 'react-i18next';
+import type maplibregl from 'maplibre-gl';
 import { useTheme } from '../../../theme/ThemeProvider';
+import { Text } from '../../../ui/Text';
+import { Icon } from '../../../ui/Icon';
 import { MAP_STYLE, FALLBACK_CENTER, boundsOf } from '../../customer/components/mapStyle';
 import type { OpsMapViewProps } from './OpsMapView';
 
 /** แผนที่ AD8 ฉบับเว็บ Metro หยิบไฟล์ .web.tsx แทน OpsMapView.tsx ให้เอง */
 export function OpsMapView({ riders, orders }: OpsMapViewProps) {
-  const { tokens } = useTheme();
+  const { t } = useTranslation();
+  const { tokens, primitives: p } = useTheme();
   const host = useRef<View>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const markers = useRef<maplibregl.Marker[]>([]);
+  const lib = useRef<typeof maplibregl | null>(null);
+  const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    // react-native-web เรนเดอร์ View เป็น div จริง ๆ ref จึงเป็น element ที่ maplibre ใช้ได้
-    const el = host.current as unknown as HTMLElement | null;
-    if (!el) return undefined;
+    let cancelled = false;
 
-    const m = new maplibregl.Map({
-      container: el,
-      style: MAP_STYLE as maplibregl.StyleSpecification,
-      center: FALLBACK_CENTER,
-      zoom: 12,
-      attributionControl: { compact: true },
-    });
-    map.current = m;
+    void (async () => {
+      try {
+        const [{ default: mod }] = await Promise.all([
+          import('maplibre-gl'),
+          // CSS ของ maplibre-gl ไม่ใส่แล้วชั้น canvas กับปุ่มซูมจะวางผิดตำแหน่ง
+          import('maplibre-gl/dist/maplibre-gl.css'),
+        ]);
+        if (cancelled) return;
+
+        // react-native-web เรนเดอร์ View เป็น div จริง ๆ ref จึงเป็น element ที่ maplibre ใช้ได้
+        const el = host.current as unknown as HTMLElement | null;
+        if (!el) return;
+
+        lib.current = mod;
+        const m = new mod.Map({
+          container: el,
+          style: MAP_STYLE as maplibregl.StyleSpecification,
+          center: FALLBACK_CENTER,
+          zoom: 12,
+          attributionControl: { compact: true },
+        });
+        map.current = m;
+        setReady(true);
+      } catch {
+        // เครื่องที่เปิด WebGL ไม่ได้จะโยนตั้งแต่สร้างแผนที่ ปล่อยหลุดขึ้นไปคือจอขาวทั้งแอป
+        if (!cancelled) setFailed(true);
+      }
+    })();
 
     return () => {
-      m.remove();
+      cancelled = true;
+      map.current?.remove();
       map.current = null;
       markers.current = [];
     };
@@ -38,21 +62,22 @@ export function OpsMapView({ riders, orders }: OpsMapViewProps) {
   /** หมุดทั้งกระดานเปลี่ยนพร้อมกันทุกรอบที่ข้อมูลมา วาดใหม่ทั้งชุดง่ายกว่าไล่เทียบทีละอัน */
   useEffect(() => {
     const m = map.current;
-    if (!m) return undefined;
+    const mod = lib.current;
+    if (!m || !mod || !ready) return undefined;
 
     for (const marker of markers.current) marker.remove();
     markers.current = [];
 
     for (const o of orders) {
       markers.current.push(
-        new maplibregl.Marker({ element: dot(o.hasRider ? tokens.tealSolid : tokens.danger) })
+        new mod.Marker({ element: dot(o.hasRider ? tokens.tealSolid : tokens.danger) })
           .setLngLat([o.lng, o.lat])
           .addTo(m),
       );
     }
     for (const r of riders) {
       markers.current.push(
-        new maplibregl.Marker({ element: dot(tokens.brandAccent, 20, r.busy) })
+        new mod.Marker({ element: dot(tokens.brandAccent, 20, r.busy) })
           .setLngLat([r.lng, r.lat])
           .addTo(m),
       );
@@ -64,9 +89,33 @@ export function OpsMapView({ riders, orders }: OpsMapViewProps) {
     ]);
     if (bounds) m.fitBounds(bounds, { padding: 40, animate: false });
     return undefined;
-  }, [riders, orders, tokens.tealSolid, tokens.danger, tokens.brandAccent]);
+  }, [ready, riders, orders, tokens.tealSolid, tokens.danger, tokens.brandAccent]);
 
-  return <View testID="admin-ops-map" ref={host} style={{ flex: 1 }} />;
+  if (failed) {
+    return (
+      <View
+        testID="admin-ops-map-unavailable"
+        style={{
+          flex: 1,
+          backgroundColor: tokens.bgSunken,
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: p.space.sm,
+        }}
+      >
+        <Icon name="mapPin" size={26} color={tokens.textFaint} />
+        <Text variant="small" color="muted">{t('customer.tracking.mapUnavailable')}</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View
+      testID="admin-ops-map"
+      ref={host}
+      style={{ flex: 1, backgroundColor: tokens.bgSunken }}
+    />
+  );
 }
 
 function dot(color: string, size = 16, ring = false) {

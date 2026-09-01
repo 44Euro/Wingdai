@@ -90,6 +90,14 @@ export function SuperHomeScreen({ navigation }: Props) {
 
         {/* ทางกลับไปทำงานแอดมินประจำวัน ซูเปอร์แอดมินคือคนเดิมที่มีสิทธิ์เพิ่ม */}
         <View style={{ paddingHorizontal: p.space.screen, gap: p.space.md }}>
+          {/* ภาษาและธีมอยู่จอเดียวกันทุกบทบาท ไม่ได้ทำจอตั้งค่าแยกต่อบทบาท */}
+          <Button
+            testID="btn-go-settings"
+            variant="secondary"
+            label={t('settings.title')}
+            onPress={() => navigation.navigate('Settings')}
+          />
+
           <RoleSwitcher />
           <Button
             testID="btn-logout"

@@ -16,6 +16,7 @@ import { RiderProofScreen } from '../../features/rider/screens/RiderProofScreen'
 import { RiderBaseScreen } from '../../features/rider/screens/RiderBaseScreen';
 import { RiderDocumentsScreen } from '../../features/rider/screens/RiderDocumentsScreen';
 import { RiderChatRoute } from '../../features/rider/RiderChatRoute';
+import { SettingsScreen } from '../../features/customer/screens/SettingsScreen';
 
 /** สี่แท็บของไรเดอร์ */
 export type RiderTabParamList = {
@@ -26,6 +27,8 @@ export type RiderTabParamList = {
 };
 
 export type RiderStackParamList = {
+  /** ภาษาและธีม ต้องเข้าถึงได้จากทุกบทบาท ไม่ใช่เฉพาะฝั่งลูกค้า */
+  Settings: undefined;
   Tabs: NavigatorScreenParams<RiderTabParamList> | undefined;
   RiderJob: { orderId: string };
   /** R10 จุดรับอาหาร: เช็กลิสต์ถุงก่อนออกจากร้าน */
@@ -96,6 +99,7 @@ export function RiderStack() {
       <Stack.Screen name="RiderDocuments" component={RiderDocumentsScreen} />
 
       <Stack.Screen name="RiderChat" component={RiderChatRoute} />
+      <Stack.Screen name="Settings" component={SettingsScreen} />
     </Stack.Navigator>
   );
 }

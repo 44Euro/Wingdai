@@ -13,6 +13,7 @@ import { AdminMapScreen } from '../../features/admin/screens/AdminMapScreen';
 import { AdminRiderDocsScreen } from '../../features/admin/screens/AdminRiderDocsScreen';
 import { AdminSupportScreen } from '../../features/admin/screens/AdminSupportScreen';
 import { AdminTicketScreen } from '../../features/admin/screens/AdminTicketScreen';
+import { SettingsScreen } from '../../features/customer/screens/SettingsScreen';
 
 /** แท็บของแอดมิน */
 export type AdminTabParamList = {
@@ -25,6 +26,8 @@ export type AdminTabParamList = {
 };
 
 export type AdminStackParamList = {
+  /** ภาษาและธีม ต้องเข้าถึงได้จากทุกบทบาท ไม่ใช่เฉพาะฝั่งลูกค้า */
+  Settings: undefined;
   Tabs: NavigatorScreenParams<AdminTabParamList> | undefined;
   /** AD8 แผนที่ ops push ทับแท็บเพราะเป็นจอเต็มที่ต้องการพื้นที่ทั้งหมด */
   AdminMap: undefined;
@@ -84,6 +87,7 @@ export function AdminStack() {
       <Stack.Screen name="AdminMap" component={AdminMapScreen} />
       <Stack.Screen name="AdminRiderDocs" component={AdminRiderDocsScreen} />
       <Stack.Screen name="AdminTicket" component={AdminTicketScreen} />
+      <Stack.Screen name="Settings" component={SettingsScreen} />
     </Stack.Navigator>
   );
 }

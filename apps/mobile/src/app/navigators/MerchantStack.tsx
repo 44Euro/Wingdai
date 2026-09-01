@@ -17,6 +17,7 @@ import { MerchantQrScreen } from '../../features/merchant/screens/MerchantQrScre
 import { MerchantHoursScreen } from '../../features/merchant/screens/MerchantHoursScreen';
 import { RejectOrderScreen } from '../../features/merchant/screens/RejectOrderScreen';
 import { EditMenuItemScreen } from '../../features/merchant/screens/EditMenuItemScreen';
+import { SettingsScreen } from '../../features/customer/screens/SettingsScreen';
 
 /** สี่แท็บของฝั่งร้าน คิว เมนู ยอดขาย และร้านของฉัน */
 export type MerchantTabParamList = {
@@ -29,6 +30,8 @@ export type MerchantTabParamList = {
 };
 
 export type MerchantStackParamList = {
+  /** ภาษาและธีม ต้องเข้าถึงได้จากทุกบทบาท ไม่ใช่เฉพาะฝั่งลูกค้า */
+  Settings: undefined;
   Tabs: NavigatorScreenParams<MerchantTabParamList> | undefined;
   MerchantOrderDetail: { orderId: string };
   AddMenuItem: { restaurantId: string };
@@ -82,6 +85,7 @@ export function MerchantStack() {
       <Stack.Screen name="MerchantHours" component={MerchantHoursScreen} />
       <Stack.Screen name="RejectOrder" component={RejectOrderScreen} />
       <Stack.Screen name="EditMenuItem" component={EditMenuItemScreen} />
+      <Stack.Screen name="Settings" component={SettingsScreen} />
     </Stack.Navigator>
   );
 }

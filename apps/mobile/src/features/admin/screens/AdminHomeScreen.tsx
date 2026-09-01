@@ -87,6 +87,14 @@ export function AdminHomeScreen({ navigation }: Props) {
 
         {/* ตัวสลับโหมด + ออกจากระบบ อยู่ท้ายจอแรกเพราะ AdminStack ไม่มีจอโปรไฟล์ */}
         <View style={{ paddingHorizontal: p.space.screen, gap: p.space.md }}>
+          {/* ภาษาและธีมอยู่จอเดียวกันทุกบทบาท ไม่ได้ทำจอตั้งค่าแยกต่อบทบาท */}
+          <Button
+            testID="btn-go-settings"
+            variant="secondary"
+            label={t('settings.title')}
+            onPress={() => navigation.navigate('Settings')}
+          />
+
           <RoleSwitcher />
           <Button
             testID="btn-logout"

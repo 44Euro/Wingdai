@@ -81,6 +81,14 @@ export function MerchantProfileScreen({ navigation }: Props) {
           </>
         ) : null}
 
+        {/* ภาษาและธีมอยู่จอเดียวกันทุกบทบาท ไม่ได้ทำจอตั้งค่าแยกต่อบทบาท */}
+        <Button
+          testID="btn-go-settings"
+          variant="secondary"
+          label={t('settings.title')}
+          onPress={() => navigation.navigate('Settings')}
+        />
+
         <RoleSwitcher />
 
         <Button

@@ -10,6 +10,7 @@ import { SuperZonesScreen } from '../../features/super/screens/SuperZonesScreen'
 import { SuperConfigScreen } from '../../features/super/screens/SuperConfigScreen';
 import { SuperAuditScreen } from '../../features/super/screens/SuperAuditScreen';
 import { SuperRolesScreen } from '../../features/super/screens/SuperRolesScreen';
+import { SettingsScreen } from '../../features/customer/screens/SettingsScreen';
 
 /** จอของซูเปอร์แอดมิน (design SA1–SA6 สเปคคลื่น 2 §3.2) */
 export type SuperTabParamList = {
@@ -20,6 +21,8 @@ export type SuperTabParamList = {
 };
 
 export type SuperStackParamList = {
+  /** ภาษาและธีม ต้องเข้าถึงได้จากทุกบทบาท ไม่ใช่เฉพาะฝั่งลูกค้า */
+  Settings: undefined;
   Tabs: NavigatorScreenParams<SuperTabParamList> | undefined;
   /** SA3 ทำนาน ๆ ครั้ง จึงเข้าจาก SA1 ไม่ใช่กินที่แท็บ */
   SuperRoles: undefined;
@@ -68,6 +71,7 @@ export function SuperAdminStack() {
     >
       <Stack.Screen name="Tabs" component={SuperTabs} />
       <Stack.Screen name="SuperRoles" component={SuperRolesScreen} />
+      <Stack.Screen name="Settings" component={SettingsScreen} />
     </Stack.Navigator>
   );
 }
