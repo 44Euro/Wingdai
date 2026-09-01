@@ -23,7 +23,7 @@ const SignUploadSchema = z.object({
   ext: z.string().trim().min(2).max(5),
 });
 
-/** รูปยืนยันส่ง (R11) ผูกกับออร์เดอร์ใบเดียว เพื่อให้ระบบตรวจข้อพิพาทหาเจอ (§6.4) */
+/** รูปยืนยันส่ง (R11) ผูกกับออเดอร์ใบเดียว เพื่อให้ระบบตรวจข้อพิพาทหาเจอ (§6.4) */
 const SignProofSchema = z.object({
   orderId: z.uuid(),
   ext: z.string().trim().min(2).max(5),

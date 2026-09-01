@@ -69,7 +69,7 @@ export const dispatchOffers = pgTable(
     riderId: uuid('rider_id')
       .notNull()
       .references(() => accounts.id, { onDelete: 'restrict' }),
-    /** เสนอเป็นคนที่เท่าไหร่ของออร์เดอร์ใบนี้ 1 คือคนที่คะแนนสูงสุด */
+    /** เสนอเป็นคนที่เท่าไหร่ของออเดอร์ใบนี้ 1 คือคนที่คะแนนสูงสุด */
     sequence: integer('sequence').notNull(),
     score: doublePrecision('score').notNull(),
 
@@ -82,7 +82,7 @@ export const dispatchOffers = pgTable(
   (t) => [
     index('dispatch_offers_rider_idx').on(t.riderId, t.outcome),
     index('dispatch_offers_order_idx').on(t.orderId, t.sequence),
-    // เสนอออร์เดอร์ใบเดิมให้คนเดิมซ้ำไม่ได้ §6.3 บอกให้เลื่อนไปคนถัดไปเมื่อถูกปฏิเสธ
+    // เสนอออเดอร์ใบเดิมให้คนเดิมซ้ำไม่ได้ §6.3 บอกให้เลื่อนไปคนถัดไปเมื่อถูกปฏิเสธ
     uniqueIndex('dispatch_offers_order_rider_key').on(t.orderId, t.riderId),
     check('dispatch_offers_expires_after_offered', sql`${t.expiresAt} > ${t.offeredAt}`),
   ],

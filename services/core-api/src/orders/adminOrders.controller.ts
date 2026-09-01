@@ -8,7 +8,7 @@ import type { AdminOrderFilter } from './adminOrders';
 
 const FilterSchema = z.enum(['all', 'delayed', 'unassigned']).default('all');
 
-/** จอเฝ้าออร์เดอร์ของแอดมิน (design AD2) และตัวเลขสดของ AD1 */
+/** จอเฝ้าออเดอร์ของแอดมิน (design AD2) และตัวเลขสดของ AD1 */
 @Controller('admin/orders')
 @UseGuards(JwtGuard, AdminGuard)
 export class AdminOrdersController {

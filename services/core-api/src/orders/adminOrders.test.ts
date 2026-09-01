@@ -40,7 +40,7 @@ describe('isDelayed', () => {
     expect(isDelayed(row({ minutesElapsed: DELAYED_AFTER_MINUTES }))).toBe(false);
   });
 
-  /** ออร์เดอร์ที่ส่งถึงแล้วเมื่อสองชั่วโมงก่อนไม่ใช่ "ออเดอร์ที่ช้าอยู่ตอนนี้" */
+  /** ออเดอร์ที่ส่งถึงแล้วเมื่อสองชั่วโมงก่อนไม่ใช่ "ออเดอร์ที่ช้าอยู่ตอนนี้" */
   it('ออเดอร์ที่จบแล้วไม่เคยนับว่าช้า ต่อให้ผ่านมานานแค่ไหน', () => {
     expect(isDelayed(row({ status: 'delivered', minutesElapsed: 999 }))).toBe(false);
     expect(isDelayed(row({ status: 'cancelled', minutesElapsed: 999 }))).toBe(false);

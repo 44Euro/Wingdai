@@ -59,7 +59,7 @@ async function mustAllow(label: string, body: (tx: postgres.TransactionSql) => P
 let counter = 0;
 const uniq = () => `${Date.now() % 100000000}${(counter += 1)}`.slice(-8).padStart(8, '0');
 
-/** สร้างข้อมูลตั้งต้นครบชุดหนึ่งออร์เดอร์ คืน id ที่ต้องใช้ต่อ */
+/** สร้างข้อมูลตั้งต้นครบชุดหนึ่งออเดอร์ คืน id ที่ต้องใช้ต่อ */
 async function seed(tx: postgres.TransactionSql) {
   const [zone] = await tx`
     insert into zones (name, type, boundary_geojson, center)

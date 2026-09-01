@@ -56,13 +56,13 @@ export type PublicOrder = {
   dropoffLng: number | null;
   /** ตำแหน่งไรเดอร์ null = ยังไม่มีไรเดอร์ ยังไม่เคยส่งพิกัด หรืองานจบไปแล้ว */
   riderLocation: { lat: number; lng: number } | null;
-  /** รหัสยืนยันส่งสี่หลัก (design R11) มีเฉพาะตอนลูกค้าเจ้าของออร์เดอร์เป็นคนถาม */
+  /** รหัสยืนยันส่งสี่หลัก (design R11) มีเฉพาะตอนลูกค้าเจ้าของออเดอร์เป็นคนถาม */
   deliveryPin?: string;
   /** ลูกค้าขอให้วางไว้หน้าประตู (สเปคคลื่น 2 §7) */
   leaveAtDoor: boolean;
   /** ทิปที่ให้ไรเดอร์ไปแล้ว (design C11) 0 = ยังไม่ให้ ซึ่งจอใช้ตัดสินว่าจะโชว์ปุ่มไหม */
   tipSatang: number;
-  /** ใครยกเลิกและเพราะอะไร (design M12) `null` เมื่อออร์เดอร์ยังไม่ถูกยกเลิก */
+  /** ใครยกเลิกและเพราะอะไร (design M12) `null` เมื่อออเดอร์ยังไม่ถูกยกเลิก */
   cancelledBy: 'customer' | 'restaurant' | 'admin' | null;
   cancelReason: 'out_of_stock' | 'too_busy' | 'closing_soon' | 'other' | null;
 };
@@ -128,7 +128,7 @@ export class OrdersService {
     }
 
     const priced = await this.priceItems(input.restaurantId, input.items);
-    /** ราคาอ่านจาก `platform_pricing` ทุกครั้งที่สร้างออร์เดอร์ (design SA6) */
+    /** ราคาอ่านจาก `platform_pricing` ทุกครั้งที่สร้างออเดอร์ (design SA6) */
     const config = await this.platform.pricing();
     const pricing = priceOrder(priced, distanceKm, config);
 
@@ -147,12 +147,12 @@ export class OrdersService {
           commissionSatang: pricing.commissionSatang,
           commissionRateBp: config.commissionRateBp,
           paymentMethod: input.paymentMethod,
-          // เงินสดยังไม่ได้จ่าย ไรเดอร์เก็บตอนส่ง ช่องทางอื่นจ่ายจบก่อนออร์เดอร์เริ่มเดิน
+          // เงินสดยังไม่ได้จ่าย ไรเดอร์เก็บตอนส่ง ช่องทางอื่นจ่ายจบก่อนออเดอร์เริ่มเดิน
           paymentStatus: input.paymentMethod === 'cash' ? 'pending' : 'paid',
           paidAt: input.paymentMethod === 'cash' ? null : new Date(),
           // §6.3 ใช้ค่าที่ร้านตั้งเองเป็นตัวตั้งต้น จนกว่าจะมีข้อมูลย้อนหลังพอทำค่าเฉลี่ยเคลื่อนที่
           predictedReadyAt: new Date(Date.now() + restaurant.prepTimeMinutes * 60_000),
-          // R11 สุ่มตั้งแต่สร้างออร์เดอร์ เพราะลูกค้าต้องเห็นได้ตลอดจากจอติดตาม
+          // R11 สุ่มตั้งแต่สร้างออเดอร์ เพราะลูกค้าต้องเห็นได้ตลอดจากจอติดตาม
           deliveryPin: generateDeliveryPin(),
           leaveAtDoor: input.leaveAtDoor,
         })
@@ -267,7 +267,7 @@ export class OrdersService {
     return Promise.all(rows.map((r) => this.publicOrder(r.id, true)));
   }
 
-  /** ความสัมพันธ์ของบัญชีนี้กับออร์เดอร์ใบนั้น ใช้ตัดสินทั้งการอ่านและการเปลี่ยนสถานะ */
+  /** ความสัมพันธ์ของบัญชีนี้กับออเดอร์ใบนั้น ใช้ตัดสินทั้งการอ่านและการเปลี่ยนสถานะ */
   private async actorFor(
     order: { customerId: string; restaurantId: string; riderId: string | null },
     accountId: string,
@@ -297,14 +297,14 @@ export class OrdersService {
       { customerId: order.customerId, restaurantId: order.restaurantId, riderId: order.riderId ?? null },
       accountId,
     );
-    // ตอบ 404 ไม่ใช่ 403 403 เป็นการยืนยันว่าออร์เดอร์รหัสนี้มีอยู่จริง
+    // ตอบ 404 ไม่ใช่ 403 403 เป็นการยืนยันว่าออเดอร์รหัสนี้มีอยู่จริง
     if (actor === 'stranger') throw new NotFoundException({ message: 'ไม่พบออเดอร์นี้' });
     // เฉพาะลูกค้าเจ้าของเท่านั้นที่เห็นรหัสยืนยันส่ง ไรเดอร์ต้องถามเอาจากลูกค้า
     return actor === 'customer' ? this.publicOrder(orderId, true) : order;
   }
 
   /** เปลี่ยนสถานะ และถ้าถึง delivered ให้ลง ledger ในทรานแซกชันเดียวกัน */
-  /** เปลี่ยนสถานะออร์เดอร์ */
+  /** เปลี่ยนสถานะออเดอร์ */
   async updateStatus(
     orderId: string,
     next: OrderStatus,
@@ -318,7 +318,7 @@ export class OrdersService {
       if (!order) throw new NotFoundException({ message: 'ไม่พบออเดอร์นี้' });
 
       const actor = await this.actorFor(order, accountId);
-      // คนนอกไม่ควรรู้ด้วยซ้ำว่าออร์เดอร์นี้มีอยู่
+      // คนนอกไม่ควรรู้ด้วยซ้ำว่าออเดอร์นี้มีอยู่
       if (actor === 'stranger') throw new NotFoundException({ message: 'ไม่พบออเดอร์นี้' });
       assertCanSetStatus(actor, next);
 
@@ -409,7 +409,7 @@ export class OrdersService {
         foodTotalSatang: order.foodTotalSatang,
         deliveryFeeSatang: order.deliveryFeeSatang,
         serviceFeeSatang: order.serviceFeeSatang,
-        /** ยังไม่มีระบบจ่ายงานไรเดอร์ (คลื่นที่ 4) ออร์เดอร์ที่ไม่มีไรเดอร์จึงจ่ายไรเดอร์ 0 */
+        /** ยังไม่มีระบบจ่ายงานไรเดอร์ (คลื่นที่ 4) ออเดอร์ที่ไม่มีไรเดอร์จึงจ่ายไรเดอร์ 0 */
         riderPaySatang: order.riderId ? order.deliveryFeeSatang : 0,
         paymentFeeSatang: paymentFeeOf(order.paymentMethod, gross),
         method: order.paymentMethod,
@@ -467,7 +467,7 @@ export class OrdersService {
   async tip(orderId: string, customerId: string, amountSatang: number): Promise<PublicOrder> {
     await this.db.transaction(async (tx) => {
       const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1).for('update');
-      // ตอบ 404 ไม่ใช่ 403 ให้คนที่ไม่ใช่เจ้าของ ไม่ยืนยันว่าออร์เดอร์รหัสนี้มีอยู่จริง
+      // ตอบ 404 ไม่ใช่ 403 ให้คนที่ไม่ใช่เจ้าของ ไม่ยืนยันว่าออเดอร์รหัสนี้มีอยู่จริง
       if (!order) throw new NotFoundException({ message: 'ไม่พบออเดอร์นี้' });
 
       assertCanTip({
@@ -501,7 +501,7 @@ export class OrdersService {
     return this.publicOrder(orderId);
   }
 
-  /** ข้อมูลออร์เดอร์ที่ส่งออกไปให้ผู้ใช้ */
+  /** ข้อมูลออเดอร์ที่ส่งออกไปให้ผู้ใช้ */
   private async publicOrder(orderId: string, includePin = false): Promise<PublicOrder> {
     const [order] = await this.db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
     if (!order) throw new NotFoundException({ message: 'ไม่พบออเดอร์นี้' });

@@ -20,7 +20,7 @@ type Props = NativeStackScreenProps<CustomerStackParamList, 'RateOrder'>;
 /** ยอดทิปให้เลือก (สตางค์) ดีไซน์วาดสองปุ่ม เพิ่มเป็นสามเพื่อให้มีตัวเลือกที่ถูกกว่า */
 const TIP_CHOICES = [1_000, 2_000, 4_000];
 
-/** ให้คะแนนออร์เดอร์ (design C11) */
+/** ให้คะแนนออเดอร์ (design C11) */
 export function RateOrderScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();

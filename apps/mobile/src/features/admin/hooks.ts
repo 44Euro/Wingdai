@@ -40,7 +40,7 @@ export function useForceDispatch() {
   });
 }
 
-/** R9 เคลียร์เรื่องที่ไรเดอร์แจ้งแล้วจัดการเสร็จ ไม่แตะสถานะออร์เดอร์ */
+/** R9 เคลียร์เรื่องที่ไรเดอร์แจ้งแล้วจัดการเสร็จ ไม่แตะสถานะออเดอร์ */
 export function useResolveRiderIssue() {
   const qc = useQueryClient();
   return useMutation({
@@ -132,7 +132,7 @@ export function useDecideRiderPayout() {
   });
 }
 
-/** จอเฝ้าออร์เดอร์ (design AD2) ตัวกรองอยู่ใน key เพื่อให้แต่ละชิปมี cache ของตัวเอง */
+/** จอเฝ้าออเดอร์ (design AD2) ตัวกรองอยู่ใน key เพื่อให้แต่ละชิปมี cache ของตัวเอง */
 export function useAdminOrders(filter: AdminOrderFilter) {
   return useQuery({
     queryKey: ['admin', 'orders', filter],

@@ -28,7 +28,7 @@ export function useMyRestaurants() {
   });
 }
 
-/** คิวออร์เดอร์ของร้าน */
+/** คิวออเดอร์ของร้าน */
 export function useMerchantOrders(scope: 'queue' | 'history' = 'queue') {
   return useQuery({
     queryKey: ['merchant', 'orders', scope],
@@ -55,7 +55,7 @@ export function useSetRestaurantOpen() {
   });
 }
 
-/** ตั้งตารางเวลาและพักรับออร์เดอร์ (design M11) */
+/** ตั้งตารางเวลาและพักรับออเดอร์ (design M11) */
 function useRestaurantSettingMutation<TVars>(
   mutationFn: (vars: TVars) => Promise<unknown>,
 ) {
@@ -84,7 +84,7 @@ export function usePauseRestaurant() {
   );
 }
 
-/** ร้านเปลี่ยนสถานะออร์เดอร์ รับ / กำลังทำ / ปฏิเสธ */
+/** ร้านเปลี่ยนสถานะออเดอร์ รับ / กำลังทำ / ปฏิเสธ */
 export function useUpdateOrderStatus() {
   const qc = useQueryClient();
   return useMutation({

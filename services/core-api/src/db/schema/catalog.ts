@@ -40,7 +40,7 @@ export const restaurants = pgTable(
     prepTimeMinutes: integer('prep_time_minutes').notNull(),
 
     openingHours: jsonb('opening_hours').notNull().default(sql`'{}'::jsonb`),
-    /** พักรับออร์เดอร์ชั่วคราว (design M11) `null` = ไม่ได้พัก */
+    /** พักรับออเดอร์ชั่วคราว (design M11) `null` = ไม่ได้พัก */
     pausedUntil: timestamp('paused_until', { withTimezone: true }),
     storefrontPhotoPath: text('storefront_photo_path'),
     businessDocPath: text('business_doc_path'),

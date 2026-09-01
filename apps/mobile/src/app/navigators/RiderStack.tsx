@@ -30,7 +30,7 @@ export type RiderStackParamList = {
   RiderJob: { orderId: string };
   /** R10 จุดรับอาหาร: เช็กลิสต์ถุงก่อนออกจากร้าน */
   RiderPickup: { orderId: string };
-  /** R9 แจ้งปัญหาระหว่างส่ง เรื่องเข้าคิวแอดมิน ไม่เปลี่ยนสถานะออร์เดอร์เอง */
+  /** R9 แจ้งปัญหาระหว่างส่ง เรื่องเข้าคิวแอดมิน ไม่เปลี่ยนสถานะออเดอร์เอง */
   RiderIssue: { orderId: string };
   /** R11 ยืนยันส่งด้วยรหัสจากลูกค้า ปิดงานได้จากจอนี้จอเดียว */
   RiderProof: { orderId: string };

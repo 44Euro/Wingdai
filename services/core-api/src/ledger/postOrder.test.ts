@@ -90,7 +90,7 @@ describe('postOrderDelivered', () => {
     expect(restaurantPayableFor(1500, 500)).toBe(20000 - commissionOf(20000));
   });
 
-  /** ออร์เดอร์แต่ละใบจำอัตราคอมที่ใช้ตอนสร้างไว้เอง (`orders.commission_rate_bp`) */
+  /** ออเดอร์แต่ละใบจำอัตราคอมที่ใช้ตอนสร้างไว้เอง (`orders.commission_rate_bp`) */
   it('ใช้อัตราคอมของออเดอร์ใบนั้น ไม่ใช่ค่าตั้งต้นของระบบ', () => {
     const restaurantPayableAt = (commissionRateBp: number) =>
       postOrderDelivered({

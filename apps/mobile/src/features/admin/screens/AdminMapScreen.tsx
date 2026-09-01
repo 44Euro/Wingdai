@@ -13,7 +13,7 @@ import { useOpsMap } from '../hooks';
 
 type Props = NativeStackScreenProps<AdminStackParamList, 'AdminMap'>;
 
-/** AD8 แผนที่ภาพรวม ไรเดอร์ + ออร์เดอร์ที่ยังวิ่ง */
+/** AD8 แผนที่ภาพรวม ไรเดอร์ + ออเดอร์ที่ยังวิ่ง */
 export function AdminMapScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();

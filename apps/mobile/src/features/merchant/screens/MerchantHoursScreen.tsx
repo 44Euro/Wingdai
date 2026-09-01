@@ -21,7 +21,7 @@ type Props = NativeStackScreenProps<MerchantStackParamList, 'MerchantHours'>;
 /** ตัวเลือกพักที่ดีไซน์วาดไว้ ยาวกว่านี้คือปิดร้าน ไม่ใช่พัก */
 const PAUSE_CHOICES = [15, 30, 60] as const;
 
-/** M11 เวลาเปิด-ปิดร้าน และพักรับออร์เดอร์ชั่วคราว */
+/** M11 เวลาเปิด-ปิดร้าน และพักรับออเดอร์ชั่วคราว */
 export function MerchantHoursScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();

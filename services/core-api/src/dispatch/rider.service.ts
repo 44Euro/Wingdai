@@ -51,7 +51,7 @@ export type RiderJob = {
   dropoffLng: number;
   /** ของในถุงตามที่ไรเดอร์ต้องตรวจก่อนออกจากร้าน (design R10) */
   items: { name: string; quantity: number; note: string | null; choiceNames: string[] }[];
-  /** §6.3 เวลาทำที่ร้านตั้งไว้ + เวลาที่ร้านรับออร์เดอร์ = อีกกี่นาทีอาหารเสร็จ */
+  /** §6.3 เวลาทำที่ร้านตั้งไว้ + เวลาที่ร้านรับออเดอร์ = อีกกี่นาทีอาหารเสร็จ */
   prepTimeMinutes: number;
   acceptedAt: string | null;
   /** ค่าส่งคือรายได้ของไรเดอร์ใบนี้ ไม่ใช่ยอดที่ลูกค้าจ่ายทั้งหมด */
@@ -300,7 +300,7 @@ export class RiderService {
           account: l.account,
           debitSatang: l.debitSatang,
           creditSatang: l.creditSatang,
-          // ผูกกับไรเดอร์ ไม่ใช่ออร์เดอร์ เงินก้อนนี้มาจากหลายใบรวมกัน
+          // ผูกกับไรเดอร์ ไม่ใช่ออเดอร์ เงินก้อนนี้มาจากหลายใบรวมกัน
           counterpartyAccountId: riderAccountId,
           reason: 'rider.cash_settled',
         })),
@@ -645,7 +645,7 @@ export class RiderService {
       // มีคนรับไปแล้วระหว่างที่กด เกิดได้จริงถ้าแอดมินจ่ายงานมือพร้อมกัน (§6.3)
       if (order.riderId) throw new ConflictException({ message: 'งานนี้มีคนรับไปแล้ว' });
 
-      /** product-spec §4.3 ไรเดอร์รับงานออร์เดอร์ที่ตัวเองสั่งไม่ได้ */
+      /** product-spec §4.3 ไรเดอร์รับงานออเดอร์ที่ตัวเองสั่งไม่ได้ */
       if (order.customerId === accountId) {
         throw new ForbiddenException({ message: 'รับงานออเดอร์ที่ตัวเองสั่งไม่ได้' });
       }

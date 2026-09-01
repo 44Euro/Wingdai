@@ -100,7 +100,7 @@ export function useCreateOrder() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateOrderInput) => repos.orders.create(input),
-    /** ต้องล้าง ['orders'] ทันที ไม่งั้นปุ่มเช็คออร์เดอร์กลาง navbar ไม่โผล่ */
+    /** ต้องล้าง ['orders'] ทันที ไม่งั้นปุ่มเช็คออเดอร์กลาง navbar ไม่โผล่ */
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
   });
 }
@@ -133,7 +133,7 @@ export function usePlaceOrder() {
           ...(l.note ? { note: l.note } : {}),
         })),
         paymentMethod,
-        // §7 คำขอของลูกค้า ไม่ใช่ของไรเดอร์ ส่งไปตั้งแต่ตอนสร้างออร์เดอร์
+        // §7 คำขอของลูกค้า ไม่ใช่ของไรเดอร์ ส่งไปตั้งแต่ตอนสร้างออเดอร์
         leaveAtDoor: cart.leaveAtDoor,
       },
       {
@@ -159,7 +159,7 @@ export function useCustomerOrders() {
   });
 }
 
-/** ออร์เดอร์ที่ยังไม่จบใบล่าสุด ใช้ตัดสินว่าจะโชว์ปุ่มแฮมเบอร์เกอร์กลาง navbar ไหม */
+/** ออเดอร์ที่ยังไม่จบใบล่าสุด ใช้ตัดสินว่าจะโชว์ปุ่มแฮมเบอร์เกอร์กลาง navbar ไหม */
 export function pickActiveOrder(orders: Order[]): Order | undefined {
   const active = orders.filter((o) => isActiveStatus(o.status));
   if (active.length === 0) return undefined;
@@ -171,7 +171,7 @@ export function useActiveOrder(): Order | undefined {
   return pickActiveOrder(data ?? []);
 }
 
-/** ออร์เดอร์ใบเดียว */
+/** ออเดอร์ใบเดียว */
 export function useOrder(orderId: string) {
   return useQuery({
     queryKey: ['order', orderId],
@@ -184,7 +184,7 @@ export function useOrder(orderId: string) {
   });
 }
 
-/** เส้นทางส่งตามถนน ดึง ครั้งเดียวต่อออร์เดอร์ */
+/** เส้นทางส่งตามถนน ดึง ครั้งเดียวต่อออเดอร์ */
 export function useDeliveryRoute(order: Order | null | undefined) {
   const from = order?.restaurantLat !== null && order?.restaurantLng !== null && order
     ? { lat: order.restaurantLat, lng: order.restaurantLng }
@@ -235,7 +235,7 @@ export function useSmoothedRiderPosition(target: { lat: number; lng: number } | 
   return shown;
 }
 
-/** จ่ายออร์เดอร์เงินสดที่ค้างอยู่ด้วยพร้อมเพย์แทน (ลูกค้าเงินสดไม่พอ) */
+/** จ่ายออเดอร์เงินสดที่ค้างอยู่ด้วยพร้อมเพย์แทน (ลูกค้าเงินสดไม่พอ) */
 export function usePayWithPromptPay() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -271,7 +271,7 @@ export function useAddresses() {
   });
 }
 
-/** ที่อยู่ตั้งต้น = ที่บันทึกไว้ก่อนสุด ตรงกับที่เซิร์ฟเวอร์เลือกเมื่อออร์เดอร์ไม่ระบุมา */
+/** ที่อยู่ตั้งต้น = ที่บันทึกไว้ก่อนสุด ตรงกับที่เซิร์ฟเวอร์เลือกเมื่อออเดอร์ไม่ระบุมา */
 export function useDefaultAddress(): Address | undefined {
   const { data } = useAddresses();
   return data?.[0];
@@ -285,7 +285,7 @@ export function useAddAddress() {
   });
 }
 
-/** รายการแจ้งเตือน (C20) ประกอบจากออร์เดอร์จริง + ชื่อร้าน ดู notifications.ts ว่าทำไมไม่เก็บเป็นตารางแยก */
+/** รายการแจ้งเตือน (C20) ประกอบจากออเดอร์จริง + ชื่อร้าน ดู notifications.ts ว่าทำไมไม่เก็บเป็นตารางแยก */
 export function useNotifications(): AppNotification[] {
   const { data: orders = [] } = useCustomerOrders();
   const { data: restaurants = [] } = useRestaurants();
@@ -293,7 +293,7 @@ export function useNotifications(): AppNotification[] {
   return buildNotifications(orders, restaurants, lastReadAt);
 }
 
-/** ลูกค้ายกเลิกออร์เดอร์ (design C27) */
+/** ลูกค้ายกเลิกออเดอร์ (design C27) */
 export function useUpdateOrderStatus() {
   const queryClient = useQueryClient();
   return useMutation({

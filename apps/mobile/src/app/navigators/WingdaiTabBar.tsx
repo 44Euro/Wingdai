@@ -157,11 +157,11 @@ export function WingdaiTabBar({ state, descriptors, navigation }: BottomTabBarPr
         ]}
       >
         {routes.slice(0, mid).map((r, i) => renderTab(r, i))}
-        {/* เว้นช่องกลางเฉพาะตอนที่ปุ่มออร์เดอร์โผล่ ไม่งั้นแท็บจะเบี้ยวโดยไม่จำเป็น */}
+        {/* เว้นช่องกลางเฉพาะตอนที่ปุ่มออเดอร์โผล่ ไม่งั้นแท็บจะเบี้ยวโดยไม่จำเป็น */}
         {activeOrder ? <View style={{ width: 54 }} /> : null}
         {routes.slice(mid).map((r, i) => renderTab(r, i + mid))}
 
-        {/* ปุ่มออร์เดอร์ คร่อมขอบบนแถบ โผล่เฉพาะตอนมีออร์เดอร์ที่ยังไม่จบ */}
+        {/* ปุ่มออเดอร์ คร่อมขอบบนแถบ โผล่เฉพาะตอนมีออเดอร์ที่ยังไม่จบ */}
         {activeOrder ? (
           <Pressable
             testID="tab-order"

@@ -24,7 +24,7 @@ const REASONS: { key: CancelReason; icon: IconName }[] = [
   { key: 'other', icon: 'help' },
 ];
 
-/** M12 ปฏิเสธออร์เดอร์พร้อมเหตุผล */
+/** M12 ปฏิเสธออเดอร์พร้อมเหตุผล */
 export function RejectOrderScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();

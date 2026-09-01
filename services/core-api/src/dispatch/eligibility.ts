@@ -18,7 +18,7 @@ export type RiderEligibilityInput = {
 };
 
 export type JobEligibilityInput = {
-  /** §4.3 ไรเดอร์รับงานออร์เดอร์ที่ตัวเองสั่งไม่ได้ */
+  /** §4.3 ไรเดอร์รับงานออเดอร์ที่ตัวเองสั่งไม่ได้ */
   customerId: string;
   paymentMethod: 'promptpay' | 'cash' | 'card';
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';

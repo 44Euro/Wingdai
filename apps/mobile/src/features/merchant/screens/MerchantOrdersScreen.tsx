@@ -24,7 +24,7 @@ type Props = CompositeScreenProps<
   NativeStackScreenProps<MerchantStackParamList>
 >;
 
-/** M3 คิวออร์เดอร์ของร้าน */
+/** M3 คิวออเดอร์ของร้าน */
 export function MerchantOrdersScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();

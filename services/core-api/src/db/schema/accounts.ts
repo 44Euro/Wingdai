@@ -31,7 +31,7 @@ export const accounts = pgTable(
     phoneVerifiedAt: timestamp('phone_verified_at', { withTimezone: true }),
     email: text('email'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    /** ปิดบัญชีแบบไม่ลบแถว ออร์เดอร์เก่ายังต้องอ้างถึงได้ */
+    /** ปิดบัญชีแบบไม่ลบแถว ออเดอร์เก่ายังต้องอ้างถึงได้ */
     disabledAt: timestamp('disabled_at', { withTimezone: true }),
   },
   (t) => [

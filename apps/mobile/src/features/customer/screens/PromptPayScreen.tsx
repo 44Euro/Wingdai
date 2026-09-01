@@ -60,7 +60,7 @@ export function PromptPayScreen({ navigation, route }: Props) {
   const amount = pendingOrder
     ? pendingOrder.foodTotal + pendingOrder.deliveryFee + pendingOrder.serviceFee
     : totals.grandTotal;
-  // โหมดจ่ายออร์เดอร์เก่าไม่เกี่ยวกับตะกร้า ตะกร้าว่างไม่ควรทำให้ปุ่มกดไม่ได้
+  // โหมดจ่ายออเดอร์เก่าไม่เกี่ยวกับตะกร้า ตะกร้าว่างไม่ควรทำให้ปุ่มกดไม่ได้
   const busy = isPending || payExisting.isPending;
   const canConfirm = orderId ? !!pendingOrder : canPlace;
 

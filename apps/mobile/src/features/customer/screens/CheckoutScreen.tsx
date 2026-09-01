@@ -17,7 +17,7 @@ import type { CustomerStackParamList } from '../../../app/navigators/CustomerSta
 
 type Props = NativeStackScreenProps<CustomerStackParamList, 'Checkout'>;
 
-/** C17 ทวนออร์เดอร์ก่อนจ่าย: ที่อยู่ + ช่องทางจ่าย + ยอดแยกบรรทัด */
+/** C17 ทวนออเดอร์ก่อนจ่าย: ที่อยู่ + ช่องทางจ่าย + ยอดแยกบรรทัด */
 export function CheckoutScreen({ navigation }: Props) {
   const address = useDefaultAddress();
   const { t } = useTranslation();
@@ -29,7 +29,7 @@ export function CheckoutScreen({ navigation }: Props) {
 
   function handlePlaceOrder() {
     setError(null);
-    // ต้องจ่ายก่อนถึงจะสร้างออร์เดอร์ได้ มีแค่เงินสดที่จ่ายปลายทาง จึงสั่งได้เลย
+    // ต้องจ่ายก่อนถึงจะสร้างออเดอร์ได้ มีแค่เงินสดที่จ่ายปลายทาง จึงสั่งได้เลย
     if (method === 'promptpay') {
       navigation.navigate('PromptPay');
       return;

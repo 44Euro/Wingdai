@@ -117,7 +117,7 @@ export interface OrderRepo {
   create(input: CreateOrderInput): Promise<Order>;
   get(id: string): Promise<Order | null>;
   listForCustomer(customerId: string): Promise<Order[]>;
-  /** เปลี่ยนสถานะออร์เดอร์ */
+  /** เปลี่ยนสถานะออเดอร์ */
   updateStatus(
     id: string,
     status: OrderStatus,
@@ -154,7 +154,7 @@ export interface MerchantRepo {
   setOpen(restaurantId: string, isOpen: boolean): Promise<MerchantRestaurant>;
   /** ตารางเวลาเปิด-ปิด (design M11) ส่งครบเจ็ดวันทุกครั้ง ไม่ใช่ส่งเฉพาะวันที่แก้ */
   setHours(restaurantId: string, hours: WeeklyHours): Promise<MerchantRestaurant>;
-  /** พักรับออร์เดอร์ตอนครัวล้นมือ `0` = กลับมารับเดี๋ยวนี้ เปิดกลับเองเมื่อครบเวลา */
+  /** พักรับออเดอร์ตอนครัวล้นมือ `0` = กลับมารับเดี๋ยวนี้ เปิดกลับเองเมื่อครบเวลา */
   pause(restaurantId: string, minutes: number): Promise<MerchantRestaurant>;
   /** ที่ใช้บ่อยที่สุดคือกด "ของหมด" ระหว่างวัน ต้องมีผลกับการสั่งซื้อทันที */
   updateMenuItem(
@@ -259,7 +259,7 @@ export interface AdminRepo {
     input: { approve: boolean; rejectionReason?: string },
   ): Promise<RiderPayout>;
 
-  /** จอเฝ้าออร์เดอร์ (design AD2) ตัวกรองสามค่า นิยามอยู่ฝั่งเซิร์ฟเวอร์ */
+  /** จอเฝ้าออเดอร์ (design AD2) ตัวกรองสามค่า นิยามอยู่ฝั่งเซิร์ฟเวอร์ */
   orders(filter: AdminOrderFilter): Promise<AdminOrderRow[]>;
   /** ตัวเลขสดของ AD1 "ตอนนี้เกิดอะไรขึ้น" ไม่ใช่ "เดือนที่แล้วเป็นไง" */
   liveOps(): Promise<LiveOps>;
@@ -267,7 +267,7 @@ export interface AdminRepo {
   restaurantPayables(): Promise<RestaurantPayable[]>;
   /** จ่ายยอดค้างทั้งก้อนของร้านหนึ่ง ไม่มีปุ่มจ่ายทุกร้าน (§2 ยังห้ามรอบจ่ายอัตโนมัติ) */
   settleRestaurant(restaurantId: string): Promise<{ paidSatang: number }>;
-  /** หมุดไรเดอร์ + หมุดออร์เดอร์ที่ยังวิ่ง (design AD8) */
+  /** หมุดไรเดอร์ + หมุดออเดอร์ที่ยังวิ่ง (design AD8) */
   opsMap(): Promise<OpsMapData>;
   /** เอกสาร KYC พร้อมลิงก์ดูรูป (design AD6) ลิงก์เซ็นชื่อ อายุสั้น */
   riderDocuments(accountId: string): Promise<RiderDocumentWithUrl[]>;
@@ -278,7 +278,7 @@ export interface AdminRepo {
   closeTicket(ticketId: string): Promise<void>;
 }
 
-/** แชทของออร์เดอร์ (design C10 M10) แบบเดียวกับ Grab / LINE MAN */
+/** แชทของออเดอร์ (design C10 M10) แบบเดียวกับ Grab / LINE MAN */
 export interface ChatRepo {
   thread(orderId: string, channel: ChatChannel): Promise<ChatThread>;
   send(orderId: string, channel: ChatChannel, body: string): Promise<void>;

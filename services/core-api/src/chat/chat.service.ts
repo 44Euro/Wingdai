@@ -24,12 +24,12 @@ export type ChatThread = {
   messages: ChatMessage[];
 };
 
-/** แชทของออร์เดอร์ (design C10 M10) แบบเดียวกับ Grab / LINE MAN */
+/** แชทของออเดอร์ (design C10 M10) แบบเดียวกับ Grab / LINE MAN */
 @Injectable()
 export class ChatService {
   constructor(@Inject(DB) private readonly db: Db) {}
 
-  /** ตอบ 404 ทุกกรณีที่เข้าไม่ได้ ไม่ว่าจะเพราะออร์เดอร์ไม่มีจริง หรือเพราะไม่ใช่คู่สนทนา */
+  /** ตอบ 404 ทุกกรณีที่เข้าไม่ได้ ไม่ว่าจะเพราะออเดอร์ไม่มีจริง หรือเพราะไม่ใช่คู่สนทนา */
   private async partiesOf(orderId: string): Promise<OrderParties> {
     const [row] = await this.db
       .select({

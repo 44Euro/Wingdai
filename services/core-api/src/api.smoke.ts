@@ -33,7 +33,7 @@ async function call(method: string, path: string, body?: unknown, token?: string
   return { status: res.status, body: text ? JSON.parse(text) : null };
 }
 
-/** ออร์เดอร์ที่สร้างระหว่างทดสอบ ต้องลบทิ้งตอนจบ ไม่ทิ้งขยะไว้ในฐาน */
+/** ออเดอร์ที่สร้างระหว่างทดสอบ ต้องลบทิ้งตอนจบ ไม่ทิ้งขยะไว้ในฐาน */
 const createdOrderIds: string[] = [];
 const createdMenuItemIds: string[] = [];
 const createdRestaurantIds: string[] = [];
@@ -53,7 +53,7 @@ async function checkLedger(orderId: string) {
     const credit = rows.reduce((s, r) => s + r.credit_satang, 0);
     check(`เดบิต = เครดิต (${debit} = ${credit})`, debit === credit);
 
-    /** ออร์เดอร์นี้: ค่าอาหาร ฿130 + ค่าส่ง ฿15 + ค่าบริการ ฿5 = ฿150 */
+    /** ออเดอร์นี้: ค่าอาหาร ฿130 + ค่าส่ง ฿15 + ค่าบริการ ฿5 = ฿150 */
     const by = (a: string) =>
       rows.filter((r) => r.account === a).reduce((s, r) => s + r.debit_satang + r.credit_satang, 0);
 
@@ -104,7 +104,7 @@ async function dispatchChecks(
   check('ไรเดอร์เปิดรับงานได้', online.status === 200 && online.body?.isOnline === true, JSON.stringify(online.body));
   check('บันทึกเวลาที่เริ่มออนไลน์ (§8 ตัวหารของ Orders per Rider Hour)', !!online.body?.onlineSince);
 
-  // ออร์เดอร์ใหม่ที่ร้านรับแล้ว → พร้อมให้จ่ายงาน
+  // ออเดอร์ใหม่ที่ร้านรับแล้ว → พร้อมให้จ่ายงาน
   const job = await call('POST', '/orders', {
     restaurantId,
     // ฝากข้อความไว้ด้วย เพื่อพิสูจน์ว่ามันเดินทางไปถึงจอจุดรับอาหารของไรเดอร์ (R10)
@@ -475,7 +475,7 @@ async function refundChecks(customerToken: string, adminToken: string, delivered
   const notMine = await call('POST', '/refunds', {
     orderId: deliveredOrderId, reason: 'wrong_item', detail: 'ได้ของผิด', hasPhoto: true,
   }, adminToken);
-  // ตอบ 404 ไม่ใช่ 403 403 ยืนยันว่าออร์เดอร์รหัสนี้มีอยู่จริง
+  // ตอบ 404 ไม่ใช่ 403 403 ยืนยันว่าออเดอร์รหัสนี้มีอยู่จริง
   check('แจ้งปัญหาออเดอร์ของคนอื่นไม่ได้', notMine.status === 404, `ได้ ${notMine.status}`);
 
   const opened = await call('POST', '/refunds', {
@@ -536,7 +536,7 @@ async function refundChecks(customerToken: string, adminToken: string, delivered
   check('จอ exception ไม่ใช่ฟีดออเดอร์ทั้งหมด (§7)', Array.isArray(byRider.body));
 }
 
-/** จอเฝ้าออร์เดอร์ AD2 และตัวเลขสด AD1 */
+/** จอเฝ้าออเดอร์ AD2 และตัวเลขสด AD1 */
 async function adminOrderMonitorChecks(adminToken: string, customerToken: string) {
   console.log('\nจอเฝ้าออเดอร์ของแอดมิน (AD2) + ตัวเลขสด (AD1)');
 
@@ -709,7 +709,7 @@ async function superConfigChecks(
       'repeatOrderRate'].every((k) => k in (metrics.body ?? {})),
     JSON.stringify(Object.keys(metrics.body ?? {})));
 
-  // ── ราคาที่เปลี่ยนต้องมีผลกับออร์เดอร์ใบถัดไปจริง ──
+  // ── ราคาที่เปลี่ยนต้องมีผลกับออเดอร์ใบถัดไปจริง ──
   const before = await placeSmokeOrder(ctx, 'promptpay');
   const feeBefore = before.deliveryFee;
 
@@ -728,7 +728,7 @@ async function superConfigChecks(
     await commissionOfOrder(after.id) === Math.floor((after.foodTotal * 1200) / 10000),
     `foodTotal=${after.foodTotal}`);
 
-  // ออร์เดอร์ใบเก่าต้องไม่ขยับ เก็บเป็นยอด ไม่ใช่อัตรา
+  // ออเดอร์ใบเก่าต้องไม่ขยับ เก็บเป็นยอด ไม่ใช่อัตรา
   check('ออเดอร์ใบเก่ายังคิดที่อัตราเดิม ไม่ถูกแก้ย้อนหลัง',
     await commissionOfOrder(before.id) === Math.floor((before.foodTotal * 1500) / 10000));
 
@@ -1160,7 +1160,7 @@ async function openRestaurantChecks(
   await storeHoursChecks(customerToken, ordererToken, shopId, menu.body[0].id as string);
 }
 
-/** ตารางเวลาเปิด-ปิดและการพักรับออร์เดอร์ (design M11) */
+/** ตารางเวลาเปิด-ปิดและการพักรับออเดอร์ (design M11) */
 async function storeHoursChecks(
   ownerToken: string, ordererToken: string, shopId: string, menuItemId: string,
 ) {
@@ -1254,7 +1254,7 @@ async function storeHoursChecks(
   check('คนอื่นตั้งเวลาร้านที่ไม่ใช่ของตัวเองไม่ได้', strangerHours.status === 404, `ได้ ${strangerHours.status}`);
 }
 
-/** ปฏิเสธออร์เดอร์พร้อมเหตุผล (design M12) */
+/** ปฏิเสธออเดอร์พร้อมเหตุผล (design M12) */
 async function rejectReasonChecks(
   customerToken: string,
   maleeToken: string,
@@ -1593,18 +1593,18 @@ async function main() {
   }, maleeToken);
   check('เจ้าของร้านสั่งร้านตัวเองไม่ได้', selfOrder.status === 403, `ได้ ${selfOrder.status}`);
 
-  // มาลีเป็นเจ้าของครัวมาลี จึง ต้อง เห็นออร์เดอร์ที่เข้าร้านตัวเอง (คิวออร์เดอร์ของร้าน)
+  // มาลีเป็นเจ้าของครัวมาลี จึง ต้อง เห็นออเดอร์ที่เข้าร้านตัวเอง (คิวออเดอร์ของร้าน)
   const ownerPeek = await call('GET', `/orders/${placed.body.id}`, undefined, maleeToken);
   check('เจ้าของร้านเห็นออเดอร์ที่เข้าร้านตัวเอง', ownerPeek.status === 200, `ได้ ${ownerPeek.status}`);
 
-  // ส่วนคนที่ไม่เกี่ยวอะไรเลยต้องไม่เห็น และตอบ 404 ไม่ใช่ 403 403 เป็นการยืนยันว่ามีออร์เดอร์นี้อยู่
+  // ส่วนคนที่ไม่เกี่ยวอะไรเลยต้องไม่เห็น และตอบ 404 ไม่ใช่ 403 403 เป็นการยืนยันว่ามีออเดอร์นี้อยู่
   const strangerToken = riderLogin.body.token as string;
   const strangerPeek = await call('GET', `/orders/${placed.body.id}`, undefined, strangerToken);
   check('คนที่ไม่เกี่ยวข้องเปิดดูไม่ได้', strangerPeek.status === 404, `ได้ ${strangerPeek.status}`);
 
   console.log('\nสิทธิ์การเปลี่ยนสถานะ (กันสร้างรายการบัญชีของคนอื่น)');
 
-  /** `delivered` เขียน ledger จริง ถ้าใครก็กดได้ จะสร้างรายการบัญชีของออร์เดอร์คนอื่นได้ */
+  /** `delivered` เขียน ledger จริง ถ้าใครก็กดได้ จะสร้างรายการบัญชีของออเดอร์คนอื่นได้ */
   const byCustomer = await call('PATCH', `/orders/${placed.body.id}/status`, { status: 'accepted' }, token);
   check('ลูกค้ารับออเดอร์แทนร้านไม่ได้', byCustomer.status === 403, `ได้ ${byCustomer.status}`);
 
@@ -1650,7 +1650,7 @@ async function main() {
   const hijack = await call('PATCH', `/merchant/restaurants/${malee.id}/open`, { isOpen: false }, token);
   check('คนอื่นสั่งปิดร้านเราไม่ได้ (404 ไม่ใช่ 403)', hijack.status === 404, `ได้ ${hijack.status}`);
 
-  // somchai เป็นเจ้าของ "ร้านรออนุมัติ" ยังไม่ผ่านการตรวจ จึงเปิดรับออร์เดอร์ไม่ได้
+  // somchai เป็นเจ้าของ "ร้านรออนุมัติ" ยังไม่ผ่านการตรวจ จึงเปิดรับออเดอร์ไม่ได้
   const myShops = await call('GET', '/merchant/restaurants', undefined, token);
   const pendingShop = myShops.body?.find((r: any) => r.name === 'ร้านรออนุมัติ');
   check('ร้านที่รออนุมัติยังอยู่ในรายชื่อ เพื่อให้จอบอกสถานะได้', !!pendingShop && pendingShop.isApproved === false);
@@ -1705,7 +1705,7 @@ async function main() {
 
   await rejectReasonChecks(token, maleeToken, adminToken, malee.id, kaphraoId, spicyMid);
 
-  // ร้านรับออร์เดอร์แล้วบอกว่ากำลังทำ เป็นคิวออร์เดอร์ของร้าน
+  // ร้านรับออเดอร์แล้วบอกว่ากำลังทำ เป็นคิวออเดอร์ของร้าน
   for (const s of ['accepted', 'preparing'] as const) {
     const r = await call('PATCH', `/orders/${placed.body.id}/status`, { status: s }, maleeToken);
     check(`ร้านเปลี่ยนเป็น ${s} ได้`, r.status === 200, JSON.stringify(r.body));
@@ -1714,7 +1714,7 @@ async function main() {
   const pickupByShop = await call('PATCH', `/orders/${placed.body.id}/status`, { status: 'picked_up' }, maleeToken);
   check('ร้านกดรับของแทนไรเดอร์ไม่ได้', pickupByShop.status === 403, `ได้ ${pickupByShop.status}`);
 
-  // ยังไม่มีระบบจ่ายงานไรเดอร์ (คลื่นที่ 4) จึงยังไม่มีไรเดอร์ผูกกับออร์เดอร์ แอดมินเดินต่อให้
+  // ยังไม่มีระบบจ่ายงานไรเดอร์ (คลื่นที่ 4) จึงยังไม่มีไรเดอร์ผูกกับออเดอร์ แอดมินเดินต่อให้
   const pickedUp = await call('PATCH', `/orders/${placed.body.id}/status`, { status: 'picked_up' }, adminToken);
   check('แอดมินแทรกมือเปลี่ยนสถานะได้ (§6.3)', pickedUp.status === 200, JSON.stringify(pickedUp.body));
 
@@ -1860,7 +1860,7 @@ async function supportTicketChecks(
   }, customerToken);
   check('หัวข้อว่างเปิดไม่ได้', empty.status === 400);
 
-  /** ผูกออร์เดอร์ของคนอื่นไม่ได้ ไม่งั้นใครก็เปิดตั๋วอ้างเลขที่ออร์เดอร์ของคนอื่น */
+  /** ผูกออเดอร์ของคนอื่นไม่ได้ ไม่งั้นใครก็เปิดตั๋วอ้างเลขที่ออเดอร์ของคนอื่น */
   const stolen = await call('POST', '/support/tickets', {
     orderId, kind: 'order_problem', subject: 'ขอดูใบนี้หน่อย', body: 'อยากรู้',
   }, riderToken);
@@ -1986,13 +1986,13 @@ async function cleanup() {
       /** ledger เป็น append-only มี trigger ห้าม DELETE ปิดชั่วคราวเฉพาะตอนเก็บกวาดข้อมูลทดสอบ */
       await sql`alter table ledger_entries disable trigger ledger_entries_no_delete`;
       await sql`delete from ledger_entries where order_id in ${sql(ids)}`;
-      /** แถวจ่ายเงินไรเดอร์ไม่ผูกกับออร์เดอร์ใบไหน (order_id เป็น null) จึงรอดจากบรรทัดบน */
+      /** แถวจ่ายเงินไรเดอร์ไม่ผูกกับออเดอร์ใบไหน (order_id เป็น null) จึงรอดจากบรรทัดบน */
       await sql`delete from ledger_entries where reason = 'rider.payout'`;
-      /** รอบจ่ายร้านก็ไม่ผูกกับออร์เดอร์เหมือนกัน และอาการหนักกว่าของไรเดอร์ด้วยซ้ำ: */
+      /** รอบจ่ายร้านก็ไม่ผูกกับออเดอร์เหมือนกัน และอาการหนักกว่าของไรเดอร์ด้วยซ้ำ: */
       await sql`delete from ledger_entries where reason = 'restaurant.payout'`;
       await sql`alter table ledger_entries enable trigger ledger_entries_no_delete`;
       await sql`delete from rider_payouts`;
-      /** เอกสารไม่ผูกกับออร์เดอร์ จึงไม่หายไปพร้อมการลบข้างบน */
+      /** เอกสารไม่ผูกกับออเดอร์ จึงไม่หายไปพร้อมการลบข้างบน */
       await sql`delete from rider_documents`;
       await sql`delete from refund_cases where order_id in ${sql(ids)}`;
       await sql`delete from dispatch_offers where order_id in ${sql(ids)}`;

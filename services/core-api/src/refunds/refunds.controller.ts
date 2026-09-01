@@ -36,7 +36,7 @@ export class AdminController {
     private readonly exceptions: ExceptionsService,
   ) {}
 
-  /** จอแรกของแอดมิน เฉพาะสิ่งที่ต้องมีคนเข้าไปยุ่ง ไม่ใช่ฟีดออร์เดอร์ทั้งหมด */
+  /** จอแรกของแอดมิน เฉพาะสิ่งที่ต้องมีคนเข้าไปยุ่ง ไม่ใช่ฟีดออเดอร์ทั้งหมด */
   @Get('exceptions')
   list() {
     return this.exceptions.list();

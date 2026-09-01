@@ -42,7 +42,7 @@ export function MetricsCard({ metrics, full }: { metrics: AdminMetrics; full?: b
         value: metrics.contributionPerOrderSatang === null
           ? null
           : formatBaht(metrics.contributionPerOrderSatang),
-        // §8 ต้อง > ฿0 ตั้งแต่วันแรก ติดลบคือออร์เดอร์ที่ยิ่งขายยิ่งขาดทุน
+        // §8 ต้อง > ฿0 ตั้งแต่วันแรก ติดลบคือออเดอร์ที่ยิ่งขายยิ่งขาดทุน
         bad: metrics.contributionPerOrderSatang !== null && metrics.contributionPerOrderSatang <= 0,
       },
       {

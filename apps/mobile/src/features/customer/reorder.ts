@@ -1,7 +1,7 @@
 import type { MenuItem, Order } from '../../data/types';
 import type { SelectedChoice } from '../cart/cartStore';
 
-/** ประกอบตะกร้าใบเดิมขึ้นมาใหม่จากออร์เดอร์เก่า (design C33) */
+/** ประกอบตะกร้าใบเดิมขึ้นมาใหม่จากออเดอร์เก่า (design C33) */
 export type ReorderLine = {
   menuItem: MenuItem;
   selectedChoices: SelectedChoice[];

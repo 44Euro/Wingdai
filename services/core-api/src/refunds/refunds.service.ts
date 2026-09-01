@@ -22,7 +22,7 @@ export class RefundsService {
       .where(eq(orders.id, input.orderId))
       .limit(1);
 
-    // ตอบ 404 ไม่ใช่ 403 403 ยืนยันว่าออร์เดอร์รหัสนี้มีอยู่จริง
+    // ตอบ 404 ไม่ใช่ 403 403 ยืนยันว่าออเดอร์รหัสนี้มีอยู่จริง
     if (!order || order.customerId !== accountId) {
       throw new NotFoundException({ message: 'ไม่พบออเดอร์นี้' });
     }
@@ -181,7 +181,7 @@ export class RefundsService {
         })
         .where(eq(refundCases.id, caseId));
 
-      // ออร์เดอร์ที่คืนเงินแล้วต้องอ่านออกจากตัวมันเองว่าคืนแล้ว ไม่ใช่ต้องไปไล่ดู ledger
+      // ออเดอร์ที่คืนเงินแล้วต้องอ่านออกจากตัวมันเองว่าคืนแล้ว ไม่ใช่ต้องไปไล่ดู ledger
       await tx.update(orders).set({ paymentStatus: 'refunded' }).where(eq(orders.id, order.id));
 
       // SA5 ระบุ "every refund" ทรานแซกชันเดียวกับ ledger reversal
@@ -223,7 +223,7 @@ export class RefundsService {
     return {
       delivered,
       refunded: row?.refunded ?? 0,
-      // ยังไม่มีออร์เดอร์ = ยังไม่มีอัตรานี้ ไม่ใช่ 0% (0% อ่านเหมือน "ดีมาก")
+      // ยังไม่มีออเดอร์ = ยังไม่มีอัตรานี้ ไม่ใช่ 0% (0% อ่านเหมือน "ดีมาก")
       rate: delivered > 0 ? Number(((row?.refunded ?? 0) / delivered).toFixed(4)) : null,
     };
   }

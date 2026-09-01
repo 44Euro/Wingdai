@@ -40,7 +40,7 @@ export const orders = pgTable(
   'orders',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    /** เลขที่ออร์เดอร์ที่ลูกค้าเห็น สั้น อ่านออก ไม่ใช่ uuid */
+    /** เลขที่ออเดอร์ที่ลูกค้าเห็น สั้น อ่านออก ไม่ใช่ uuid */
     reference: text('reference').notNull(),
 
     customerId: uuid('customer_id')
@@ -109,7 +109,7 @@ export const orders = pgTable(
       and ${t.commissionSatang} >= 0
       and ${t.tipSatang} >= 0
     `),
-    // ไรเดอร์รับงานออร์เดอร์ที่ตัวเองสั่งไม่ได้ (§4.3)
+    // ไรเดอร์รับงานออเดอร์ที่ตัวเองสั่งไม่ได้ (§4.3)
     check('orders_rider_is_not_customer', sql`${t.riderId} is null or ${t.riderId} <> ${t.customerId}`),
   ],
 );

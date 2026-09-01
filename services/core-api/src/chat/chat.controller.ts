@@ -10,7 +10,7 @@ const SendSchema = z.object({
   body: z.string().trim().min(1, 'พิมพ์ข้อความก่อนส่ง').max(1000),
 });
 
-/** แชทของออร์เดอร์ (design C10 M10) */
+/** แชทของออเดอร์ (design C10 M10) */
 @Controller('orders/:orderId/chat')
 @UseGuards(JwtGuard)
 export class ChatController {

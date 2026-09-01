@@ -13,7 +13,7 @@ import type { AdminOrderFilter, AdminOrderRow } from '../../../data/types';
 
 const FILTERS: AdminOrderFilter[] = ['all', 'delayed', 'unassigned'];
 
-/** AD2 ออร์เดอร์ทุกใบ พร้อมตัวกรองสามค่า */
+/** AD2 ออเดอร์ทุกใบ พร้อมตัวกรองสามค่า */
 export function AdminOrdersScreen() {
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();

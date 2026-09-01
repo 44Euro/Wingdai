@@ -96,10 +96,10 @@ export function nextOpenAt(hours: WeeklyHours, at: Date): Date | null {
   return null;
 }
 
-/** นานที่สุดที่พักรับออร์เดอร์ได้ในครั้งเดียว เกินนี้คือปิดร้าน ไม่ใช่พัก */
+/** นานที่สุดที่พักรับออเดอร์ได้ในครั้งเดียว เกินนี้คือปิดร้าน ไม่ใช่พัก */
 export const MAX_PAUSE_MINUTES = 120;
 
-/** ร้านรับออร์เดอร์ได้จริงไหม ณ ตอนนี้ รวมทุกเหตุผลไว้ที่เดียว */
+/** ร้านรับออเดอร์ได้จริงไหม ณ ตอนนี้ รวมทุกเหตุผลไว้ที่เดียว */
 export function effectiveIsOpen(input: {
   isOpen: boolean;
   isApproved: boolean;

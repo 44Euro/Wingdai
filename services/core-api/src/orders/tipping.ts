@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import type { OrderStatus } from './stateMachine';
 
-/** ยอดทิปสูงสุดต่อออร์เดอร์ (สตางค์) ฿500 */
+/** ยอดทิปสูงสุดต่อออเดอร์ (สตางค์) ฿500 */
 export const MAX_TIP_SATANG = 50_000;
 
 /** ให้ทิปได้เมื่อไหร่ (design C11) ฟังก์ชันบริสุทธิ์ เทสต์ได้โดยไม่ต้องมีฐาน */

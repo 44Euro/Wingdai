@@ -34,7 +34,7 @@ const MOCK_GOOGLE_TOKEN = 'mock-google-token';
 
 /** เพดานเงินสดในมือ ตรงกับ rider_profiles.cash_limit_satang ฝั่งเซิร์ฟเวอร์ (฿1,500) */
 const CASH_LIMIT_SATANG = 150000;
-/** เพดานทิปต่อออร์เดอร์ ต้องตรงกับ `MAX_TIP_SATANG` ใน orders/tipping.ts ฝั่งเซิร์ฟเวอร์ */
+/** เพดานทิปต่อออเดอร์ ต้องตรงกับ `MAX_TIP_SATANG` ใน orders/tipping.ts ฝั่งเซิร์ฟเวอร์ */
 const MAX_TIP_SATANG = 50000;
 
 /** ข้อความบอกแอดมินว่าไรเดอร์เจออะไร (R9) */
@@ -88,10 +88,10 @@ export function createMockRepos(): Repos {
   const addresses: (Address & { accountId: string })[] = seedAddresses.map((a) => ({ ...a }));
   const orders: Order[] = [];
   const refundCases: RefundCase[] = [];
-  /** รีวิว (design C11) ของจริงคือตาราง `reviews` ผูกกับออร์เดอร์ หนึ่งใบหนึ่งรีวิว */
+  /** รีวิว (design C11) ของจริงคือตาราง `reviews` ผูกกับออเดอร์ หนึ่งใบหนึ่งรีวิว */
   const reviewList: (Review & { restaurantId: string })[] = [];
 
-  /** ข้อความแชทของออร์เดอร์ (design C10 M10) ของจริงคือตาราง `order_messages` */
+  /** ข้อความแชทของออเดอร์ (design C10 M10) ของจริงคือตาราง `order_messages` */
   const chatMessages: {
     id: string; orderId: string; channel: ChatChannel;
     senderAccountId: string; body: string; createdAt: string;
@@ -115,7 +115,7 @@ export function createMockRepos(): Repos {
     : viewerId === order.customerId || viewerId === ownerId);
 
   /** คะแนนเฉลี่ยของร้านจากรีวิวจริง คิดตอนอ่านเหมือนฝั่งเซิร์ฟเวอร์ ไม่เก็บซ้ำไว้บนแถวร้าน */
-  /** ระยะส่งสูงสุดต่อออร์เดอร์ ต้องตรงกับ `MAX_DELIVERY_RADIUS_KM` ฝั่งเซิร์ฟเวอร์ */
+  /** ระยะส่งสูงสุดต่อออเดอร์ ต้องตรงกับ `MAX_DELIVERY_RADIUS_KM` ฝั่งเซิร์ฟเวอร์ */
   const MAX_DELIVERY_RADIUS_KM = 5;
   const withinRadius = (r: Restaurant) => r.distanceKm === null || r.distanceKm <= MAX_DELIVERY_RADIUS_KM;
 
@@ -192,7 +192,7 @@ export function createMockRepos(): Repos {
   const deliveredAtById = new Map<string, string>();
   /** เวลาที่รับของจากร้าน ใช้คู่กับ `deliveredAtById` เพื่อบอกว่าเที่ยวนั้นใช้เวลาเท่าไหร่ */
   const pickedUpAtById = new Map<string, string>();
-  /** เวลาที่ร้านกดรับออร์เดอร์ ตั้งต้นของการนับถอยหลังอาหารเสร็จบนจอ R10 (§6.3) */
+  /** เวลาที่ร้านกดรับออเดอร์ ตั้งต้นของการนับถอยหลังอาหารเสร็จบนจอ R10 (§6.3) */
   const acceptedAtById = new Map<string, string>();
   /** ยอดที่จ่ายให้ร้านไปแล้วสะสม (design AD7) ของจริงคือแถว `restaurant.payout` ใน ledger */
   const restaurantSettled = new Map<string, number>();
@@ -311,14 +311,14 @@ export function createMockRepos(): Repos {
   const shopCoords = (restaurantId: string) =>
     seedRestaurantCoords[restaurantId] ?? { lat: 13.7802, lng: 100.5432 };
 
-  /** สำเนาออร์เดอร์พร้อมตำแหน่งไรเดอร์ ณ ตอนที่อ่าน (design C6) */
+  /** สำเนาออเดอร์พร้อมตำแหน่งไรเดอร์ ณ ตอนที่อ่าน (design C6) */
   function withMapPoints(order: Order): Order {
     const running = order.status !== 'delivered' && order.status !== 'cancelled';
     const at = order.riderId && running ? riderState(order.riderId).lastLocation : null;
     return { ...order, riderLocation: at ? { ...at } : null };
   }
 
-  /** แปลงออร์เดอร์เป็นงานตามที่ไรเดอร์เห็น พิกัดร้าน/ปลายทางมาจาก seed */
+  /** แปลงออเดอร์เป็นงานตามที่ไรเดอร์เห็น พิกัดร้าน/ปลายทางมาจาก seed */
   function toRiderJob(order: Order) {
     const shop = restaurants.find((r) => r.id === order.restaurantId);
     const drop = addresses.find((a) => a.accountId === order.customerId);
@@ -374,7 +374,7 @@ export function createMockRepos(): Repos {
       ? Math.round(minutes[Math.floor((minutes.length - 1) / 2)]!)
       : null;
 
-    /** §8 กำไรส่วนเพิ่มต่อออร์เดอร์ = รายได้แพลตฟอร์ม − ค่าธรรมเนียมเกตเวย์ − เงินที่คืนไป */
+    /** §8 กำไรส่วนเพิ่มต่อออเดอร์ = รายได้แพลตฟอร์ม − ค่าธรรมเนียมเกตเวย์ − เงินที่คืนไป */
     const revenue = delivered.reduce(
       (sum, o) => sum + commissionOf(o.foodTotal) + o.serviceFee, 0,
     );
@@ -628,7 +628,7 @@ export function createMockRepos(): Repos {
           deliveryFee,
           serviceFee: pricing.serviceFeeSatang,
           paymentMethod: input.paymentMethod,
-          // เงินสดยังไม่ได้จ่าย ไรเดอร์เก็บตอนส่ง ช่องทางอื่นจ่ายจบก่อนออร์เดอร์เริ่มเดิน
+          // เงินสดยังไม่ได้จ่าย ไรเดอร์เก็บตอนส่ง ช่องทางอื่นจ่ายจบก่อนออเดอร์เริ่มเดิน
           paymentStatus: input.paymentMethod === 'cash' ? 'pending' : 'paid',
           // ลูกค้าติ๊กตอนสั่ง ไม่ใช่ไรเดอร์ติ๊กตอนส่ง (สเปคคลื่น 2 §7)
           leaveAtDoor: input.leaveAtDoor ?? false,

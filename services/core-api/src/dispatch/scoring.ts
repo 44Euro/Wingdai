@@ -97,7 +97,7 @@ export function shouldDispatchNow(args: {
   nearestRiderDistanceKm: number;
   now: number;
 }): boolean {
-  // ไม่รู้ว่าอาหารจะเสร็จเมื่อไหร่ = จ่ายเลย ดีกว่าปล่อยออร์เดอร์ค้างไม่มีใครไปรับ
+  // ไม่รู้ว่าอาหารจะเสร็จเมื่อไหร่ = จ่ายเลย ดีกว่าปล่อยออเดอร์ค้างไม่มีใครไปรับ
   if (!args.predictedReadyAt) return true;
   const leadMs = travelSecondsFor(args.nearestRiderDistanceKm) * 1000;
   return args.now >= args.predictedReadyAt.getTime() - leadMs;

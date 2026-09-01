@@ -18,7 +18,7 @@ export const supportTickets = pgTable(
   'support_tickets',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    /** ผูกออร์เดอร์ได้ แต่ไม่บังคับ ปัญหาบัญชีหรือการจ่ายเงินไม่ได้ผูกกับใบไหน */
+    /** ผูกออเดอร์ได้ แต่ไม่บังคับ ปัญหาบัญชีหรือการจ่ายเงินไม่ได้ผูกกับใบไหน */
     orderId: uuid('order_id').references(() => orders.id, { onDelete: 'set null' }),
     openedByAccountId: uuid('opened_by_account_id')
       .notNull()

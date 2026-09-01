@@ -25,11 +25,11 @@ export type OrderAmounts = {
   /** ค่าธรรมเนียมเกตเวย์ที่ถูกหักจริง เงินสดเป็น 0 (product-spec §6.5) */
   paymentFeeSatang: number;
   method: PaymentMethod;
-  /** อัตราคอมที่ ออร์เดอร์ใบนี้ ใช้ตอนสร้าง (`orders.commission_rate_bp`) */
+  /** อัตราคอมที่ ออเดอร์ใบนี้ ใช้ตอนสร้าง (`orders.commission_rate_bp`) */
   commissionRateBp: number;
 };
 
-/** product-spec §6.2 แตกออร์เดอร์หนึ่งใบเป็นรายการบัญชีคู่ */
+/** product-spec §6.2 แตกออเดอร์หนึ่งใบเป็นรายการบัญชีคู่ */
 export function postOrderDelivered(a: OrderAmounts): LedgerLine[] {
   for (const [key, value] of Object.entries(a)) {
     if (typeof value === 'number' && !Number.isInteger(value)) {
@@ -65,7 +65,7 @@ export function postOrderDelivered(a: OrderAmounts): LedgerLine[] {
   if (platformRevenue > 0) {
     lines.push({ account: 'platform_revenue', debitSatang: 0, creditSatang: platformRevenue });
   } else if (platformRevenue < 0) {
-    // ออร์เดอร์ที่ขาดทุน (ค่าส่งที่เก็บน้อยกว่าที่จ่ายไรเดอร์) ยังต้องลงบัญชีให้ครบ
+    // ออเดอร์ที่ขาดทุน (ค่าส่งที่เก็บน้อยกว่าที่จ่ายไรเดอร์) ยังต้องลงบัญชีให้ครบ
     lines.push({ account: 'platform_revenue', debitSatang: -platformRevenue, creditSatang: 0 });
   }
 

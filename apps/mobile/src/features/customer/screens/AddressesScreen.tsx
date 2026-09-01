@@ -51,7 +51,7 @@ export function AddressesScreen({ navigation }: Props) {
                 <Text variant="small" bold>
                   {a.label}
                 </Text>
-                {/* ที่อยู่ตัวแรกคือค่าตั้งต้น ตรงกับที่เซิร์ฟเวอร์เลือกเมื่อออร์เดอร์ไม่ระบุมา */}
+                {/* ที่อยู่ตัวแรกคือค่าตั้งต้น ตรงกับที่เซิร์ฟเวอร์เลือกเมื่อออเดอร์ไม่ระบุมา */}
                 {index === 0 ? (
                   <Text testID="address-default-tag" variant="kicker" color="link" bold>
                     {t('customer.addresses.defaultTag')}

@@ -20,7 +20,7 @@ export function PaymentFailedScreen({ navigation, route }: Props) {
 
   const orderId = route.params?.orderId;
 
-  // ออร์เดอร์ที่ค้างอยู่จ่ายได้ทางพร้อมเพย์ทางเดียว ช่องทางที่ตั้งไว้ในโปรไฟล์ไม่เกี่ยว
+  // ออเดอร์ที่ค้างอยู่จ่ายได้ทางพร้อมเพย์ทางเดียว ช่องทางที่ตั้งไว้ในโปรไฟล์ไม่เกี่ยว
   function retry() {
     if (orderId) return navigation.replace('PromptPay', { orderId });
     navigation.replace(method === 'card' ? 'CardPay' : 'PromptPay');

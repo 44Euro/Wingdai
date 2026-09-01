@@ -132,7 +132,7 @@ export class PlatformService {
     });
   }
 
-  /** อ่าน flag ตัวเดียวสำหรับโค้ดที่ต้องตัดสินใจตามมัน (เช่น กันสร้างออร์เดอร์เงินสด) */
+  /** อ่าน flag ตัวเดียวสำหรับโค้ดที่ต้องตัดสินใจตามมัน (เช่น กันสร้างออเดอร์เงินสด) */
   async isEnabled(key: FeatureFlagKey): Promise<boolean> {
     const [row] = await this.db
       .select({ enabled: featureFlags.enabled })

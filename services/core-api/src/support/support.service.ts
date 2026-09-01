@@ -46,7 +46,7 @@ export class SupportService {
         .from(orders)
         .where(eq(orders.id, input.orderId))
         .limit(1);
-      // 404 ไม่ใช่ 403 403 ยืนยันว่าออร์เดอร์รหัสนี้มีอยู่จริง
+      // 404 ไม่ใช่ 403 403 ยืนยันว่าออเดอร์รหัสนี้มีอยู่จริง
       if (!order || order.customerId !== accountId) {
         throw new NotFoundException({ message: 'ไม่พบออเดอร์นี้' });
       }

@@ -24,7 +24,7 @@ const QUICK_REPLIES: Record<ChatChannel, { rider: string[]; other: string[] }> =
   },
 };
 
-/** ห้องแชทของออร์เดอร์ (design C10 M10) จอเดียวใช้ทั้งสองฝั่งและทั้งสองช่อง */
+/** ห้องแชทของออเดอร์ (design C10 M10) จอเดียวใช้ทั้งสองฝั่งและทั้งสองช่อง */
 export function ChatScreen({
   orderId,
   channel,

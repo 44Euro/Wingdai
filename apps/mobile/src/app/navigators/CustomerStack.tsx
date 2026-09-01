@@ -56,15 +56,15 @@ export type CustomerStackParamList = {
   PaymentMethod: undefined;
   /** ไม่ส่ง orderId = จ่ายตะกร้าที่กำลังสั่ง */
   PromptPay: { orderId?: string } | undefined;
-  /** จ่ายด้วยบัตร ใช้ตะกร้าปัจจุบันเสมอ ไม่มีโหมดจ่ายออร์เดอร์เก่าแบบพร้อมเพย์ */
+  /** จ่ายด้วยบัตร ใช้ตะกร้าปัจจุบันเสมอ ไม่มีโหมดจ่ายออเดอร์เก่าแบบพร้อมเพย์ */
   CardPay: undefined;
-  /** SY4 คิวอาร์หมดอายุก่อนจ่ายสำเร็จ `orderId` = มาจากโหมดจ่ายออร์เดอร์ที่ค้างอยู่ ไม่ใช่ตะกร้า */
+  /** SY4 คิวอาร์หมดอายุก่อนจ่ายสำเร็จ `orderId` = มาจากโหมดจ่ายออเดอร์ที่ค้างอยู่ ไม่ใช่ตะกร้า */
   PaymentFailed: { orderId?: string } | undefined;
   OrderPlaced: { orderId: string };
   /** design ไม่มีแท็บแจ้งเตือน เข้าจากกระดิ่งบนหัวจอ Home แทน (C20) */
   Notifications: undefined;
   OrderTracking: { orderId: string };
-  /** แจ้งปัญหาออร์เดอร์ที่ส่งถึงแล้ว (§6.4) เข้าจากใบเสร็จ */
+  /** แจ้งปัญหาออเดอร์ที่ส่งถึงแล้ว (§6.4) เข้าจากใบเสร็จ */
   ReportProblem: { orderId: string };
   /** §4.3 ร้านเป็นความสามารถบนบัญชีเดิม จอนี้จึงอยู่ใน stack ลูกค้า ไม่ใช่ stack แยก */
   OpenRestaurant: undefined;
@@ -77,12 +77,12 @@ export type CustomerStackParamList = {
   Addresses: undefined;
   /** C29 เพิ่มที่อยู่ */
   AddAddress: undefined;
-  /** C14 ใบเสร็จของออร์เดอร์ที่จบแล้ว */
+  /** C14 ใบเสร็จของออเดอร์ที่จบแล้ว */
   Receipt: { orderId: string };
   /** AD4 ฝั่งลูกค้า ตั๋วซัพพอร์ต */
   Support: { orderId?: string } | undefined;
   SupportTicket: { ticketId: string };
-  /** C11 ให้คะแนนออร์เดอร์ที่ส่งถึงแล้ว เข้าจากใบเสร็จ ซึ่งเป็นจุดเดียวที่รู้ว่ารีวิวมื้อไหน */
+  /** C11 ให้คะแนนออเดอร์ที่ส่งถึงแล้ว เข้าจากใบเสร็จ ซึ่งเป็นจุดเดียวที่รู้ว่ารีวิวมื้อไหน */
   RateOrder: { orderId: string };
   /** C36 รีวิวของร้าน อ่านได้โดยไม่ต้องเคยสั่ง */
   RestaurantReviews: { restaurantId: string };

@@ -76,7 +76,7 @@ export const zoneType = pgEnum('zone_type', [
   'mixed',
 ]);
 
-/** เหตุผลที่ร้านปฏิเสธออร์เดอร์ (design M12) */
+/** เหตุผลที่ร้านปฏิเสธออเดอร์ (design M12) */
 export const cancelReason = pgEnum('cancel_reason', [
   'out_of_stock',
   'too_busy',

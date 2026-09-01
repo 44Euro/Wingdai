@@ -18,7 +18,7 @@ import { TrackingMap } from '../components/TrackingMap';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
 import type { OrderStatus } from '../../../data/types';
 
-/** ลำดับสถานะที่ออร์เดอร์เดินผ่านตามปกติ ยกเลิกไม่อยู่ในเส้นนี้ */
+/** ลำดับสถานะที่ออเดอร์เดินผ่านตามปกติ ยกเลิกไม่อยู่ในเส้นนี้ */
 const TIMELINE: OrderStatus[] = ['created', 'accepted', 'preparing', 'picked_up', 'delivered'];
 
 type Props = NativeStackScreenProps<CustomerStackParamList, 'OrderTracking'>;
@@ -32,7 +32,7 @@ export function OrderTrackingScreen({ navigation, route }: Props) {
   const cancel = useUpdateOrderStatus();
   const [confirmingCancel, setConfirmingCancel] = useState(false);
 
-  /** เส้นทางดึงครั้งเดียวต่อออร์เดอร์ (§5 ห้ามยิง routing API ต่อรายการ) */
+  /** เส้นทางดึงครั้งเดียวต่อออเดอร์ (§5 ห้ามยิง routing API ต่อรายการ) */
   const { data: deliveryRoute } = useDeliveryRoute(order);
   const riderAt = useSmoothedRiderPosition(order?.riderLocation ?? null);
 

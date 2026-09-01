@@ -12,7 +12,7 @@ export type PublicRestaurant = {
   ownerUserId: string;
   name: string;
   isApproved: boolean;
-  /** เปิดรับออร์เดอร์อยู่จริงไหม ไม่ใช่แค่ค่าสวิตช์ในฐาน รวมตารางเวลา (design M11) */
+  /** เปิดรับออเดอร์อยู่จริงไหม ไม่ใช่แค่ค่าสวิตช์ในฐาน รวมตารางเวลา (design M11) */
   isOpen: boolean;
   /** รอบเปิดถัดไปตามตาราง `null` = เปิดอยู่ หรือร้านไม่ได้ตั้งตารางไว้ */
   opensAt: string | null;

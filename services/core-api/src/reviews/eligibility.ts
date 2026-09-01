@@ -1,13 +1,13 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import type { OrderStatus } from '../orders/stateMachine';
 
-/** ใครรีวิวออร์เดอร์ใบไหนได้ (design C11) แยกออกมาเป็นฟังก์ชันบริสุทธิ์เพื่อเทสต์ได้โดยไม่ต้องมีฐาน */
+/** ใครรีวิวออเดอร์ใบไหนได้ (design C11) แยกออกมาเป็นฟังก์ชันบริสุทธิ์เพื่อเทสต์ได้โดยไม่ต้องมีฐาน */
 export function assertCanReview(input: {
   viewerId: string;
   order: { customerId: string; status: OrderStatus };
   alreadyReviewed: boolean;
 }): void {
-  /** ตอบ 403 ไม่ใช่ 404 ตรงนี้ได้ เพราะกว่าจะมาถึงจุดนี้ต้องรู้ id ของออร์เดอร์อยู่แล้ว */
+  /** ตอบ 403 ไม่ใช่ 404 ตรงนี้ได้ เพราะกว่าจะมาถึงจุดนี้ต้องรู้ id ของออเดอร์อยู่แล้ว */
   if (input.order.customerId !== input.viewerId) {
     throw new ForbiddenException({ message: 'รีวิวได้เฉพาะออเดอร์ของตัวเอง' });
   }

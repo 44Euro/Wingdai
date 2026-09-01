@@ -28,7 +28,7 @@ export const NOTIFICATION_TONE: Record<OrderStatus, 'brand' | 'teal' | 'neutral'
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** รายการแจ้งเตือนสร้างจากออร์เดอร์จริงของผู้ใช้ ไม่ได้เก็บเป็นตารางแยก */
+/** รายการแจ้งเตือนสร้างจากออเดอร์จริงของผู้ใช้ ไม่ได้เก็บเป็นตารางแยก */
 export function buildNotifications(
   orders: Order[],
   restaurants: Restaurant[],

@@ -24,7 +24,7 @@ export function assertTransition(from: OrderStatus, to: OrderStatus): void {
   if (!canTransition(from, to)) throw new InvalidTransitionError(from, to);
 }
 
-/** ออร์เดอร์ยัง "มีชีวิต" ถ้ายังเปลี่ยนสถานะต่อได้ delivered/cancelled เป็นปลายทาง */
+/** ออเดอร์ยัง "มีชีวิต" ถ้ายังเปลี่ยนสถานะต่อได้ delivered/cancelled เป็นปลายทาง */
 export function isActiveStatus(status: OrderStatus): boolean {
   return ALLOWED[status].length > 0;
 }

@@ -26,7 +26,7 @@ export function SupportScreen({ navigation, route }: Props) {
   const { data: tickets = [], isPending } = useMyTickets();
   const openTicket = useOpenTicket();
 
-  // มาจากจอออร์เดอร์ = ตั้งใจจะเปิดเรื่องอยู่แล้ว เปิดฟอร์มไว้เลยไม่ต้องกดอีกครั้ง
+  // มาจากจอออเดอร์ = ตั้งใจจะเปิดเรื่องอยู่แล้ว เปิดฟอร์มไว้เลยไม่ต้องกดอีกครั้ง
   const [composing, setComposing] = useState(!!orderId);
   const [kind, setKind] = useState<TicketKind>(orderId ? 'order_problem' : 'other');
   const [subject, setSubject] = useState('');
@@ -166,7 +166,7 @@ export function SupportScreen({ navigation, route }: Props) {
                 </View>
                 <Text variant="small" color="muted">
                   {t(`support.kindName.${ticket.kind}`)}
-                  {/* ไม่มีเลขที่ใบ = ตั๋วที่ไม่ได้ผูกกับออร์เดอร์ ต้องไม่โชว์ช่องว่าง */}
+                  {/* ไม่มีเลขที่ใบ = ตั๋วที่ไม่ได้ผูกกับออเดอร์ ต้องไม่โชว์ช่องว่าง */}
                   {ticket.orderReference ? ` · ${ticket.orderReference}` : ''}
                 </Text>
               </View>

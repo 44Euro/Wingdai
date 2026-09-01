@@ -9,7 +9,7 @@ import {
 import { ineligibleReason, type RiderEligibilityInput, type JobEligibilityInput } from './eligibility';
 import { PlatformService } from '../platform/platform.service';
 
-/** สถานะที่ออร์เดอร์ยังต้องการไรเดอร์ `created` ยังไม่นับ เพราะร้านยังไม่รับ */
+/** สถานะที่ออเดอร์ยังต้องการไรเดอร์ `created` ยังไม่นับ เพราะร้านยังไม่รับ */
 const NEEDS_RIDER: ('accepted' | 'preparing')[] = ['accepted', 'preparing'];
 /** งานที่ไรเดอร์ถืออยู่จริง ณ ตอนนี้ */
 const RIDER_BUSY_STATUSES = ['accepted', 'preparing', 'picked_up'];
@@ -114,7 +114,7 @@ export class DispatchService {
     return rows.length;
   }
 
-  /** เสนอออร์เดอร์ใบนี้ให้ไรเดอร์คะแนนสูงสุดที่ยังไม่เคยถูกเสนอ */
+  /** เสนอออเดอร์ใบนี้ให้ไรเดอร์คะแนนสูงสุดที่ยังไม่เคยถูกเสนอ */
   private async offerNext(
     order: {
       id: string; customerId: string; restaurantId: string;
@@ -237,7 +237,7 @@ export class DispatchService {
     }));
   }
 
-  /** ใช้โดยจอแอดมิน: ทำไมออร์เดอร์ใบนี้ยังไม่มีไรเดอร์ (§7 จอแบบ exception-based) */
+  /** ใช้โดยจอแอดมิน: ทำไมออเดอร์ใบนี้ยังไม่มีไรเดอร์ (§7 จอแบบ exception-based) */
   async explain(orderId: string) {
     const [order] = await this.db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
     if (!order) return null;

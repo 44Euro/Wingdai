@@ -39,7 +39,7 @@ describe('การคิดยอดออเดอร์', () => {
     const p = priceOrder([item({ unitPriceSatang: 15000 })], ONE_KM);
     expect(p.foodTotalSatang).toBe(15000);
     expect(p.commissionSatang).toBe(2250);
-    // ถ้าเผลอคิดจากยอดรวมจะได้ 2550 ต่างกัน ฿3 ต่อออร์เดอร์ ซึ่งบานได้เร็วมาก
+    // ถ้าเผลอคิดจากยอดรวมจะได้ 2550 ต่างกัน ฿3 ต่อออเดอร์ ซึ่งบานได้เร็วมาก
     expect(p.commissionSatang).not.toBe(2550);
   });
 

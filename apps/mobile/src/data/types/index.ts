@@ -22,7 +22,7 @@ export interface Restaurant {
   ownerUserId: string;
   name: string;
   isApproved: boolean;
-  /** เปิดรับออร์เดอร์อยู่จริงไหม เซิร์ฟเวอร์รวมตารางเวลากับการพักมาให้แล้ว (design M11) */
+  /** เปิดรับออเดอร์อยู่จริงไหม เซิร์ฟเวอร์รวมตารางเวลากับการพักมาให้แล้ว (design M11) */
   isOpen: boolean;
   /** รอบเปิดถัดไป (ISO) `null` = เปิดอยู่ หรือร้านไม่ได้ตั้งตาราง จอเขียน "เปิด 16:00" จากค่านี้ */
   opensAt: string | null;
@@ -106,7 +106,7 @@ export interface PlatformConfig {
   registrationOpen: boolean;
 }
 
-/** เงินสดเป็น 'pending' จนกว่าไรเดอร์จะเก็บตอนส่ง ส่วนพร้อมเพย์จ่ายจบตั้งแต่ก่อนออร์เดอร์เดิน */
+/** เงินสดเป็น 'pending' จนกว่าไรเดอร์จะเก็บตอนส่ง ส่วนพร้อมเพย์จ่ายจบตั้งแต่ก่อนออเดอร์เดิน */
 export type PaymentStatus = 'pending' | 'paid' | 'refunded';
 
 /** ร้านตามที่เจ้าของเห็น ต่างจาก `Restaurant` ที่เป็นมุมของลูกค้า (ไม่มีระยะทาง/คะแนน) */
@@ -120,18 +120,18 @@ export interface MerchantRestaurant {
   name: string;
   /** แอดมินเป็นคนอนุมัติ ร้านแก้เองไม่ได้ */
   isApproved: boolean;
-  /** ร้านกดเปิด/ปิดรับออร์เดอร์เอง */
+  /** ร้านกดเปิด/ปิดรับออเดอร์เอง */
   isOpen: boolean;
   prepTimeMinutes: number;
   /** ตารางเวลาที่ร้านตั้งไว้ ว่าง = ยังไม่เคยตั้ง ซึ่งแปลว่าเปิดตลอดเวลาที่สวิตช์เปิด */
   openingHours: WeeklyHours;
-  /** พักรับออร์เดอร์ถึงเมื่อไหร่ (ISO) `null` = ไม่ได้พัก */
+  /** พักรับออเดอร์ถึงเมื่อไหร่ (ISO) `null` = ไม่ได้พัก */
   pausedUntil: string | null;
-  /** รับออร์เดอร์ได้จริงไหมตอนนี้ เซิร์ฟเวอร์คิดมาให้แล้ว รวมสวิตช์ ตาราง และการพัก */
+  /** รับออเดอร์ได้จริงไหมตอนนี้ เซิร์ฟเวอร์คิดมาให้แล้ว รวมสวิตช์ ตาราง และการพัก */
   isAcceptingOrders: boolean;
 }
 
-/** ออร์เดอร์ตามที่ครัวเห็น */
+/** ออเดอร์ตามที่ครัวเห็น */
 export interface MerchantOrder {
   id: string;
   reference: string;
@@ -385,7 +385,7 @@ export interface RefundCase {
   decidedAt: string | null;
 }
 
-/** สิ่งที่ต้องมีคนเข้าไปยุ่ง (product-spec §7) ไม่ใช่ฟีดออร์เดอร์ทั้งหมด */
+/** สิ่งที่ต้องมีคนเข้าไปยุ่ง (product-spec §7) ไม่ใช่ฟีดออเดอร์ทั้งหมด */
 /** เอกสารที่ไรเดอร์ต้องส่งก่อนได้รับอนุมัติ (design R8 product-spec §7) */
 export type RiderDocumentKind =
   | 'selfie' | 'id_card_front' | 'id_card_back' | 'licence' | 'vehicle_book' | 'insurance';
@@ -432,7 +432,7 @@ export interface AdminMetrics {
   repeatOrderRate: number | null;
 }
 
-/** ตัวกรองของจอเฝ้าออร์เดอร์ (design AD2) นิยาม "ช้า"/"ไม่มีไรเดอร์" อยู่ฝั่งเซิร์ฟเวอร์ */
+/** ตัวกรองของจอเฝ้าออเดอร์ (design AD2) นิยาม "ช้า"/"ไม่มีไรเดอร์" อยู่ฝั่งเซิร์ฟเวอร์ */
 export type AdminOrderFilter = 'all' | 'delayed' | 'unassigned';
 
 export interface AdminOrderRow {
@@ -497,7 +497,7 @@ export type RiderDocumentWithUrl = RiderDocument & {
   url: string | null;
 };
 
-/** ── แชทของออร์เดอร์ (design C10 M10) ───────────────────────────────────── */
+/** ── แชทของออเดอร์ (design C10 M10) ───────────────────────────────────── */
 
 /** สองช่องแยกกันเด็ดขาด ไม่ใช่ห้องรวมสามคน ร้านไม่เห็นสิ่งที่ลูกค้าบอกไรเดอร์ */
 export type ChatChannel = 'customer_rider' | 'customer_merchant';
@@ -524,7 +524,7 @@ export interface ChatThread {
 
 /** ── รีวิว (design C11 C36 M9) ────────────────────────────────────────── */
 
-/** รีวิวหนึ่งใบ ผูกกับออร์เดอร์เสมอ และหนึ่งใบเขียนได้ครั้งเดียว */
+/** รีวิวหนึ่งใบ ผูกกับออเดอร์เสมอ และหนึ่งใบเขียนได้ครั้งเดียว */
 export interface Review {
   id: string;
   orderId: string;
@@ -564,7 +564,7 @@ export type TicketStatus = 'open' | 'closed';
 
 export interface SupportTicket {
   id: string;
-  /** null = ตั๋วที่ไม่ได้ผูกกับออร์เดอร์ใบไหน (เรื่องบัญชี/การจ่ายเงิน) */
+  /** null = ตั๋วที่ไม่ได้ผูกกับออเดอร์ใบไหน (เรื่องบัญชี/การจ่ายเงิน) */
   orderId: string | null;
   orderReference: string | null;
   kind: TicketKind;
@@ -682,7 +682,7 @@ export interface Order {
   dropoffLng: number | null;
   /** ตำแหน่งไรเดอร์ null = ยังไม่มีไรเดอร์ ยังไม่เคยส่งพิกัด หรืองานจบไปแล้ว */
   riderLocation: { lat: number; lng: number } | null;
-  /** รหัสยืนยันส่งสี่หลัก (design R11) มีเฉพาะตอนลูกค้าเจ้าของออร์เดอร์เป็นคนถาม */
+  /** รหัสยืนยันส่งสี่หลัก (design R11) มีเฉพาะตอนลูกค้าเจ้าของออเดอร์เป็นคนถาม */
   deliveryPin?: string;
   /** ทิปที่ให้ไรเดอร์ไปแล้ว (design C11) 0 = ยังไม่ให้ */
   tipSatang: number;
@@ -695,6 +695,6 @@ export interface Order {
   cancelReason: CancelReason | null;
 }
 
-/** เหตุผลที่ร้านปฏิเสธออร์เดอร์ (design M12) รายการปิด ไม่ใช่ข้อความอิสระ */
+/** เหตุผลที่ร้านปฏิเสธออเดอร์ (design M12) รายการปิด ไม่ใช่ข้อความอิสระ */
 export type CancelReason = 'out_of_stock' | 'too_busy' | 'closing_soon' | 'other';
 export type CancelledBy = 'customer' | 'restaurant' | 'admin';

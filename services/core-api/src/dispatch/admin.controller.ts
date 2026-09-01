@@ -10,7 +10,7 @@ import { OpsMapService } from './opsMap.service';
 export class AdminDispatchController {
   constructor(private readonly dispatch: DispatchService) {}
 
-  /** ทำไมออร์เดอร์ใบนี้ยังไม่มีไรเดอร์ จอ exception-based ของแอดมิน (§7) ต้องตอบคำถามนี้ได้ */
+  /** ทำไมออเดอร์ใบนี้ยังไม่มีไรเดอร์ จอ exception-based ของแอดมิน (§7) ต้องตอบคำถามนี้ได้ */
   @Get('orders/:id')
   explain(@Param('id', ParseUUIDPipe) id: string) {
     return this.dispatch.explain(id);
@@ -23,7 +23,7 @@ export class AdminDispatchController {
   }
 }
 
-/** แผนที่ภาพรวม ไรเดอร์ + ออร์เดอร์ที่ยังวิ่ง (design AD8) */
+/** แผนที่ภาพรวม ไรเดอร์ + ออเดอร์ที่ยังวิ่ง (design AD8) */
 @Controller('admin/ops')
 @UseGuards(JwtGuard, AdminGuard)
 export class AdminOpsMapController {

@@ -1,4 +1,4 @@
-/** ระยะส่งสูงสุดต่อหนึ่งออร์เดอร์ (กิโลเมตร) */
+/** ระยะส่งสูงสุดต่อหนึ่งออเดอร์ (กิโลเมตร) */
 export const MAX_DELIVERY_RADIUS_KM = 5;
 
 export function isWithinDeliveryRadius(distanceKm: number): boolean {

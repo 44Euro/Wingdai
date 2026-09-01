@@ -54,7 +54,7 @@ export type RefundVerdict =
   | 'suggest_full'
   /** ต้องดูก่อน ระบบไม่เสนอยอด */
   | 'needs_review'
-  /** ไม่เข้าเงื่อนไขตั้งแต่ต้น (นอกเวลา / ออร์เดอร์ยังไม่ถึงมือ) */
+  /** ไม่เข้าเงื่อนไขตั้งแต่ต้น (นอกเวลา / ออเดอร์ยังไม่ถึงมือ) */
   | 'not_eligible';
 
 export type RefundRecommendation = {
@@ -69,7 +69,7 @@ export type RefundRecommendation = {
 export function recommendRefund(f: RefundFacts): RefundRecommendation {
   const reasoning: string[] = [];
 
-  /** ยังไม่ส่งถึงก็ยังไม่มีอะไรให้พิพาทเรื่องคุณภาพ ยกเลิกออร์เดอร์เป็นคนละเรื่อง */
+  /** ยังไม่ส่งถึงก็ยังไม่มีอะไรให้พิพาทเรื่องคุณภาพ ยกเลิกออเดอร์เป็นคนละเรื่อง */
   if (f.orderStatus !== 'delivered' && f.reason !== 'not_delivered') {
     return {
       verdict: 'not_eligible',

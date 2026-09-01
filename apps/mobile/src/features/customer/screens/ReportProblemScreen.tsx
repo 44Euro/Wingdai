@@ -19,7 +19,7 @@ const REASONS: RefundReason[] = [
   'wrong_item', 'missing_item', 'food_quality', 'damaged', 'not_delivered', 'late', 'other',
 ];
 
-/** ลูกค้าแจ้งปัญหาออร์เดอร์ (product-spec §6.4) */
+/** ลูกค้าแจ้งปัญหาออเดอร์ (product-spec §6.4) */
 export function ReportProblemScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();

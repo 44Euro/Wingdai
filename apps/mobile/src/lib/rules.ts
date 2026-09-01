@@ -23,7 +23,7 @@ export function canPayNowWithPromptPay(order: Order): boolean {
   return isActiveStatus(order.status);
 }
 
-/** ลูกค้ายกเลิกออร์เดอร์เองได้ไหม (design C27) */
+/** ลูกค้ายกเลิกออเดอร์เองได้ไหม (design C27) */
 export function canCancelOrder(order: Order): boolean {
   return order.status === 'created' || order.status === 'accepted' || order.status === 'preparing';
 }

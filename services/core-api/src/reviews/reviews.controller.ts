@@ -5,7 +5,7 @@ import type { SessionClaims } from '../auth/auth.service';
 import { ReviewsService } from './reviews.service';
 import { WriteReviewSchema, type WriteReviewInput } from './dto';
 
-/** ลูกค้าเขียนรีวิวของออร์เดอร์ตัวเอง (design C11) */
+/** ลูกค้าเขียนรีวิวของออเดอร์ตัวเอง (design C11) */
 @Controller('orders/:orderId/review')
 @UseGuards(JwtGuard)
 export class OrderReviewController {

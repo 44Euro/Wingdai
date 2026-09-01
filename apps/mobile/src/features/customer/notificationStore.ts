@@ -6,7 +6,7 @@ type NotificationState = {
   markAllRead: () => void;
 };
 
-/** เก็บแค่ "อ่านถึงเมื่อไหร่" ไม่ได้เก็บสถานะรายข้อความ เพราะแจ้งเตือนถูกสร้างจากออร์เดอร์ */
+/** เก็บแค่ "อ่านถึงเมื่อไหร่" ไม่ได้เก็บสถานะรายข้อความ เพราะแจ้งเตือนถูกสร้างจากออเดอร์ */
 export const useNotificationStore = create<NotificationState>((set) => ({
   lastReadAt: null,
   markAllRead() {

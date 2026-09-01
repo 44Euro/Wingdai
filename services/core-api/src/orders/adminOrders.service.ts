@@ -10,7 +10,7 @@ export type LiveOps = {
   ridersOnline: number;
   unassigned: number;
   gmvTodaySatang: number;
-  /** null = วันนี้ยังไม่มีออร์เดอร์ที่ส่งสำเร็จ ห้ามคืน 0 เพราะ 0 อ่านเหมือน "เร็วมาก" */
+  /** null = วันนี้ยังไม่มีออเดอร์ที่ส่งสำเร็จ ห้ามคืน 0 เพราะ 0 อ่านเหมือน "เร็วมาก" */
   medianDeliveryMinutes: number | null;
 };
 
@@ -18,7 +18,7 @@ export type LiveOps = {
 export class AdminOrdersService {
   constructor(@Inject(DB) private readonly db: Db) {}
 
-  /** ออร์เดอร์ทุกใบสำหรับ AD2 */
+  /** ออเดอร์ทุกใบสำหรับ AD2 */
   async listOrders(filter: AdminOrderFilter, limit = 200): Promise<AdminOrderRow[]> {
     const rows = await this.db.execute<{
       id: string;

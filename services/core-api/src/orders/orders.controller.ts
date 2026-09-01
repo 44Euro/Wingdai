@@ -10,7 +10,7 @@ import {
   TipSchema, type TipInput,
 } from './dto';
 
-/** ทุกเส้นทางต้องล็อกอิน ออร์เดอร์เป็นข้อมูลส่วนตัวและมีเงินเกี่ยวข้อง */
+/** ทุกเส้นทางต้องล็อกอิน ออเดอร์เป็นข้อมูลส่วนตัวและมีเงินเกี่ยวข้อง */
 @Controller()
 @UseGuards(JwtGuard)
 export class OrdersController {

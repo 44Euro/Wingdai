@@ -1,7 +1,7 @@
 import { ForbiddenException } from '@nestjs/common';
 import type { OrderStatus } from './stateMachine';
 
-/** ความสัมพันธ์ระหว่างคนที่ยิง request กับออร์เดอร์ใบนั้น */
+/** ความสัมพันธ์ระหว่างคนที่ยิง request กับออเดอร์ใบนั้น */
 export type Actor = 'customer' | 'restaurantOwner' | 'rider' | 'admin' | 'stranger';
 
 /** ใครเปลี่ยนสถานะเป็นอะไรได้ ฟังก์ชันบริสุทธิ์ ทดสอบได้ครบทุกช่องโดยไม่ต้องมีฐาน */

@@ -15,7 +15,7 @@ export type ReviewRow = {
   comment: string | null;
   /** URL เต็มที่เปิดได้เลย จอไม่ควรต้องรู้ว่าบักเก็ตชื่ออะไรหรือประกอบ URL ยังไง */
   photoUrls: string[];
-  /** ชื่อจานแรกของออร์เดอร์ ดีไซน์ C36 โชว์ "2 days ago Krapow Moo Sap" */
+  /** ชื่อจานแรกของออเดอร์ ดีไซน์ C36 โชว์ "2 days ago Krapow Moo Sap" */
   itemName: string | null;
   createdAt: string;
 };
@@ -80,7 +80,7 @@ export class ReviewsService {
     return this.toRow(row!, null, null);
   }
 
-  /** รีวิวของออร์เดอร์ใบเดียว จอ C11 ใช้เช็คว่ารีวิวไปแล้วหรือยัง */
+  /** รีวิวของออเดอร์ใบเดียว จอ C11 ใช้เช็คว่ารีวิวไปแล้วหรือยัง */
   async forOrder(orderId: string): Promise<ReviewRow | null> {
     const [row] = await this.db.select().from(reviews).where(eq(reviews.orderId, orderId)).limit(1);
     if (!row) return null;
@@ -119,7 +119,7 @@ export class ReviewsService {
     };
   }
 
-  /** ชื่อจานแรกของแต่ละออร์เดอร์ ดึงทีเดียวทั้งชุด ไม่ใช่ยิงทีละใบในลูป */
+  /** ชื่อจานแรกของแต่ละออเดอร์ ดึงทีเดียวทั้งชุด ไม่ใช่ยิงทีละใบในลูป */
   private async firstItemNames(orderIds: string[]): Promise<Map<string, string>> {
     if (orderIds.length === 0) return new Map();
     const rows = await this.db

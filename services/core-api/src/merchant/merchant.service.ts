@@ -50,9 +50,9 @@ export type MerchantRestaurant = {
   prepTimeMinutes: number;
   /** ตารางที่ร้านตั้งไว้ (design M11) ว่าง = ยังไม่เคยตั้ง ซึ่งแปลว่าเปิดตลอดเวลาที่สวิตช์เปิด */
   openingHours: WeeklyHours;
-  /** พักรับออร์เดอร์ถึงเมื่อไหร่ `null` = ไม่ได้พัก */
+  /** พักรับออเดอร์ถึงเมื่อไหร่ `null` = ไม่ได้พัก */
   pausedUntil: string | null;
-  /** รับออร์เดอร์ได้จริงไหม ณ ตอนนี้ รวมสวิตช์ ตาราง และการพักไว้แล้ว */
+  /** รับออเดอร์ได้จริงไหม ณ ตอนนี้ รวมสวิตช์ ตาราง และการพักไว้แล้ว */
   isAcceptingOrders: boolean;
 };
 
@@ -150,7 +150,7 @@ export class MerchantService {
     };
   }
 
-  /** ออร์เดอร์ของร้านที่บัญชีนี้เป็นเจ้าของ */
+  /** ออเดอร์ของร้านที่บัญชีนี้เป็นเจ้าของ */
   async listOrders(
     accountId: string,
     opts: { restaurantId?: string; scope: 'queue' | 'history' },
@@ -225,7 +225,7 @@ export class MerchantService {
     }));
   }
 
-  /** ร้านกดเปิด/ปิดรับออร์เดอร์เอง ต่างจาก isApproved ที่แอดมินคุม */
+  /** ร้านกดเปิด/ปิดรับออเดอร์เอง ต่างจาก isApproved ที่แอดมินคุม */
   async setOpen(accountId: string, restaurantId: string, isOpen: boolean): Promise<MerchantRestaurant> {
     const shop = await this.assertOwns(accountId, restaurantId);
     if (!shop.isApproved && isOpen) {
@@ -267,7 +267,7 @@ export class MerchantService {
     return this.toPublicRestaurant(row!);
   }
 
-  /** พักรับออร์เดอร์ชั่วคราวตอนครัวล้นมือ (design M11) `minutes: 0` = กลับมารับเดี๋ยวนี้ */
+  /** พักรับออเดอร์ชั่วคราวตอนครัวล้นมือ (design M11) `minutes: 0` = กลับมารับเดี๋ยวนี้ */
   async pause(
     accountId: string,
     restaurantId: string,

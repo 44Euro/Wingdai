@@ -18,7 +18,7 @@ export function deliveryFeeOf(
   return baseSatang + extraKm * perKmSatang;
 }
 
-/** ราคาที่ใช้จริงตอนสร้างออร์เดอร์ service อ่านจากฐานแล้วส่งเข้ามา */
+/** ราคาที่ใช้จริงตอนสร้างออเดอร์ service อ่านจากฐานแล้วส่งเข้ามา */
 export type PricingConfig = {
   commissionRateBp: number;
   deliveryBaseSatang: number;
@@ -90,7 +90,7 @@ export function paymentFeeOf(method: keyof typeof PAYMENT_FEE_BP, grossSatang: n
   return Math.floor((grossSatang * PAYMENT_FEE_BP[method]) / 10000);
 }
 
-/** เลขที่ออร์เดอร์ที่ลูกค้าอ่านออก สั้น ไม่มีตัวอักษรที่สับสนกับเลข (I, O, l, 0, 1) */
+/** เลขที่ออเดอร์ที่ลูกค้าอ่านออก สั้น ไม่มีตัวอักษรที่สับสนกับเลข (I, O, l, 0, 1) */
 const ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 
 export function orderReference(random: () => number = Math.random): string {
