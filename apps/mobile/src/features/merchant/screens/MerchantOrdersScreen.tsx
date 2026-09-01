@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { View, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { CompositeScreenProps } from '@react-navigation/native';
@@ -9,6 +9,7 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Icon } from '../../../ui/Icon';
 import { Badge, Card, Chip, Toggle } from '../../../ui/Surface';
+import { SkeletonCards } from '../../../ui/motion';
 import { formatBaht } from '../../../lib/format';
 import {
   useMerchantOrders, useMyRestaurants, useSetRestaurantOpen, useTicker,
@@ -110,7 +111,7 @@ export function MerchantOrdersScreen({ navigation }: Props) {
 
         <View style={{ paddingHorizontal: p.space.screen, gap: p.space.md }}>
           {isLoading ? (
-            <ActivityIndicator testID="queue-loading" color={tokens.brandSolid} />
+            <SkeletonCards testID="queue-loading" count={3} photoHeight={0} />
           ) : orders.length === 0 ? (
             <Text testID="queue-empty" variant="body" color="muted">
               {t(`merchant.orders.empty.${scope}`)}

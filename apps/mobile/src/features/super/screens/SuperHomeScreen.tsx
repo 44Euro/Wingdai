@@ -16,6 +16,7 @@ import type { SuperStackParamList, SuperTabParamList } from '../../../app/naviga
 import { useSuperMetrics } from '../hooks';
 /** ยืมการ์ดตัวเลขของฝั่งแอดมินมาทั้งใบ กฎ "ค่าที่วัดไม่ได้ซ่อนทั้งแถว" ต้องมีที่เดียว */
 import { MetricsCard } from '../../admin/components/MetricsCard';
+import { SkeletonCards } from '../../../ui/motion';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<SuperTabParamList, 'SuperHome'>,
@@ -70,11 +71,11 @@ export function SuperHomeScreen({ navigation }: Props) {
         <View style={{ paddingHorizontal: p.space.screen }}>
           {metrics ? (
             <MetricsCard metrics={metrics} full />
+          ) : isPending ? (
+            <SkeletonCards testID="super-metrics-loading" count={1} photoHeight={0} />
           ) : (
             <Card>
-              <Text testID="super-metrics-loading" variant="body" color="muted">
-                {isPending ? t('common.loading') : t('super.home.metricsUnavailable')}
-              </Text>
+              <Text variant="body" color="muted">{t('super.home.metricsUnavailable')}</Text>
             </Card>
           )}
         </View>

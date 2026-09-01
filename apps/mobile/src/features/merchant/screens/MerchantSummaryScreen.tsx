@@ -9,6 +9,7 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Button } from '../../../ui/Button';
 import { Card } from '../../../ui/Surface';
+import { SkeletonCards } from '../../../ui/motion';
 import { formatBaht } from '../../../lib/format';
 import { useMerchantSummary } from '../hooks';
 import { MERCHANT_TAB_CLEARANCE } from '../../../app/navigators/MerchantTabBar';
@@ -57,7 +58,7 @@ export function MerchantSummaryScreen({ navigation }: Props) {
         </Card>
 
         {isLoading ? (
-          <Text variant="body" color="muted">{t('common.loading')}</Text>
+          <SkeletonCards testID="summary-skeleton" count={2} photoHeight={0} />
         ) : (
           <>
             <SalesBlock

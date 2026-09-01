@@ -11,6 +11,7 @@ import { formatBaht } from '../../../lib/format';
 import { SUPER_TAB_CLEARANCE } from '../../../app/navigators/SuperAdminTabBar';
 import type { FeatureFlagKey, PlatformPricing } from '../../../data/types';
 import { useSuperConfig, useSetPricing, useSetFlag } from '../hooks';
+import { SkeletonCards } from '../../../ui/motion';
 
 type Draft = {
   /** เปอร์เซ็นต์ที่คนอ่านออก เช่น "15" เก็บเป็น bp ตอนส่ง */
@@ -86,10 +87,11 @@ export function SuperConfigScreen() {
           <Text variant="small" color="muted">{t('super.config.subtitle')}</Text>
         </View>
 
-        {!config ? (
-          <Text testID="super-config-loading" variant="body" color="muted">
-            {isPending ? t('common.loading') : t('common.errorGeneric')}
-          </Text>
+        {!config && isPending ? (
+          <SkeletonCards testID="super-config-loading" count={2} photoHeight={0} />
+        ) : null}
+        {!config && !isPending ? (
+          <Text variant="body" color="muted">{t('common.errorGeneric')}</Text>
         ) : null}
 
         {config && draft ? (

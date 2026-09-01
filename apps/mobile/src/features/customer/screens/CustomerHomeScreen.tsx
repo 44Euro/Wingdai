@@ -9,6 +9,7 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Icon } from '../../../ui/Icon';
 import { Card, Chip, PhotoBlock } from '../../../ui/Surface';
+import { SkeletonCards } from '../../../ui/motion';
 import { CUISINE_ICON } from '../cuisineIcon';
 import { TAB_BAR_CLEARANCE } from '../../../app/navigators/WingdaiTabBar';
 import { useAuthStore } from '../../auth/authStore';
@@ -30,7 +31,7 @@ const CATEGORIES: (CuisineCategory | 'all')[] = ['all', 'rice', 'noodle', 'somta
 export function CustomerHomeScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
-  const { data: restaurants = [] } = useRestaurants();
+  const { data: restaurants = [], isLoading } = useRestaurants();
   const account = useAuthStore((s) => s.account);
   const [cat, setCat] = useState<CuisineCategory | 'all'>('all');
   const unread = countUnread(useNotifications());
@@ -222,7 +223,12 @@ export function CustomerHomeScreen({ navigation }: Props) {
           </Pressable>
         </View>
 
-        {shown.length === 0 ? (
+        {/* ระหว่างโหลดเคยขึ้นข้อความ "ไม่มีร้าน" ซึ่งอ่านเหมือนแอปว่างเปล่า ไม่ใช่กำลังรอ */}
+        {isLoading ? (
+          <View style={{ paddingHorizontal: p.space.screen }}>
+            <SkeletonCards testID="home-skeleton" count={3} />
+          </View>
+        ) : shown.length === 0 ? (
           <Text variant="body" color="muted" style={{ paddingHorizontal: p.space.screen }}>
             {t('customer.home.empty')}
           </Text>
