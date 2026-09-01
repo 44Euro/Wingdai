@@ -12,6 +12,7 @@ import type { AdminStackParamList } from '../../../app/navigators/AdminStack';
 import { useTicketThread, useReplyToTicket, useCloseTicket } from '../../support/hooks';
 import { TicketThread } from '../../support/components/TicketThread';
 import { useOpenRefunds } from '../hooks';
+import { SkeletonCards } from '../../../ui/motion';
 
 type Props = NativeStackScreenProps<AdminStackParamList, 'AdminTicket'>;
 
@@ -47,9 +48,11 @@ export function AdminTicketScreen({ navigation, route }: Props) {
         showsVerticalScrollIndicator={false}
       >
         {!data ? (
-          <Text testID="admin-ticket-loading" variant="body" color="muted">
-            {isPending ? t('common.loading') : t('common.errorGeneric')}
-          </Text>
+          isPending ? (
+            <SkeletonCards testID="list-loading" count={3} photoHeight={0} />
+          ) : (
+            <Text testID="admin-ticket-loading" variant="body" color="muted">{t('common.errorGeneric')}</Text>
+          )
         ) : (
           <>
             <View style={{ flexDirection: 'row', gap: p.space.sm }}>

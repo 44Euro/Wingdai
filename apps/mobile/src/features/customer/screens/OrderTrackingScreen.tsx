@@ -17,6 +17,7 @@ import {
 import { TrackingMap } from '../components/TrackingMap';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
 import type { OrderStatus } from '../../../data/types';
+import { SkeletonCards } from '../../../ui/motion';
 
 /** ลำดับสถานะที่ออเดอร์เดินผ่านตามปกติ ยกเลิกไม่อยู่ในเส้นนี้ */
 const TIMELINE: OrderStatus[] = ['created', 'accepted', 'preparing', 'picked_up', 'delivered'];
@@ -40,9 +41,7 @@ export function OrderTrackingScreen({ navigation, route }: Props) {
     return (
       <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: tokens.bgSurface }}>
         <ScreenHeader title={t('customer.tracking.title')} onBack={() => navigation.goBack()} />
-        <Text variant="small" color="muted" style={{ paddingHorizontal: p.space.screen }}>
-          {t('common.loading')}
-        </Text>
+        <SkeletonCards testID="list-loading" count={3} photoHeight={0} />
       </SafeAreaView>
     );
   }

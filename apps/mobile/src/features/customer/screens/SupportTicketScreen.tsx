@@ -10,6 +10,7 @@ import { ScreenHeader } from '../../../ui/ScreenHeader';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
 import { useTicketThread, useReplyToTicket } from '../../support/hooks';
 import { TicketThread } from '../../support/components/TicketThread';
+import { SkeletonCards } from '../../../ui/motion';
 
 type Props = NativeStackScreenProps<CustomerStackParamList, 'SupportTicket'>;
 
@@ -40,9 +41,11 @@ export function SupportTicketScreen({ navigation, route }: Props) {
         showsVerticalScrollIndicator={false}
       >
         {!data ? (
-          <Text testID="ticket-loading" variant="body" color="muted">
-            {isPending ? t('common.loading') : t('common.errorGeneric')}
-          </Text>
+          isPending ? (
+            <SkeletonCards testID="list-loading" count={3} photoHeight={0} />
+          ) : (
+            <Text testID="ticket-loading" variant="body" color="muted">{t('common.errorGeneric')}</Text>
+          )
         ) : (
           <>
             <View style={{ flexDirection: 'row', gap: p.space.sm }}>

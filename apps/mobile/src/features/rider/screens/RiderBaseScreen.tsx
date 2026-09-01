@@ -12,6 +12,7 @@ import { PressScale } from '../../../ui/motion';
 import { TrackingMap } from '../../customer/components/TrackingMap';
 import { useRiderStatus, useWorkBase, useSetWorkBase } from '../hooks';
 import type { RiderStackParamList } from '../../../app/navigators/RiderStack';
+import { SkeletonCards } from '../../../ui/motion';
 
 type Props = NativeStackScreenProps<RiderStackParamList, 'RiderBase'>;
 
@@ -56,7 +57,7 @@ export function RiderBaseScreen({ navigation }: Props) {
         <TrackingMap height={220} />
 
         {isLoading ? (
-          <Text variant="body" color="muted">{t('common.loading')}</Text>
+          <SkeletonCards testID="list-loading" count={3} photoHeight={0} />
         ) : point === null ? (
           <Card>
             <Text testID="base-no-location" variant="body" color="muted">

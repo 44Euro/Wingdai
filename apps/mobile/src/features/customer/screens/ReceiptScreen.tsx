@@ -13,6 +13,7 @@ import { useOrder, useRestaurant } from '../hooks';
 import { PAYMENT_ICON } from '../../payment/paymentStore';
 import { IconChip } from '../../../ui/Surface';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
+import { SkeletonCards } from '../../../ui/motion';
 
 type Props = NativeStackScreenProps<CustomerStackParamList, 'Receipt'>;
 
@@ -38,9 +39,7 @@ export function ReceiptScreen({ navigation, route }: Props) {
     return (
       <SafeAreaView testID="screen-receipt" edges={['top']} style={{ flex: 1, backgroundColor: tokens.bgSurface }}>
         <ScreenHeader title={t('customer.receipt.title')} onBack={() => navigation.goBack()} />
-        <Text variant="small" color="muted" style={{ paddingHorizontal: p.space.screen }}>
-          {t('common.loading')}
-        </Text>
+        <SkeletonCards testID="list-loading" count={3} photoHeight={0} />
       </SafeAreaView>
     );
   }

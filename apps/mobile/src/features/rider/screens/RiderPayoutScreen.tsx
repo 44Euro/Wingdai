@@ -14,6 +14,7 @@ import { formatBaht } from '../../../lib/format';
 import { useRiderBalance, useRequestPayout } from '../hooks';
 import { RIDER_TAB_CLEARANCE } from '../../../app/navigators/RiderTabBar';
 import type { RiderStackParamList, RiderTabParamList } from '../../../app/navigators/RiderStack';
+import { SkeletonCards } from '../../../ui/motion';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<RiderTabParamList, 'RiderPayout'>,
@@ -46,7 +47,7 @@ export function RiderPayoutScreen() {
         showsVerticalScrollIndicator={false}
       >
         {isLoading || !balance ? (
-          <Text variant="body" color="muted">{t('common.loading')}</Text>
+          <SkeletonCards testID="list-loading" count={3} photoHeight={0} />
         ) : (
           <>
             {/* ยอดใหญ่ตัวเดียวที่ไรเดอร์เปิดจอนี้มาหา */}

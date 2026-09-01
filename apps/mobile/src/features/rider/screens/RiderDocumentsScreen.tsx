@@ -11,6 +11,7 @@ import { pickImage } from '../../../lib/media/pickImage';
 import { useRiderDocuments, useUploadDocument } from '../hooks';
 import type { RiderDocument, RiderDocumentKind } from '../../../data/types';
 import type { RiderStackParamList } from '../../../app/navigators/RiderStack';
+import { SkeletonCards } from '../../../ui/motion';
 
 type Props = NativeStackScreenProps<RiderStackParamList, 'RiderDocuments'>;
 
@@ -75,7 +76,7 @@ export function RiderDocumentsScreen({ navigation }: Props) {
         ) : null}
 
         {isLoading ? (
-          <Text variant="body" color="muted">{t('common.loading')}</Text>
+          <SkeletonCards testID="list-loading" count={3} photoHeight={0} />
         ) : (
           KINDS.map((kind) => {
             const doc = byKind.get(kind)

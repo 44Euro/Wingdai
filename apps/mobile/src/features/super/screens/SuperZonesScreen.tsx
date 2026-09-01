@@ -11,6 +11,7 @@ import { formatBaht } from '../../../lib/format';
 import { SUPER_TAB_CLEARANCE } from '../../../app/navigators/SuperAdminTabBar';
 import type { Zone, ZoneReport } from '../../../data/types';
 import { useSuperZones, useSaveZone } from '../hooks';
+import { SkeletonCards } from '../../../ui/motion';
 
 type ZoneType = Zone['type'];
 const ZONE_TYPES: ZoneType[] = ['university', 'condo_cluster', 'office_district', 'mixed'];
@@ -64,9 +65,11 @@ export function SuperZonesScreen() {
         </View>
 
         {zones.length === 0 ? (
-          <Text testID="super-zones-empty" variant="body" color="muted">
-            {isPending ? t('common.loading') : t('super.zones.empty')}
-          </Text>
+          isPending ? (
+            <SkeletonCards testID="list-loading" count={3} photoHeight={0} />
+          ) : (
+            <Text testID="super-zones-empty" variant="body" color="muted">{t('super.zones.empty')}</Text>
+          )
         ) : null}
 
         {zones.map((z) => (

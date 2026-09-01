@@ -36,10 +36,11 @@ database on Supabase.
 
 <p align="center">
   <img src="docs/screenshots/00-login.png" width="180" alt="Login with one-tap demo accounts" />
-  <img src="docs/screenshots/01-customer.png" width="180" alt="Customer home" />
-  <img src="docs/screenshots/02-rider.png" width="180" alt="Rider jobs" />
-  <img src="docs/screenshots/03-admin.png" width="180" alt="Admin exception queue" />
-  <img src="docs/screenshots/05-settings.png" width="180" alt="Language and theme settings" />
+  <img src="docs/screenshots/01-customer.png" width="180" alt="Customer home with nearby kitchens" />
+  <img src="docs/screenshots/02-restaurant.png" width="180" alt="Restaurant menu with required options" />
+  <img src="docs/screenshots/03-merchant.png" width="180" alt="Merchant order queue" />
+  <img src="docs/screenshots/04-rider.png" width="180" alt="Rider jobs" />
+  <img src="docs/screenshots/05-super.png" width="180" alt="Platform metrics against the targets in the spec" />
 </p>
 
 The app probes `/api/health` at boot and uses the API when it answers. When it doesn't — the

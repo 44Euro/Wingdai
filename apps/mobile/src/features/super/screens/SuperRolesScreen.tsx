@@ -12,6 +12,7 @@ import { useAuthStore } from '../../auth/authStore';
 import type { SuperStackParamList } from '../../../app/navigators/SuperAdminStack';
 import type { AccountType, AdminAccountRow } from '../../../data/types';
 import { useAdminAccounts, useSetAdminRole } from '../hooks';
+import { SkeletonCards } from '../../../ui/motion';
 
 type Props = NativeStackScreenProps<SuperStackParamList, 'SuperRoles'>;
 
@@ -44,9 +45,11 @@ export function SuperRolesScreen({ navigation }: Props) {
         <Text variant="small" color="muted">{t('super.roles.subtitle')}</Text>
 
         {admins.length === 0 ? (
-          <Text testID="super-roles-empty" variant="body" color="muted">
-            {isPending ? t('common.loading') : t('super.roles.empty')}
-          </Text>
+          isPending ? (
+            <SkeletonCards testID="list-loading" count={3} photoHeight={0} />
+          ) : (
+            <Text testID="super-roles-empty" variant="body" color="muted">{t('super.roles.empty')}</Text>
+          )
         ) : null}
 
         {admins.map((row) => {

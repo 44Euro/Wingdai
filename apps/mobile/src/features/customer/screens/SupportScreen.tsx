@@ -12,6 +12,7 @@ import { ScreenHeader } from '../../../ui/ScreenHeader';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
 import type { TicketKind } from '../../../data/types';
 import { useMyTickets, useOpenTicket } from '../../support/hooks';
+import { SkeletonCards } from '../../../ui/motion';
 
 type Props = NativeStackScreenProps<CustomerStackParamList, 'Support'>;
 
@@ -136,9 +137,11 @@ export function SupportScreen({ navigation, route }: Props) {
         <Text variant="kicker" color="muted">{t('support.myTickets')}</Text>
 
         {tickets.length === 0 ? (
-          <Text testID="support-empty" variant="body" color="muted">
-            {isPending ? t('common.loading') : t('support.empty')}
-          </Text>
+          isPending ? (
+            <SkeletonCards testID="list-loading" count={3} photoHeight={0} />
+          ) : (
+            <Text testID="support-empty" variant="body" color="muted">{t('support.empty')}</Text>
+          )
         ) : null}
 
         {tickets.map((ticket) => (

@@ -8,6 +8,7 @@ import { Card, Chip, Badge } from '../../../ui/Surface';
 import { SUPER_TAB_CLEARANCE } from '../../../app/navigators/SuperAdminTabBar';
 import type { AuditRow } from '../../../data/types';
 import { useAuditLog } from '../hooks';
+import { SkeletonCards } from '../../../ui/motion';
 
 /** จัดกลุ่มการกระทำให้เหลือสี่ชิปที่คนอ่านออก */
 const GROUPS = {
@@ -72,9 +73,11 @@ export function SuperAuditScreen() {
         showsVerticalScrollIndicator={false}
       >
         {shown.length === 0 ? (
-          <Text testID="super-audit-empty" variant="body" color="muted">
-            {isPending ? t('common.loading') : t('super.audit.empty')}
-          </Text>
+          isPending ? (
+            <SkeletonCards testID="list-loading" count={3} photoHeight={0} />
+          ) : (
+            <Text testID="super-audit-empty" variant="body" color="muted">{t('super.audit.empty')}</Text>
+          )
         ) : null}
 
         {shown.map((row) => <AuditCard key={row.id} row={row} />)}

@@ -12,6 +12,7 @@ import { ADMIN_TAB_CLEARANCE } from '../../../app/navigators/AdminTabBar';
 import type { AdminStackParamList, AdminTabParamList } from '../../../app/navigators/AdminStack';
 import type { TicketStatus } from '../../../data/types';
 import { useAdminTickets } from '../../support/hooks';
+import { SkeletonCards } from '../../../ui/motion';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<AdminTabParamList, 'AdminSupport'>,
@@ -69,9 +70,11 @@ export function AdminSupportScreen({ navigation }: Props) {
       >
         {tickets.length === 0 ? (
           /** รายการว่างต้องบอกว่าว่างเพราะอะไร ไม่ใช่จอเปล่าที่ดูเหมือนโหลดไม่ขึ้น */
-          <Text testID="admin-tickets-empty" variant="body" color="muted">
-            {isPending ? t('common.loading') : t(`admin.support.empty.${filter}`)}
-          </Text>
+          isPending ? (
+            <SkeletonCards testID="list-loading" count={3} photoHeight={0} />
+          ) : (
+            <Text testID="admin-tickets-empty" variant="body" color="muted">{t(`admin.support.empty.${filter}`)}</Text>
+          )
         ) : null}
 
         {tickets.map((ticket) => (

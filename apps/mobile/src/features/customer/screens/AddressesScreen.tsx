@@ -10,6 +10,7 @@ import { Card, IconChip } from '../../../ui/Surface';
 import { ScreenHeader } from '../../../ui/ScreenHeader';
 import { useAddresses } from '../hooks';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
+import { SkeletonCards } from '../../../ui/motion';
 
 type Props = NativeStackScreenProps<CustomerStackParamList, 'Addresses'>;
 
@@ -25,9 +26,7 @@ export function AddressesScreen({ navigation }: Props) {
 
       <ScrollView contentContainerStyle={{ padding: p.space.screen, paddingTop: 0, gap: p.space.md }}>
         {isLoading ? (
-          <Text variant="small" color="muted">
-            {t('common.loading')}
-          </Text>
+          <SkeletonCards testID="list-loading" count={3} photoHeight={0} />
         ) : null}
 
         {!isLoading && addresses.length === 0 ? (

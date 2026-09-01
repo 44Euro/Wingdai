@@ -17,6 +17,7 @@ import { RIDER_TAB_CLEARANCE } from '../../../app/navigators/RiderTabBar';
 import type { RiderStackParamList, RiderTabParamList } from '../../../app/navigators/RiderStack';
 import { groupByDay, bangkokDayKey } from '../../../lib/groupByDay';
 import { DaySection, dayLabel } from '../../../ui/DaySection';
+import { SkeletonCards } from '../../../ui/motion';
 
 
 type Props = CompositeScreenProps<
@@ -126,7 +127,7 @@ export function RiderEarningsScreen() {
           <Text variant="kicker" color="muted">{t('rider.earnings.history')}</Text>
 
           {isLoading ? (
-            <Text variant="body" color="muted">{t('common.loading')}</Text>
+            <SkeletonCards testID="list-loading" count={3} photoHeight={0} />
           ) : (data?.deliveries.length ?? 0) === 0 ? (
             <Card>
               <Text testID="earnings-empty" variant="body" color="muted">
