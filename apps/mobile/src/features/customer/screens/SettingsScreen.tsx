@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
+import { setLanguage } from '../../../i18n';
 import { Text } from '../../../ui/Text';
 import { ScreenHeader } from '../../../ui/ScreenHeader';
 import { ChoiceCard } from '../../../ui/ChoiceCard';
@@ -42,7 +43,7 @@ export function SettingsScreen({ navigation }: Props) {
               icon="globe"
               tone="teal"
               selected={i18n.language === lang.code}
-              onPress={() => i18n.changeLanguage(lang.code)}
+              onPress={() => setLanguage(lang.code)}
             />
           ))}
         </View>
