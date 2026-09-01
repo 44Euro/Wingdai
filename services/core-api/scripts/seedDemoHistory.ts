@@ -243,6 +243,8 @@ async function main() {
   console.log('เดินสถานะครบ กำลังใส่รีวิว');
   await reviews(client, placed, tokens);
 
+  await refundCases(placed, tokens.get('admin_root')!);
+
   console.log('กำลังย้อนเวลา');
   await backdate(client, placed);
   await sessions(client, placed);
@@ -280,6 +282,40 @@ async function reviews(
     if ([200, 201].includes(res.status)) done += 1;
   }
   console.log(`รีวิว ${done} ใบ`);
+}
+
+/**
+ * เรื่องแจ้งปัญหา สองใบทิ้งไว้ให้แอดมินตัดสิน หนึ่งใบอนุมัติไปแล้ว
+ * ไม่มีอันนี้ คิวคืนเงินของแอดมินจะว่างเปล่าและอัตราคืนเงินใน §8 จะเป็น 0.0% ตลอด
+ * ซึ่งอ่านเหมือนจอนั้นยังต่อไม่เสร็จ ทั้งที่เส้นทางทำงานครบ
+ */
+async function refundCases(placed: Placed[], admin: string) {
+  const REASONS = ['missing_item', 'food_quality', 'wrong_item'] as const;
+  const DETAILS = [
+    'สั่งไข่ดาวเพิ่มแต่ไม่ได้มาด้วย',
+    'ข้าวเละกว่าปกติมาก กินไม่ได้ทั้งกล่อง',
+    'ได้ผัดกะเพราหมูแทนที่จะเป็นไก่ที่สั่งไว้',
+  ];
+
+  const targets = placed.filter((o) => !o.cancelled && o.customerToken).slice(0, REASONS.length);
+  const opened: string[] = [];
+  for (const [i, o] of targets.entries()) {
+    const res = await call('POST', '/refunds', {
+      orderId: o.id,
+      reason: REASONS[i],
+      detail: DETAILS[i],
+      hasPhoto: false,
+    }, o.customerToken!);
+    if ([200, 201].includes(res.status)) opened.push(res.body.id);
+  }
+
+  // ใบแรกให้จบวงจนถึงเงินคืนออกจริง ที่เหลือค้างไว้เป็นคิวให้กดเล่น
+  let approved = 0;
+  if (opened[0]) {
+    const res = await call('POST', `/admin/refunds/${opened[0]}`, { approve: true, fault: 'restaurant' }, admin);
+    if (res.status === 200) approved = 1;
+  }
+  console.log(`เรื่องแจ้งปัญหา ${opened.length} ใบ · อนุมัติแล้ว ${approved} ใบ`);
 }
 
 /** ตัวเลขที่จอแอดมินจะโชว์ ตรวจตรงนี้เลยว่าอ่านแล้วเป็นไปได้ไหม */
