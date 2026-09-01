@@ -4,14 +4,14 @@ import { assertCanReview, summarise } from './eligibility';
 const delivered = { customerId: 'u1', status: 'delivered' as const };
 
 describe('ใครรีวิวได้ (design C11)', () => {
-  it('ลูกค้าเจ้าของออร์เดอร์ที่ได้รับของแล้ว รีวิวได้', () => {
+  it('ลูกค้าเจ้าของออเดอร์ที่ได้รับของแล้ว รีวิวได้', () => {
     expect(() =>
       assertCanReview({ viewerId: 'u1', order: delivered, alreadyReviewed: false }),
     ).not.toThrow();
   });
 
   /** รีวิวที่เขียนได้โดยไม่ต้องเคยสั่ง = รีวิวที่ซื้อได้ ร้านคู่แข่งถล่มดาวหนึ่งได้ฟรี */
-  it('คนอื่นรีวิวออร์เดอร์ที่ไม่ใช่ของตัวเองไม่ได้', () => {
+  it('คนอื่นรีวิวออเดอร์ที่ไม่ใช่ของตัวเองไม่ได้', () => {
     expect(() =>
       assertCanReview({ viewerId: 'u2', order: delivered, alreadyReviewed: false }),
     ).toThrow(/ของตัวเอง/);

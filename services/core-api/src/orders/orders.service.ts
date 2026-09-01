@@ -298,7 +298,7 @@ export class OrdersService {
       accountId,
     );
     // ตอบ 404 ไม่ใช่ 403 403 เป็นการยืนยันว่าออร์เดอร์รหัสนี้มีอยู่จริง
-    if (actor === 'stranger') throw new NotFoundException({ message: 'ไม่พบออร์เดอร์นี้' });
+    if (actor === 'stranger') throw new NotFoundException({ message: 'ไม่พบออเดอร์นี้' });
     // เฉพาะลูกค้าเจ้าของเท่านั้นที่เห็นรหัสยืนยันส่ง ไรเดอร์ต้องถามเอาจากลูกค้า
     return actor === 'customer' ? this.publicOrder(orderId, true) : order;
   }
@@ -315,11 +315,11 @@ export class OrdersService {
   ): Promise<PublicOrder> {
     await this.db.transaction(async (tx) => {
       const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1).for('update');
-      if (!order) throw new NotFoundException({ message: 'ไม่พบออร์เดอร์นี้' });
+      if (!order) throw new NotFoundException({ message: 'ไม่พบออเดอร์นี้' });
 
       const actor = await this.actorFor(order, accountId);
       // คนนอกไม่ควรรู้ด้วยซ้ำว่าออร์เดอร์นี้มีอยู่
-      if (actor === 'stranger') throw new NotFoundException({ message: 'ไม่พบออร์เดอร์นี้' });
+      if (actor === 'stranger') throw new NotFoundException({ message: 'ไม่พบออเดอร์นี้' });
       assertCanSetStatus(actor, next);
 
       assertTransition(order.status, next);
@@ -336,7 +336,7 @@ export class OrdersService {
       /** ร้านที่ปฏิเสธใบต้องบอกเหตุผลเสมอ (design M12) */
       if (next === 'cancelled' && actor === 'restaurantOwner' && !cancel?.reason) {
         throw new BadRequestException({
-          message: 'ต้องเลือกเหตุผลที่ปฏิเสธออร์เดอร์',
+          message: 'ต้องเลือกเหตุผลที่ปฏิเสธออเดอร์',
           fields: { reason: 'กรุณาเลือกเหตุผล' },
         });
       }
@@ -441,7 +441,7 @@ export class OrdersService {
     await this.db.transaction(async (tx) => {
       const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1).for('update');
       if (!order || order.customerId !== customerId) {
-        throw new NotFoundException({ message: 'ไม่พบออร์เดอร์นี้' });
+        throw new NotFoundException({ message: 'ไม่พบออเดอร์นี้' });
       }
 
       // กติกาเดียวกับ canPayNowWithPromptPay ฝั่งแอป ต้องตรวจซ้ำที่นี่ ไม่เชื่อว่าจอซ่อนปุ่มไว้แล้ว
@@ -451,7 +451,7 @@ export class OrdersService {
         isActiveStatus(order.status);
 
       if (!changeable) {
-        throw new ConflictException({ message: 'เปลี่ยนวิธีชำระเงินของออร์เดอร์นี้ไม่ได้แล้ว' });
+        throw new ConflictException({ message: 'เปลี่ยนวิธีชำระเงินของออเดอร์นี้ไม่ได้แล้ว' });
       }
 
       await tx
@@ -468,7 +468,7 @@ export class OrdersService {
     await this.db.transaction(async (tx) => {
       const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1).for('update');
       // ตอบ 404 ไม่ใช่ 403 ให้คนที่ไม่ใช่เจ้าของ ไม่ยืนยันว่าออร์เดอร์รหัสนี้มีอยู่จริง
-      if (!order) throw new NotFoundException({ message: 'ไม่พบออร์เดอร์นี้' });
+      if (!order) throw new NotFoundException({ message: 'ไม่พบออเดอร์นี้' });
 
       assertCanTip({
         viewerId: customerId,
@@ -504,7 +504,7 @@ export class OrdersService {
   /** ข้อมูลออร์เดอร์ที่ส่งออกไปให้ผู้ใช้ */
   private async publicOrder(orderId: string, includePin = false): Promise<PublicOrder> {
     const [order] = await this.db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
-    if (!order) throw new NotFoundException({ message: 'ไม่พบออร์เดอร์นี้' });
+    if (!order) throw new NotFoundException({ message: 'ไม่พบออเดอร์นี้' });
 
     const items = await this.db
       .select()

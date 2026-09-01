@@ -32,7 +32,7 @@ describe('canReply', () => {
 describe('OpenTicketSchema', () => {
   const valid = { kind: 'order_problem' as const, subject: 'อาหารผิด', body: 'ได้ไม่ตรงที่สั่ง' };
 
-  it('ผูกออร์เดอร์หรือไม่ผูกก็ได้', () => {
+  it('ผูกออเดอร์หรือไม่ผูกก็ได้', () => {
     expect(OpenTicketSchema.safeParse(valid).success).toBe(true);
     expect(OpenTicketSchema.safeParse({
       ...valid, orderId: '11111111-1111-4111-8111-111111111111',

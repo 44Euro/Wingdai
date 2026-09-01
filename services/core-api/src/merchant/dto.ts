@@ -94,6 +94,6 @@ export const SetHoursSchema = z.object({
 });
 export type SetHoursInput = z.infer<typeof SetHoursSchema>;
 
-/** `0` = เลิกพักเดี๋ยวนี้ ปุ่ม "กลับมารับออร์เดอร์" ใช้ทางเดียวกับปุ่มพัก ไม่ต้องมีเส้นทางที่สอง */
+/** `0` = เลิกพักเดี๋ยวนี้ ปุ่ม "กลับมารับออเดอร์" ใช้ทางเดียวกับปุ่มพัก ไม่ต้องมีเส้นทางที่สอง */
 export const PauseSchema = z.object({ minutes: z.number().int().min(0).max(120) });
 export type PauseInput = z.infer<typeof PauseSchema>;

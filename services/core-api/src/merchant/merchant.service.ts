@@ -229,7 +229,7 @@ export class MerchantService {
   async setOpen(accountId: string, restaurantId: string, isOpen: boolean): Promise<MerchantRestaurant> {
     const shop = await this.assertOwns(accountId, restaurantId);
     if (!shop.isApproved && isOpen) {
-      throw new NotFoundException({ message: 'ร้านนี้ยังรออนุมัติ เปิดรับออร์เดอร์ไม่ได้' });
+      throw new NotFoundException({ message: 'ร้านนี้ยังรออนุมัติ เปิดรับออเดอร์ไม่ได้' });
     }
 
     const [row] = await this.db

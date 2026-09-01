@@ -90,8 +90,8 @@ export class DispatchService {
       .where(eq(orders.id, orderId))
       .limit(1);
 
-    if (!order) return { offered: false, reason: 'ไม่พบออร์เดอร์นี้' };
-    if (order.riderId) return { offered: false, reason: 'ออร์เดอร์นี้มีไรเดอร์แล้ว' };
+    if (!order) return { offered: false, reason: 'ไม่พบออเดอร์นี้' };
+    if (order.riderId) return { offered: false, reason: 'ออเดอร์นี้มีไรเดอร์แล้ว' };
 
     const [pending] = await this.db
       .select({ id: dispatchOffers.id })

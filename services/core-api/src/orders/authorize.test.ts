@@ -5,7 +5,7 @@ import type { OrderStatus } from './stateMachine';
 const ACTORS: Actor[] = ['customer', 'restaurantOwner', 'rider', 'admin', 'stranger'];
 const STATUSES: OrderStatus[] = ['accepted', 'preparing', 'picked_up', 'delivered', 'cancelled'];
 
-describe('ใครเปลี่ยนสถานะออร์เดอร์เป็นอะไรได้', () => {
+describe('ใครเปลี่ยนสถานะออเดอร์เป็นอะไรได้', () => {
   it('คนที่ไม่เกี่ยวข้องทำอะไรไม่ได้เลย', () => {
     for (const s of STATUSES) {
       expect(canSetStatus('stranger', s), s).toBe(false);
@@ -22,7 +22,7 @@ describe('ใครเปลี่ยนสถานะออร์เดอร�
     expect(ACTORS.filter((a) => canSetStatus(a, 'picked_up')).sort()).toEqual(['admin', 'rider']);
   });
 
-  it('ร้านเป็นคนรับออร์เดอร์และบอกว่ากำลังทำ — ลูกค้ากับไรเดอร์ทำแทนไม่ได้', () => {
+  it('ร้านเป็นคนรับออเดอร์และบอกว่ากำลังทำ — ลูกค้ากับไรเดอร์ทำแทนไม่ได้', () => {
     for (const s of ['accepted', 'preparing'] as const) {
       expect(canSetStatus('restaurantOwner', s), s).toBe(true);
       expect(canSetStatus('customer', s), s).toBe(false);

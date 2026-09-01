@@ -48,7 +48,7 @@ export class ReviewsService {
       .where(eq(orders.id, orderId))
       .limit(1);
 
-    if (!order) throw new NotFoundException({ message: 'ไม่พบออร์เดอร์นี้' });
+    if (!order) throw new NotFoundException({ message: 'ไม่พบออเดอร์นี้' });
 
     const [existing] = await this.db
       .select({ id: reviews.id })

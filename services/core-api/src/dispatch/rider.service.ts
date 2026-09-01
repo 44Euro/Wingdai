@@ -641,13 +641,13 @@ export class RiderService {
       }
 
       const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1).for('update');
-      if (!order) throw new NotFoundException({ message: 'ไม่พบออร์เดอร์นี้' });
+      if (!order) throw new NotFoundException({ message: 'ไม่พบออเดอร์นี้' });
       // มีคนรับไปแล้วระหว่างที่กด เกิดได้จริงถ้าแอดมินจ่ายงานมือพร้อมกัน (§6.3)
       if (order.riderId) throw new ConflictException({ message: 'งานนี้มีคนรับไปแล้ว' });
 
       /** product-spec §4.3 ไรเดอร์รับงานออร์เดอร์ที่ตัวเองสั่งไม่ได้ */
       if (order.customerId === accountId) {
-        throw new ForbiddenException({ message: 'รับงานออร์เดอร์ที่ตัวเองสั่งไม่ได้' });
+        throw new ForbiddenException({ message: 'รับงานออเดอร์ที่ตัวเองสั่งไม่ได้' });
       }
 
       const busy = await this.dispatch.activeJobCount(accountId);

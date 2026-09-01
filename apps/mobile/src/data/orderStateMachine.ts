@@ -2,7 +2,7 @@ import type { OrderStatus } from './types';
 
 export class InvalidTransitionError extends Error {
   constructor(from: OrderStatus, to: OrderStatus) {
-    super(`เปลี่ยนสถานะออร์เดอร์จาก "${from}" ไป "${to}" ไม่ได้`);
+    super(`เปลี่ยนสถานะออเดอร์จาก "${from}" ไป "${to}" ไม่ได้`);
     this.name = 'InvalidTransitionError';
   }
 }

@@ -48,7 +48,7 @@ export class SupportService {
         .limit(1);
       // 404 ไม่ใช่ 403 403 ยืนยันว่าออร์เดอร์รหัสนี้มีอยู่จริง
       if (!order || order.customerId !== accountId) {
-        throw new NotFoundException({ message: 'ไม่พบออร์เดอร์นี้' });
+        throw new NotFoundException({ message: 'ไม่พบออเดอร์นี้' });
       }
     }
 

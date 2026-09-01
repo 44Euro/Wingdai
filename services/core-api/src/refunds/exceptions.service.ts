@@ -170,7 +170,7 @@ export class ExceptionsService {
            and not exists (select 1 from dispatch_offers d
                             where d.order_id = o.id and d.outcome = 'accepted'))::int as manual_dispatched,
 
-        /** §8 กำไรส่วนเพิ่มต่อออร์เดอร์ ต้อง > ฿0 ตั้งแต่วันแรก */
+        /** §8 กำไรส่วนเพิ่มต่อออเดอร์ ต้อง > ฿0 ตั้งแต่วันแรก */
         (select coalesce(sum(
                   case when account = 'platform_revenue' then credit_satang - debit_satang
                        when account in ('payment_fee_expense', 'refund_expense')

@@ -70,7 +70,7 @@ describe('ตรวจอัตโนมัติแล้วเสนอคำ�
         .toBe('suggest_full');
     });
 
-    it('ออร์เดอร์ที่ยังไม่ส่งถึงแจ้งเรื่องคุณภาพไม่ได้', () => {
+    it('ออเดอร์ที่ยังไม่ส่งถึงแจ้งเรื่องคุณภาพไม่ได้', () => {
       expect(recommendRefund(facts({ orderStatus: 'preparing', deliveredAt: null })).verdict)
         .toBe('not_eligible');
     });

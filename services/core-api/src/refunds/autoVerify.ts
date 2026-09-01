@@ -75,7 +75,7 @@ export function recommendRefund(f: RefundFacts): RefundRecommendation {
       verdict: 'not_eligible',
       suggestedAmountSatang: null,
       fault: null,
-      reasoning: ['ออร์เดอร์ยังไม่ถึงสถานะส่งถึงแล้ว ยังไม่เข้าเงื่อนไขแจ้งปัญหา'],
+      reasoning: ['ออเดอร์ยังไม่ถึงสถานะส่งถึงแล้ว ยังไม่เข้าเงื่อนไขแจ้งปัญหา'],
     };
   }
 
@@ -102,7 +102,7 @@ export function recommendRefund(f: RefundFacts): RefundRecommendation {
   const suspicious = f.customerOrderCount >= MIN_ORDERS_FOR_RATE && rate > SUSPICIOUS_DISPUTE_RATE;
   if (suspicious) {
     reasoning.push(
-      `ลูกค้ารายนี้แจ้งปัญหา ${f.customerDisputeCount} จาก ${f.customerOrderCount} ออร์เดอร์ ` +
+      `ลูกค้ารายนี้แจ้งปัญหา ${f.customerDisputeCount} จาก ${f.customerOrderCount} ออเดอร์ ` +
         `(${Math.round(rate * 100)}%) สูงผิดปกติ`,
     );
   }

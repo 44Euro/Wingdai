@@ -24,7 +24,7 @@ export class RefundsService {
 
     // ตอบ 404 ไม่ใช่ 403 403 ยืนยันว่าออร์เดอร์รหัสนี้มีอยู่จริง
     if (!order || order.customerId !== accountId) {
-      throw new NotFoundException({ message: 'ไม่พบออร์เดอร์นี้' });
+      throw new NotFoundException({ message: 'ไม่พบออเดอร์นี้' });
     }
 
     const [existing] = await this.db
@@ -33,7 +33,7 @@ export class RefundsService {
       .where(and(eq(refundCases.orderId, input.orderId), inArray(refundCases.status, ['open', 'auto_verified'])))
       .limit(1);
     // แจ้งซ้ำใบเดิมคือการเปิดสองเรื่องให้แอดมินตัดสินขัดกันเอง
-    if (existing) throw new ConflictException({ message: 'ออร์เดอร์นี้มีเรื่องที่กำลังตรวจอยู่แล้ว' });
+    if (existing) throw new ConflictException({ message: 'ออเดอร์นี้มีเรื่องที่กำลังตรวจอยู่แล้ว' });
 
     const facts = await this.factsFor(order, input.reason, input.hasPhoto);
     const rec = recommendRefund(facts);
@@ -134,7 +134,7 @@ export class RefundsService {
       }
 
       const [order] = await tx.select().from(orders).where(eq(orders.id, row.orderId)).limit(1);
-      if (!order) throw new NotFoundException({ message: 'ไม่พบออร์เดอร์ของเรื่องนี้' });
+      if (!order) throw new NotFoundException({ message: 'ไม่พบออเดอร์ของเรื่องนี้' });
 
       const gross = order.foodTotalSatang + order.deliveryFeeSatang + order.serviceFeeSatang;
       const amount = input.amountSatang ?? row.suggestedAmountSatang ?? 0;

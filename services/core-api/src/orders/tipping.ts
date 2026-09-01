@@ -11,7 +11,7 @@ export function assertCanTip(input: {
   amountSatang: number;
 }): void {
   if (input.order.customerId !== input.viewerId) {
-    throw new ForbiddenException({ message: 'ให้ทิปได้เฉพาะออร์เดอร์ของตัวเอง' });
+    throw new ForbiddenException({ message: 'ให้ทิปได้เฉพาะออเดอร์ของตัวเอง' });
   }
 
   if (input.order.status !== 'delivered') {
@@ -20,11 +20,11 @@ export function assertCanTip(input: {
 
   // ไม่มีไรเดอร์ = ไม่มีใครรับทิป เงินจะค้างอยู่ในบัญชีบริษัทโดยไม่มีเจ้าของ
   if (!input.order.riderId) {
-    throw new BadRequestException({ message: 'ออร์เดอร์นี้ไม่มีไรเดอร์ให้ทิป' });
+    throw new BadRequestException({ message: 'ออเดอร์นี้ไม่มีไรเดอร์ให้ทิป' });
   }
 
   if (input.order.tipSatang > 0) {
-    throw new BadRequestException({ message: 'ออร์เดอร์นี้ให้ทิปไปแล้ว' });
+    throw new BadRequestException({ message: 'ออเดอร์นี้ให้ทิปไปแล้ว' });
   }
 
   if (!Number.isInteger(input.amountSatang) || input.amountSatang <= 0) {
@@ -36,7 +36,7 @@ export function assertCanTip(input: {
 
   if (input.amountSatang > MAX_TIP_SATANG) {
     throw new BadRequestException({
-      message: `ทิปได้สูงสุด ${MAX_TIP_SATANG / 100} บาทต่อออร์เดอร์`,
+      message: `ทิปได้สูงสุด ${MAX_TIP_SATANG / 100} บาทต่อออเดอร์`,
       fields: { amountSatang: 'ยอดสูงเกินไป' },
     });
   }

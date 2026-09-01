@@ -5,7 +5,7 @@ import { commissionOf, DEFAULT_COMMISSION_RATE_BP } from '../db/schema/money';
 /** product-spec §5 กติกาข้อ 3 ต้องพิสูจน์ว่าเดบิต = เครดิต แบบกวาดหลายรูปแบบ */
 describe('postOrderDelivered', () => {
   // ตัวอย่างเดียวกับ product-spec §6.2 แต่ cash เดบิตยอด "สุทธิหลังหักค่าธรรมเนียม"
-  it('แตกยอดออร์เดอร์ ฿170 ที่จ่ายผ่านเกตเวย์ได้ถูกต้อง', () => {
+  it('แตกยอดออเดอร์ ฿170 ที่จ่ายผ่านเกตเวย์ได้ถูกต้อง', () => {
     const lines = postOrderDelivered({
       foodTotalSatang: 15000, // ฿150
       deliveryFeeSatang: 1500, // ฿15
@@ -91,7 +91,7 @@ describe('postOrderDelivered', () => {
   });
 
   /** ออร์เดอร์แต่ละใบจำอัตราคอมที่ใช้ตอนสร้างไว้เอง (`orders.commission_rate_bp`) */
-  it('ใช้อัตราคอมของออร์เดอร์ใบนั้น ไม่ใช่ค่าตั้งต้นของระบบ', () => {
+  it('ใช้อัตราคอมของออเดอร์ใบนั้น ไม่ใช่ค่าตั้งต้นของระบบ', () => {
     const restaurantPayableAt = (commissionRateBp: number) =>
       postOrderDelivered({
         foodTotalSatang: 20000,
@@ -166,7 +166,7 @@ describe('postOrderDelivered', () => {
     ).toThrow(/จำนวนเต็มสตางค์/);
   });
 
-  it('ออร์เดอร์ที่ขาดทุนยังลงบัญชีครบและบาลานซ์', () => {
+  it('ออเดอร์ที่ขาดทุนยังลงบัญชีครบและบาลานซ์', () => {
     const lines = postOrderDelivered({
       foodTotalSatang: 5000,
       deliveryFeeSatang: 500,

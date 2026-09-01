@@ -20,6 +20,6 @@ export function canSetStatus(actor: Actor, next: OrderStatus): boolean {
 export function assertCanSetStatus(actor: Actor, next: OrderStatus): void {
   if (!canSetStatus(actor, next)) {
     // ไม่บอกว่า "คุณเป็นแค่ลูกค้า" บอกแค่ว่าทำไม่ได้ ไม่ต้องอธิบายโครงสิทธิ์ให้คนยิง
-    throw new ForbiddenException({ message: 'บัญชีนี้เปลี่ยนสถานะออร์เดอร์เป็นค่านี้ไม่ได้' });
+    throw new ForbiddenException({ message: 'บัญชีนี้เปลี่ยนสถานะออเดอร์เป็นค่านี้ไม่ได้' });
   }
 }

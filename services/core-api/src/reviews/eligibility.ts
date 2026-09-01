@@ -9,7 +9,7 @@ export function assertCanReview(input: {
 }): void {
   /** ตอบ 403 ไม่ใช่ 404 ตรงนี้ได้ เพราะกว่าจะมาถึงจุดนี้ต้องรู้ id ของออร์เดอร์อยู่แล้ว */
   if (input.order.customerId !== input.viewerId) {
-    throw new ForbiddenException({ message: 'รีวิวได้เฉพาะออร์เดอร์ของตัวเอง' });
+    throw new ForbiddenException({ message: 'รีวิวได้เฉพาะออเดอร์ของตัวเอง' });
   }
 
   // ยังไม่ได้กินก็ยังไม่รู้ว่าอร่อยไหม และใบที่ยกเลิกไปแล้วไม่เคยมีอาหารให้ตัดสิน
@@ -18,7 +18,7 @@ export function assertCanReview(input: {
   }
 
   if (input.alreadyReviewed) {
-    throw new BadRequestException({ message: 'ออร์เดอร์นี้รีวิวไปแล้ว' });
+    throw new BadRequestException({ message: 'ออเดอร์นี้รีวิวไปแล้ว' });
   }
 }
 

@@ -43,7 +43,7 @@ export class ChatService {
       .where(eq(orders.id, orderId))
       .limit(1);
 
-    if (!row) throw new NotFoundException({ message: 'ไม่พบออร์เดอร์นี้' });
+    if (!row) throw new NotFoundException({ message: 'ไม่พบออเดอร์นี้' });
     return row;
   }
 
@@ -85,7 +85,7 @@ export class ChatService {
     this.assertAccess(viewerId, channel, parties);
 
     if (!canSend(parties.status)) {
-      throw new BadRequestException({ message: 'ออร์เดอร์นี้จบแล้ว ส่งข้อความไม่ได้' });
+      throw new BadRequestException({ message: 'ออเดอร์นี้จบแล้ว ส่งข้อความไม่ได้' });
     }
 
     const text = body.trim();

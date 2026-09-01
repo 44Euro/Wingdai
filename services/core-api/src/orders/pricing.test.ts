@@ -20,7 +20,7 @@ const item = (over: Partial<PricedItem> = {}): PricedItem => ({
   ...over,
 });
 
-describe('การคิดยอดออร์เดอร์', () => {
+describe('การคิดยอดออเดอร์', () => {
   it('ค่าอาหารคิดจากราคาต่อหน่วยคูณจำนวน', () => {
     const p = priceOrder([item({ quantity: 2 }), item({ unitPriceSatang: 2500 })], ONE_KM);
     expect(p.foodTotalSatang).toBe(12500);
@@ -75,7 +75,7 @@ describe('ค่าธรรมเนียมเกตเวย์', () => {
   });
 });
 
-describe('เลขที่ออร์เดอร์', () => {
+describe('เลขที่ออเดอร์', () => {
   it('ขึ้นต้น WD- และยาว 9 ตัว', () => {
     expect(orderReference()).toMatch(/^WD-[23456789A-HJ-NP-Z]{6}$/);
   });

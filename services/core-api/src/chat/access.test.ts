@@ -59,7 +59,7 @@ describe('ช่องมีอยู่ตอนไหน', () => {
 });
 
 describe('ส่งข้อความได้ตอนไหน', () => {
-  it('ระหว่างที่ออร์เดอร์ยังเดินอยู่ ส่งได้', () => {
+  it('ระหว่างที่ออเดอร์ยังเดินอยู่ ส่งได้', () => {
     for (const s of ['created', 'accepted', 'preparing', 'picked_up'] as const) {
       expect(canSend(s)).toBe(true);
     }

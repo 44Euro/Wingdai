@@ -111,7 +111,7 @@ async function dispatchChecks(
     items: [{ menuItemId, quantity: 1, choiceIds: [choiceId], note: 'ไม่ใส่ผักชี' }],
     paymentMethod: 'cash',
   }, customerToken);
-  check('สร้างออร์เดอร์สำหรับทดสอบการจ่ายงานได้', job.status === 201, JSON.stringify(job.body));
+  check('สร้างออเดอร์สำหรับทดสอบการจ่ายงานได้', job.status === 201, JSON.stringify(job.body));
   createdOrderIds.push(job.body?.id);
   await call('PATCH', `/orders/${job.body.id}/status`, { status: 'accepted' }, maleeToken);
 
@@ -138,7 +138,7 @@ async function dispatchChecks(
   check('ไรเดอร์ที่ไม่ได้ถูกเสนอแย่งรับไม่ได้', stolen.status === 404 || stolen.status === 403, `ได้ ${stolen.status}`);
 
   const again = await call('POST', `/admin/dispatch/orders/${job.body.id}`, undefined, adminToken);
-  check('ออร์เดอร์ที่มีไรเดอร์แล้วสั่งจ่ายซ้ำไม่ได้', again.body?.offered === false);
+  check('ออเดอร์ที่มีไรเดอร์แล้วสั่งจ่ายซ้ำไม่ได้', again.body?.offered === false);
 
   const jobs = await call('GET', '/rider/jobs', undefined, annToken);
   check('งานโผล่ในรายการงานของไรเดอร์', jobs.body?.some((j: any) => j.orderId === job.body.id));
@@ -151,7 +151,7 @@ async function dispatchChecks(
   check('ของในถุงพกข้อความที่ลูกค้าฝากถึงร้าน',
     mine?.items?.some((i: any) => i.note === 'ไม่ใส่ผักชี'),
     JSON.stringify(mine?.items?.map((i: any) => i.note)));
-  check('งานบอกเวลาทำของร้านและเวลาที่ร้านรับออร์เดอร์ (§6.3)',
+  check('งานบอกเวลาทำของร้านและเวลาที่ร้านรับออเดอร์ (§6.3)',
     Number.isInteger(mine?.prepTimeMinutes) && mine.prepTimeMinutes > 0 && mine?.acceptedAt !== null,
     `prep ${mine?.prepTimeMinutes} acceptedAt ${mine?.acceptedAt}`);
 
@@ -179,7 +179,7 @@ async function dispatchChecks(
   check('ลูกค้าเห็นรหัสยืนยันสี่หลักของตัวเอง', /^[0-9]{4}$/.test(pin ?? ''), `ได้ ${pin}`);
 
   /** พิกัดสามจุดของจอติดตาม (design C6) */
-  check('ออร์เดอร์พกพิกัดร้านและปลายทางมาให้แผนที่',
+  check('ออเดอร์พกพิกัดร้านและปลายทางมาให้แผนที่',
     typeof customerView.body?.restaurantLat === 'number'
       && typeof customerView.body?.dropoffLng === 'number',
     JSON.stringify({
@@ -213,7 +213,7 @@ async function dispatchChecks(
     { status: 'delivered', deliveryPin: pin, photoPath: proof.body?.path }, annToken);
   check('รหัสถูกแล้วไรเดอร์ปิดงานได้', delivered.status === 200, JSON.stringify(delivered.body));
   // §6.5 ส่งถึงแล้วถือว่าเก็บเงินสดครบ
-  check('ออร์เดอร์เงินสดที่ส่งถึงแล้วเปลี่ยนเป็นจ่ายแล้ว', delivered.body?.paymentStatus === 'paid');
+  check('ออเดอร์เงินสดที่ส่งถึงแล้วเปลี่ยนเป็นจ่ายแล้ว', delivered.body?.paymentStatus === 'paid');
 
   const afterDelivery = await call('GET', `/orders/${job.body.id}`, undefined, customerToken);
   check('ส่งถึงแล้วตำแหน่งไรเดอร์หายไป ไม่ให้ตามต่อ',
@@ -290,7 +290,7 @@ async function riderIssueChecks(
   check('ไรเดอร์แจ้งปัญหาได้', reported.status === 201, JSON.stringify(reported.body));
 
   const after = await call('GET', `/orders/${orderId}`, undefined, riderToken);
-  check('แจ้งปัญหาแล้วสถานะออร์เดอร์ไม่ขยับ',
+  check('แจ้งปัญหาแล้วสถานะออเดอร์ไม่ขยับ',
     after.body?.status === before.body?.status,
     `${before.body?.status} → ${after.body?.status}`);
 
@@ -317,7 +317,7 @@ async function riderIssueChecks(
     !cleared.body?.some((e: any) => e.orderId === orderId && e.kind === 'rider_issue'));
 
   const stillThere = await call('GET', `/orders/${orderId}`, undefined, riderToken);
-  check('เคลียร์เรื่องแล้วออร์เดอร์ยังเดินต่อได้เหมือนเดิม',
+  check('เคลียร์เรื่องแล้วออเดอร์ยังเดินต่อได้เหมือนเดิม',
     stillThere.body?.status === before.body?.status,
     `ได้ ${stillThere.body?.status}`);
 }
@@ -476,7 +476,7 @@ async function refundChecks(customerToken: string, adminToken: string, delivered
     orderId: deliveredOrderId, reason: 'wrong_item', detail: 'ได้ของผิด', hasPhoto: true,
   }, adminToken);
   // ตอบ 404 ไม่ใช่ 403 403 ยืนยันว่าออร์เดอร์รหัสนี้มีอยู่จริง
-  check('แจ้งปัญหาออร์เดอร์ของคนอื่นไม่ได้', notMine.status === 404, `ได้ ${notMine.status}`);
+  check('แจ้งปัญหาออเดอร์ของคนอื่นไม่ได้', notMine.status === 404, `ได้ ${notMine.status}`);
 
   const opened = await call('POST', '/refunds', {
     orderId: deliveredOrderId, reason: 'wrong_item', detail: 'ได้ข้าวผัดแทนกะเพรา', hasPhoto: true,
@@ -533,19 +533,19 @@ async function refundChecks(customerToken: string, adminToken: string, delivered
   check('อัตราจ่ายงานอัตโนมัติคำนวณได้ (§8 > 90%)', metrics.body?.autoDispatchRate !== undefined);
 
   const byRider = await call('GET', '/admin/exceptions', undefined, adminToken);
-  check('จอ exception ไม่ใช่ฟีดออร์เดอร์ทั้งหมด (§7)', Array.isArray(byRider.body));
+  check('จอ exception ไม่ใช่ฟีดออเดอร์ทั้งหมด (§7)', Array.isArray(byRider.body));
 }
 
 /** จอเฝ้าออร์เดอร์ AD2 และตัวเลขสด AD1 */
 async function adminOrderMonitorChecks(adminToken: string, customerToken: string) {
-  console.log('\nจอเฝ้าออร์เดอร์ของแอดมิน (AD2) + ตัวเลขสด (AD1)');
+  console.log('\nจอเฝ้าออเดอร์ของแอดมิน (AD2) + ตัวเลขสด (AD1)');
 
   const denied = await call('GET', '/admin/orders', undefined, customerToken);
-  check('ลูกค้าเปิดจอเฝ้าออร์เดอร์ไม่ได้', denied.status === 403, `ได้ ${denied.status}`);
+  check('ลูกค้าเปิดจอเฝ้าออเดอร์ไม่ได้', denied.status === 403, `ได้ ${denied.status}`);
 
   const all = await call('GET', '/admin/orders', undefined, adminToken);
-  check('แอดมินเห็นออร์เดอร์ทุกใบ', all.status === 200 && Array.isArray(all.body));
-  check('มีออร์เดอร์ให้ดูจริง', (all.body?.length ?? 0) > 0, `ได้ ${all.body?.length} ใบ`);
+  check('แอดมินเห็นออเดอร์ทุกใบ', all.status === 200 && Array.isArray(all.body));
+  check('มีออเดอร์ให้ดูจริง', (all.body?.length ?? 0) > 0, `ได้ ${all.body?.length} ใบ`);
 
   const first = all.body?.[0];
   check('แถวมีครบทุกอย่างที่จอต้องใช้',
@@ -574,7 +574,7 @@ async function adminOrderMonitorChecks(adminToken: string, customerToken: string
 
   const live = await call('GET', '/admin/orders/live', undefined, adminToken);
   check('ตัวเลขสดของ AD1 เรียกได้', live.status === 200, JSON.stringify(live.body));
-  check('นับออร์เดอร์ที่ยังวิ่งกับไรเดอร์ออนไลน์ได้',
+  check('นับออเดอร์ที่ยังวิ่งกับไรเดอร์ออนไลน์ได้',
     typeof live.body?.activeOrders === 'number' && typeof live.body?.ridersOnline === 'number');
   check('จำนวนใบที่ไม่มีไรเดอร์ตรงกับที่ตัวกรองคืนมา',
     live.body?.unassigned === unassigned.body.length,
@@ -729,7 +729,7 @@ async function superConfigChecks(
     `foodTotal=${after.foodTotal}`);
 
   // ออร์เดอร์ใบเก่าต้องไม่ขยับ เก็บเป็นยอด ไม่ใช่อัตรา
-  check('ออร์เดอร์ใบเก่ายังคิดที่อัตราเดิม ไม่ถูกแก้ย้อนหลัง',
+  check('ออเดอร์ใบเก่ายังคิดที่อัตราเดิม ไม่ถูกแก้ย้อนหลัง',
     await commissionOfOrder(before.id) === Math.floor((before.foodTotal * 1500) / 10000));
 
   const audit = await call('GET', '/super/audit?action=pricing.changed', undefined, superToken);
@@ -747,7 +747,7 @@ async function superConfigChecks(
     items: [{ menuItemId: ctx.menuItemId, quantity: 1, choiceIds: [ctx.choiceId] }],
     paymentMethod: 'cash',
   }, ctx.customerToken);
-  check('ปิด flag เงินสดแล้ว สร้างออร์เดอร์เงินสดไม่ได้ที่ API',
+  check('ปิด flag เงินสดแล้ว สร้างออเดอร์เงินสดไม่ได้ที่ API',
     cashOrder.status === 400, `ได้ ${cashOrder.status}`);
 
   await call('PATCH', '/super/config/flags/cash_payment', { enabled: true }, superToken);
@@ -763,7 +763,7 @@ async function superConfigChecks(
   const cardOrder = await placeSmokeOrder(ctx, 'card');
   check('สั่งด้วยบัตรได้จริง ไม่ใช่แค่โผล่ในรายการ', cardOrder.paymentMethod === 'card',
     JSON.stringify(cardOrder.paymentMethod));
-  check('บัตรถือว่าจ่ายจบก่อนออร์เดอร์เริ่มเดิน เหมือนพร้อมเพย์',
+  check('บัตรถือว่าจ่ายจบก่อนออเดอร์เริ่มเดิน เหมือนพร้อมเพย์',
     cardOrder.paymentStatus === 'paid', cardOrder.paymentStatus);
 
   await call('PATCH', '/super/config/flags/card_payment', { enabled: false }, superToken);
@@ -772,7 +772,7 @@ async function superConfigChecks(
     items: [{ menuItemId: ctx.menuItemId, quantity: 1, choiceIds: [ctx.choiceId] }],
     paymentMethod: 'card',
   }, ctx.customerToken);
-  check('ปิด flag บัตรแล้ว สร้างออร์เดอร์บัตรไม่ได้ที่ API',
+  check('ปิด flag บัตรแล้ว สร้างออเดอร์บัตรไม่ได้ที่ API',
     cardBlocked.status === 400, `ได้ ${cardBlocked.status}`);
 
   /** แอปวาดตัวเลือกจากรายการนี้ ถ้ามันไม่หายตามที่ปิด แอปจะโชว์ปุ่มที่กดแล้วล้ม */
@@ -809,7 +809,7 @@ async function superConfigChecks(
   // ── โซน (SA2) ──
   const zones = await call('GET', '/super/zones', undefined, superToken);
   check('เห็นโซนพร้อมตัวเลขรายพื้นที่', Array.isArray(zones.body) && zones.body.length > 0);
-  check('โซนบอกจำนวนออร์เดอร์และไรเดอร์',
+  check('โซนบอกจำนวนออเดอร์และไรเดอร์',
     typeof zones.body?.[0]?.liveOrders === 'number'
     && typeof zones.body?.[0]?.ridersOnline === 'number', JSON.stringify(zones.body?.[0]));
 
@@ -862,7 +862,7 @@ async function adminOpsChecks(adminToken: string, customerToken: string, riderId
 
   const map = await call('GET', '/admin/ops/map', undefined, adminToken);
   check('แอดมินเปิดแผนที่ ops ได้', map.status === 200, JSON.stringify(map.body).slice(0, 200));
-  check('มีทั้งหมุดไรเดอร์และหมุดออร์เดอร์',
+  check('มีทั้งหมุดไรเดอร์และหมุดออเดอร์',
     Array.isArray(map.body?.riders) && Array.isArray(map.body?.orders));
 
   // หมุดที่ไม่มีพิกัดคือหมุดที่ปักไม่ได้ ต้องไม่หลุดออกมาเลย
@@ -870,12 +870,12 @@ async function adminOpsChecks(adminToken: string, customerToken: string, riderId
     map.body.riders.every((r: any) => typeof r.lat === 'number' && typeof r.lng === 'number'
       && Number.isFinite(r.lat) && Number.isFinite(r.lng)),
     JSON.stringify(map.body.riders.map((r: any) => [r.lat, r.lng])));
-  check('ทุกหมุดออร์เดอร์มีพิกัดจริง',
+  check('ทุกหมุดออเดอร์มีพิกัดจริง',
     map.body.orders.every((o: any) => Number.isFinite(o.lat) && Number.isFinite(o.lng)));
   check('พิกัดอยู่ในประเทศไทย ไม่ใช่ (0,0)',
     map.body.orders.every((o: any) => o.lat > 5 && o.lat < 21 && o.lng > 97 && o.lng < 106),
     JSON.stringify(map.body.orders.map((o: any) => [o.lat, o.lng])));
-  check('แผนที่ไม่เอาออร์เดอร์ที่จบแล้วมาปัก',
+  check('แผนที่ไม่เอาออเดอร์ที่จบแล้วมาปัก',
     map.body.orders.every((o: any) => !['delivered', 'cancelled'].includes(o.status)));
   check('บอกได้ว่าใบไหนยังไม่มีไรเดอร์',
     map.body.orders.every((o: any) => typeof o.hasRider === 'boolean'));
@@ -1191,7 +1191,7 @@ async function storeHoursChecks(
     hours: closedToday,
   }, ownerToken);
   check('ตั้งตารางเวลาได้', closed.status === 200, JSON.stringify(closed.body));
-  check('วันนี้หยุด = ร้านไม่รับออร์เดอร์', closed.body?.isAcceptingOrders === false);
+  check('วันนี้หยุด = ร้านไม่รับออเดอร์', closed.body?.isAcceptingOrders === false);
   // ปิดทั้งเจ็ดวัน จึงไม่มีรอบเปิดถัดไปให้บอก ต้องเป็น null ไม่ใช่วันที่มั่ว
   check('ปิดทุกวัน = ไม่มีรอบเปิดถัดไป', closed.body?.pausedUntil === null);
 
@@ -1208,7 +1208,7 @@ async function storeHoursChecks(
   const reopened = await call('PATCH', `/merchant/restaurants/${shopId}/hours`, {
     hours: openAllWeek,
   }, ownerToken);
-  check('ตั้งเปิดทั้งสัปดาห์แล้วกลับมารับออร์เดอร์', reopened.body?.isAcceptingOrders === true);
+  check('ตั้งเปิดทั้งสัปดาห์แล้วกลับมารับออเดอร์', reopened.body?.isAcceptingOrders === true);
 
   /** ยิงใบเดิมซ้ำหลังเปิด ข้อนี้คือสิ่งที่ทำให้ 400 ข้างบนแปลว่านอกเวลาจริง */
   const allowed = await call('POST', '/orders', {
@@ -1233,7 +1233,7 @@ async function storeHoursChecks(
   check('พักนานเกินเพดาน ทำไม่ได้', tooLong.status === 400, `ได้ ${tooLong.status}`);
 
   const paused = await call('POST', `/merchant/restaurants/${shopId}/pause`, { minutes: 30 }, ownerToken);
-  check('พักรับออร์เดอร์ได้', paused.status === 201 && paused.body?.isAcceptingOrders === false);
+  check('พักรับออเดอร์ได้', paused.status === 201 && paused.body?.isAcceptingOrders === false);
   // การพักไม่ใช่การปิดร้าน สวิตช์ต้องยังเปิดอยู่ ไม่งั้นครบเวลาแล้วจะไม่กลับมาเอง
   check('พักแล้วสวิตช์ร้านยังเปิดอยู่', paused.body?.isOpen === true);
 
@@ -1245,7 +1245,7 @@ async function storeHoursChecks(
   check('ระหว่างพัก สั่งไม่ได้', whilePaused.status === 400, `ได้ ${whilePaused.status}`);
 
   const resumed = await call('POST', `/merchant/restaurants/${shopId}/pause`, { minutes: 0 }, ownerToken);
-  check('กลับมารับออร์เดอร์ได้', resumed.body?.pausedUntil === null && resumed.body?.isAcceptingOrders === true);
+  check('กลับมารับออเดอร์ได้', resumed.body?.pausedUntil === null && resumed.body?.isAcceptingOrders === true);
 
   const strangerHours = await call('PATCH', `/merchant/restaurants/${shopId}/hours`, {
     hours: closedToday,
@@ -1263,7 +1263,7 @@ async function rejectReasonChecks(
   menuItemId: string,
   choiceId: string,
 ) {
-  console.log('\nปฏิเสธออร์เดอร์พร้อมเหตุผล (M12)');
+  console.log('\nปฏิเสธออเดอร์พร้อมเหตุผล (M12)');
 
   const place = async () => {
     // พร้อมเพย์ = จ่ายแล้วตั้งแต่สั่ง จึงทดสอบการคืนเงินอัตโนมัติตอนถูกปฏิเสธได้ด้วย
@@ -1556,7 +1556,7 @@ async function main() {
   check('ค่าอาหารคิดจากเมนูในฐาน ไม่ใช่จากที่แอปส่ง', placed.body?.foodTotal === 13000, `ได้ ${placed.body?.foodTotal}`);
   check('ค่าส่งกับค่าบริการแยกบรรทัด', placed.body?.deliveryFee === 1500 && placed.body?.serviceFee === 500);
   check('ชื่อรายการมีตัวเลือกต่อท้ายให้ร้านเห็น', /ไข่ดาว/.test(placed.body?.items?.[0]?.name ?? ''));
-  check('เลขที่ออร์เดอร์อ่านออก ไม่ใช่ uuid', /^WD-[23456789A-HJ-NP-Z]{6}$/.test(placed.body?.reference ?? ''));
+  check('เลขที่ออเดอร์อ่านออก ไม่ใช่ uuid', /^WD-[23456789A-HJ-NP-Z]{6}$/.test(placed.body?.reference ?? ''));
   check('สั่งเงินสด = ยังไม่จ่าย', placed.body?.paymentStatus === 'pending');
 
   // แอปที่ถูกแก้ส่งราคาปลอมมาต้องไม่มีผล เพราะเซิร์ฟเวอร์ไม่เคยอ่านช่องราคาจาก body
@@ -1595,7 +1595,7 @@ async function main() {
 
   // มาลีเป็นเจ้าของครัวมาลี จึง ต้อง เห็นออร์เดอร์ที่เข้าร้านตัวเอง (คิวออร์เดอร์ของร้าน)
   const ownerPeek = await call('GET', `/orders/${placed.body.id}`, undefined, maleeToken);
-  check('เจ้าของร้านเห็นออร์เดอร์ที่เข้าร้านตัวเอง', ownerPeek.status === 200, `ได้ ${ownerPeek.status}`);
+  check('เจ้าของร้านเห็นออเดอร์ที่เข้าร้านตัวเอง', ownerPeek.status === 200, `ได้ ${ownerPeek.status}`);
 
   // ส่วนคนที่ไม่เกี่ยวอะไรเลยต้องไม่เห็น และตอบ 404 ไม่ใช่ 403 403 เป็นการยืนยันว่ามีออร์เดอร์นี้อยู่
   const strangerToken = riderLogin.body.token as string;
@@ -1606,19 +1606,19 @@ async function main() {
 
   /** `delivered` เขียน ledger จริง ถ้าใครก็กดได้ จะสร้างรายการบัญชีของออร์เดอร์คนอื่นได้ */
   const byCustomer = await call('PATCH', `/orders/${placed.body.id}/status`, { status: 'accepted' }, token);
-  check('ลูกค้ารับออร์เดอร์แทนร้านไม่ได้', byCustomer.status === 403, `ได้ ${byCustomer.status}`);
+  check('ลูกค้ารับออเดอร์แทนร้านไม่ได้', byCustomer.status === 403, `ได้ ${byCustomer.status}`);
 
   const byStranger = await call(
     'PATCH', `/orders/${placed.body.id}/status`, { status: 'accepted' }, strangerToken,
   );
   check('คนที่ไม่เกี่ยวข้องเปลี่ยนสถานะไม่ได้ (404 ไม่ใช่ 403)', byStranger.status === 404, `ได้ ${byStranger.status}`);
 
-  console.log('\nคิวออร์เดอร์ฝั่งร้าน (product-spec §8 อัตราการรับออร์เดอร์ > 95%)');
+  console.log('\nคิวออเดอร์ฝั่งร้าน (product-spec §8 อัตราการรับออเดอร์ > 95%)');
 
   const queue = await call('GET', '/merchant/orders', undefined, maleeToken);
-  check('ร้านดึงคิวออร์เดอร์ของตัวเองได้', queue.status === 200, JSON.stringify(queue.body));
+  check('ร้านดึงคิวออเดอร์ของตัวเองได้', queue.status === 200, JSON.stringify(queue.body));
   const queued = queue.body?.find((o: any) => o.id === placed.body.id);
-  check('ออร์เดอร์ใหม่โผล่ในคิวร้าน', !!queued);
+  check('ออเดอร์ใหม่โผล่ในคิวร้าน', !!queued);
   check('คิวเรียงเก่าไปใหม่ ใบที่รอนานสุดอยู่บน', queue.body.every((o: any, i: number) =>
     i === 0 || queue.body[i - 1].createdAt <= o.createdAt));
   check('ครัวเห็นชื่อรายการพร้อมตัวเลือกที่ลูกค้าเลือก', /ไข่ดาว/.test(queued?.items?.[0]?.name ?? ''));
@@ -1643,7 +1643,7 @@ async function main() {
   check('รายชื่อร้านมีแต่ร้านของตัวเอง', shops.body[0]?.name === 'ครัวมาลี');
 
   const closeShop = await call('PATCH', `/merchant/restaurants/${malee.id}/open`, { isOpen: false }, maleeToken);
-  check('ร้านปิดรับออร์เดอร์เองได้', closeShop.status === 200 && closeShop.body?.isOpen === false);
+  check('ร้านปิดรับออเดอร์เองได้', closeShop.status === 200 && closeShop.body?.isOpen === false);
   const reopen = await call('PATCH', `/merchant/restaurants/${malee.id}/open`, { isOpen: true }, maleeToken);
   check('ร้านเปิดกลับได้', reopen.status === 200 && reopen.body?.isOpen === true);
 
@@ -1655,7 +1655,7 @@ async function main() {
   const pendingShop = myShops.body?.find((r: any) => r.name === 'ร้านรออนุมัติ');
   check('ร้านที่รออนุมัติยังอยู่ในรายชื่อ เพื่อให้จอบอกสถานะได้', !!pendingShop && pendingShop.isApproved === false);
   const openPending = await call('PATCH', `/merchant/restaurants/${pendingShop?.id}/open`, { isOpen: true }, token);
-  check('ร้านที่ยังไม่อนุมัติเปิดรับออร์เดอร์ไม่ได้', openPending.status === 404, `ได้ ${openPending.status}`);
+  check('ร้านที่ยังไม่อนุมัติเปิดรับออเดอร์ไม่ได้', openPending.status === 404, `ได้ ${openPending.status}`);
 
   console.log('\nแก้เมนูฝั่งร้าน');
 
@@ -1851,7 +1851,7 @@ async function supportTicketChecks(
     subject: 'อาหารมาไม่ครบ',
     body: 'สั่งสองจาน ได้จานเดียว',
   }, customerToken);
-  check('ลูกค้าเปิดตั๋วผูกออร์เดอร์ของตัวเองได้', opened.status === 201, JSON.stringify(opened.body));
+  check('ลูกค้าเปิดตั๋วผูกออเดอร์ของตัวเองได้', opened.status === 201, JSON.stringify(opened.body));
   const ticketId = opened.body?.id as string;
   createdTicketIds.push(ticketId);
 
@@ -1864,7 +1864,7 @@ async function supportTicketChecks(
   const stolen = await call('POST', '/support/tickets', {
     orderId, kind: 'order_problem', subject: 'ขอดูใบนี้หน่อย', body: 'อยากรู้',
   }, riderToken);
-  check('ผูกออร์เดอร์ของคนอื่นไม่ได้ และตอบ 404 ไม่ยืนยันว่ามีใบนี้อยู่', stolen.status === 404,
+  check('ผูกออเดอร์ของคนอื่นไม่ได้ และตอบ 404 ไม่ยืนยันว่ามีใบนี้อยู่', stolen.status === 404,
     `ได้ ${stolen.status}`);
 
   const mine = await call('GET', '/support/tickets', undefined, customerToken);
@@ -1937,7 +1937,7 @@ async function leaveAtDoorChecks(
   }, customerToken);
   createdOrderIds.push(placed.body?.id);
   check('สั่งพร้อมคำขอวางหน้าประตูได้', placed.status === 201, JSON.stringify(placed.body));
-  check('คำขอถูกบันทึกบนออร์เดอร์', placed.body?.leaveAtDoor === true);
+  check('คำขอถูกบันทึกบนออเดอร์', placed.body?.leaveAtDoor === true);
 
   const orderId = placed.body?.id as string;
 

@@ -658,7 +658,7 @@ export function createMockRepos(): Repos {
         await delay();
         const me = requireLogin();
         const o = orders.find((x) => x.id === id);
-        if (!o) throw new Error(`ไม่พบออร์เดอร์ ${id}`);
+        if (!o) throw new Error(`ไม่พบออเดอร์ ${id}`);
         assertTransition(o.status, status); // โยน InvalidTransitionError ถ้าข้ามขั้น
 
         /** R11 ไรเดอร์ปิดงานต้องกรอกรหัสสี่หลักที่ลูกค้าเห็นบนจอติดตามให้ตรง */
@@ -675,7 +675,7 @@ export function createMockRepos(): Repos {
         const shopOfOrder = restaurants.find((r) => r.id === o.restaurantId);
         const byRestaurant = shopOfOrder?.ownerUserId === me.id;
         if (status === 'cancelled' && byRestaurant && !proof?.reason) {
-          throw new Error('ต้องเลือกเหตุผลที่ปฏิเสธออร์เดอร์');
+          throw new Error('ต้องเลือกเหตุผลที่ปฏิเสธออเดอร์');
         }
 
         o.status = status;
@@ -709,7 +709,7 @@ export function createMockRepos(): Repos {
       async payWithPromptPay(orderId) {
         await delay();
         const o = orders.find((x) => x.id === orderId);
-        if (!o) throw new Error(`ไม่พบออร์เดอร์ ${orderId}`);
+        if (!o) throw new Error(`ไม่พบออเดอร์ ${orderId}`);
         // ตรวจซ้ำที่ชั้น repo ไม่ใช่เชื่อว่าจอซ่อนปุ่มไว้แล้ว ของจริงต้องเป็นเซิร์ฟเวอร์ที่ตัดสิน
         if (!canPayNowWithPromptPay(o)) throw new Error('payment.error.cannotSwitch');
         o.paymentMethod = 'promptpay';
@@ -722,16 +722,16 @@ export function createMockRepos(): Repos {
         await delay();
         const me = requireLogin();
         const o = orders.find((x) => x.id === orderId);
-        if (!o) throw new Error('ไม่พบออร์เดอร์นี้');
-        if (o.customerId !== me.id) throw new Error('ให้ทิปได้เฉพาะออร์เดอร์ของตัวเอง');
+        if (!o) throw new Error('ไม่พบออเดอร์นี้');
+        if (o.customerId !== me.id) throw new Error('ให้ทิปได้เฉพาะออเดอร์ของตัวเอง');
         if (o.status !== 'delivered') throw new Error('ให้ทิปได้หลังจากได้รับอาหารแล้ว');
-        if (!o.riderId) throw new Error('ออร์เดอร์นี้ไม่มีไรเดอร์ให้ทิป');
-        if (o.tipSatang > 0) throw new Error('ออร์เดอร์นี้ให้ทิปไปแล้ว');
+        if (!o.riderId) throw new Error('ออเดอร์นี้ไม่มีไรเดอร์ให้ทิป');
+        if (o.tipSatang > 0) throw new Error('ออเดอร์นี้ให้ทิปไปแล้ว');
         if (!Number.isInteger(amountSatang) || amountSatang <= 0) {
           throw new Error('ยอดทิปต้องเป็นจำนวนเต็มสตางค์ที่มากกว่าศูนย์');
         }
         if (amountSatang > MAX_TIP_SATANG) {
-          throw new Error(`ทิปได้สูงสุด ${MAX_TIP_SATANG / 100} บาทต่อออร์เดอร์`);
+          throw new Error(`ทิปได้สูงสุด ${MAX_TIP_SATANG / 100} บาทต่อออเดอร์`);
         }
 
         o.tipSatang = amountSatang;
@@ -869,7 +869,7 @@ export function createMockRepos(): Repos {
         const me = requireLogin();
         const shop = restaurants.find((r) => r.id === restaurantId && r.ownerUserId === me.id);
         if (!shop) throw new Error('ไม่พบร้านนี้');
-        if (!shop.isApproved && isOpen) throw new Error('ร้านนี้ยังรออนุมัติ เปิดรับออร์เดอร์ไม่ได้');
+        if (!shop.isApproved && isOpen) throw new Error('ร้านนี้ยังรออนุมัติ เปิดรับออเดอร์ไม่ได้');
         shop.isOpen = isOpen;
         // กดเปิดร้านคือการล้างการพักด้วย ไม่งั้นกดเปิดแล้วยังปิดอยู่โดยไม่รู้ว่าเพราะอะไร
         if (isOpen) shopPausedUntil.delete(shop.id);
@@ -957,13 +957,13 @@ export function createMockRepos(): Repos {
         const me = requireLogin();
         const state = riderState(me.id);
 
-        /** mock ไม่มีเครื่องจ่ายงานจริง จำลองว่า "ออนไลน์อยู่และมีออร์เดอร์ที่ร้านรับแล้ว */
+        /** mock ไม่มีเครื่องจ่ายงานจริง จำลองว่า "ออนไลน์อยู่และมีออเดอร์ที่ร้านรับแล้ว */
         const candidate = state.isOnline
           ? orders.find(
               (o) =>
                 !o.riderId &&
                 (o.status === 'accepted' || o.status === 'preparing') &&
-                // §4.3 ไม่เสนอออร์เดอร์ที่ไรเดอร์คนนี้สั่งเอง
+                // §4.3 ไม่เสนอออเดอร์ที่ไรเดอร์คนนี้สั่งเอง
                 o.customerId !== me.id &&
                 // ผ่านไปแล้วให้ "ข้ามไปใบถัดไป" ไม่ใช่หยุดเสนอทั้งหมด (ตรงกับ tick() ฝั่งเซิร์ฟเวอร์)
                 !state.declined.has(o.id),
@@ -1032,8 +1032,8 @@ export function createMockRepos(): Repos {
         const order = orders.find((o) => o.id === orderId);
         if (!order) throw new Error('ไม่พบงานนี้');
         if (order.riderId) throw new Error('งานนี้มีคนรับไปแล้ว');
-        // product-spec §4.3 ไรเดอร์รับงานออร์เดอร์ที่ตัวเองสั่งไม่ได้
-        if (order.customerId === me.id) throw new Error('รับงานออร์เดอร์ที่ตัวเองสั่งไม่ได้');
+        // product-spec §4.3 ไรเดอร์รับงานออเดอร์ที่ตัวเองสั่งไม่ได้
+        if (order.customerId === me.id) throw new Error('รับงานออเดอร์ที่ตัวเองสั่งไม่ได้');
         order.riderId = me.id;
         return toRiderJob(order);
       },
@@ -1156,7 +1156,7 @@ export function createMockRepos(): Repos {
         };
       },
 
-      /** R9 แจ้งปัญหาแล้ว สถานะออร์เดอร์ต้องไม่ขยับ ไรเดอร์ไม่ใช่คนตัดสิน */
+      /** R9 แจ้งปัญหาแล้ว สถานะออเดอร์ต้องไม่ขยับ ไรเดอร์ไม่ใช่คนตัดสิน */
       async reportIssue(input) {
         await delay();
         const me = requireLogin();
@@ -1283,9 +1283,9 @@ export function createMockRepos(): Repos {
         await delay();
         const me = requireLogin();
         const order = orders.find((o) => o.id === input.orderId && o.customerId === me.id);
-        if (!order) throw new Error('ไม่พบออร์เดอร์นี้');
+        if (!order) throw new Error('ไม่พบออเดอร์นี้');
         if (refundCases.some((c) => c.orderId === order.id && (c.status === 'open' || c.status === 'auto_verified'))) {
-          throw new Error('ออร์เดอร์นี้มีเรื่องที่กำลังตรวจอยู่แล้ว');
+          throw new Error('ออเดอร์นี้มีเรื่องที่กำลังตรวจอยู่แล้ว');
         }
 
         /** ตรรกะการตรวจอัตโนมัติจริงอยู่ฝั่งเซิร์ฟเวอร์ (refunds/autoVerify.ts) */
@@ -1568,7 +1568,7 @@ export function createMockRepos(): Repos {
         };
       },
 
-      /** จอเฝ้าออร์เดอร์ (design AD2) กรองด้วยกฎชุดเดียวกับเซิร์ฟเวอร์ (`src/lib/adminOrders`) */
+      /** จอเฝ้าออเดอร์ (design AD2) กรองด้วยกฎชุดเดียวกับเซิร์ฟเวอร์ (`src/lib/adminOrders`) */
       async orders(filter) {
         await delay();
         requireLogin();
@@ -1806,7 +1806,7 @@ export function createMockRepos(): Repos {
         const me = requireLogin();
         const { order, ownerId } = chatPartiesOf(orderId);
 
-        // ตอบเหมือนไม่มีห้องนี้ทุกกรณี ไม่ยืนยันว่าออร์เดอร์ใบนี้มีอยู่จริงให้คนที่ไม่เกี่ยว
+        // ตอบเหมือนไม่มีห้องนี้ทุกกรณี ไม่ยืนยันว่าออเดอร์ใบนี้มีอยู่จริงให้คนที่ไม่เกี่ยว
         if (!chatCanRead(me.id, channel, order, ownerId)) throw new Error('ไม่พบห้องแชทนี้');
 
         const peerId = channel === 'customer_rider'
@@ -1834,7 +1834,7 @@ export function createMockRepos(): Repos {
         const { order, ownerId } = chatPartiesOf(orderId);
         if (!chatCanRead(me.id, channel, order, ownerId)) throw new Error('ไม่พบห้องแชทนี้');
         if (order.status === 'delivered' || order.status === 'cancelled') {
-          throw new Error('ออร์เดอร์นี้จบแล้ว ส่งข้อความไม่ได้');
+          throw new Error('ออเดอร์นี้จบแล้ว ส่งข้อความไม่ได้');
         }
         const text = body.trim();
         if (!text) throw new Error('พิมพ์ข้อความก่อนส่ง');
@@ -1855,12 +1855,12 @@ export function createMockRepos(): Repos {
         await delay();
         const me = requireLogin();
         const order = orders.find((o) => o.id === orderId);
-        if (!order) throw new Error('ไม่พบออร์เดอร์นี้');
+        if (!order) throw new Error('ไม่พบออเดอร์นี้');
 
         // กติกาสามข้อเดียวกับ reviews/eligibility.ts ฝั่งเซิร์ฟเวอร์ คะแนนที่ปั้มได้ไม่มีความหมาย
-        if (order.customerId !== me.id) throw new Error('รีวิวได้เฉพาะออร์เดอร์ของตัวเอง');
+        if (order.customerId !== me.id) throw new Error('รีวิวได้เฉพาะออเดอร์ของตัวเอง');
         if (order.status !== 'delivered') throw new Error('รีวิวได้หลังจากได้รับอาหารแล้ว');
-        if (reviewList.some((v) => v.orderId === orderId)) throw new Error('ออร์เดอร์นี้รีวิวไปแล้ว');
+        if (reviewList.some((v) => v.orderId === orderId)) throw new Error('ออเดอร์นี้รีวิวไปแล้ว');
 
         if (!Number.isInteger(input.restaurantRating)
           || input.restaurantRating < 1 || input.restaurantRating > 5) {
@@ -1915,8 +1915,8 @@ export function createMockRepos(): Repos {
         }
         if (input.orderId) {
           const order = orders.find((o) => o.id === input.orderId);
-          // ผูกออร์เดอร์ของคนอื่นไม่ได้ ไม่งั้นอ่านรายละเอียดใบนั้นจากคำตอบแอดมินได้
-          if (!order || order.customerId !== me.id) throw new Error('ไม่พบออร์เดอร์นี้');
+          // ผูกออเดอร์ของคนอื่นไม่ได้ ไม่งั้นอ่านรายละเอียดใบนั้นจากคำตอบแอดมินได้
+          if (!order || order.customerId !== me.id) throw new Error('ไม่พบออเดอร์นี้');
         }
 
         const id = `tk-${++seq}`;
@@ -2009,7 +2009,7 @@ export function createMockRepos(): Repos {
         requireSuper();
         return zoneList.map((z) => ({
           ...z,
-          /** mock ไม่ผูกออร์เดอร์กับโซน (ของจริงใช้ `orders.zone_id`) ตัวเลขรายโซนจึงเป็น 0 จริง ๆ */
+          /** mock ไม่ผูกออเดอร์กับโซน (ของจริงใช้ `orders.zone_id`) ตัวเลขรายโซนจึงเป็น 0 จริง ๆ */
           liveOrders: 0,
           ridersOnline: 0,
           gmvSatang: 0,

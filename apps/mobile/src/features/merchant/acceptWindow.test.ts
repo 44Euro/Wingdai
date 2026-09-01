@@ -7,10 +7,10 @@ import {
 const at = (isoOffsetSeconds: number, now: number) =>
   new Date(now - isoOffsetSeconds * 1000).toISOString();
 
-describe('นับถอยหลังให้ร้านกดรับออร์เดอร์', () => {
+describe('นับถอยหลังให้ร้านกดรับออเดอร์', () => {
   const now = Date.UTC(2026, 6, 30, 12, 0, 0);
 
-  it('ออร์เดอร์ที่เพิ่งเข้ามาได้เวลาเต็ม', () => {
+  it('ออเดอร์ที่เพิ่งเข้ามาได้เวลาเต็ม', () => {
     expect(secondsLeftToAccept(at(0, now), now)).toBe(ACCEPT_WINDOW_SECONDS);
   });
 

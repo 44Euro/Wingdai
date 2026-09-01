@@ -52,9 +52,9 @@ async function main() {
     ['somchai', 'malee', 'rider_ann', 'admin_root'].map(login),
   );
 
-  const existing = expect('อ่านออร์เดอร์เดิม', await call('GET', '/orders', undefined, customer));
+  const existing = expect('อ่านออเดอร์เดิม', await call('GET', '/orders', undefined, customer));
   if (existing.length > 0) {
-    console.log(`มีออร์เดอร์อยู่แล้ว ${existing.length} ใบ ไม่ทำอะไรต่อ`);
+    console.log(`มีออเดอร์อยู่แล้ว ${existing.length} ใบ ไม่ทำอะไรต่อ`);
     return;
   }
 
@@ -145,10 +145,10 @@ async function main() {
 
   expect('ไรเดอร์ปิดรับงาน', await call('POST', '/rider/online', { isOnline: false }, rider));
 
-  console.log('ออร์เดอร์สาธิต 4 ใบ (รอร้านรับ · กำลังทำ · กำลังส่ง · ส่งถึงแล้ว) พร้อมรีวิวและตั๋วซัพพอร์ต 1 ใบ');
+  console.log('ออเดอร์สาธิต 4 ใบ (รอร้านรับ · กำลังทำ · กำลังส่ง · ส่งถึงแล้ว) พร้อมรีวิวและตั๋วซัพพอร์ต 1 ใบ');
 }
 
 main().catch((error) => {
-  console.error('สร้างออร์เดอร์สาธิตไม่สำเร็จ:', (error as Error).message);
+  console.error('สร้างออเดอร์สาธิตไม่สำเร็จ:', (error as Error).message);
   process.exit(1);
 });

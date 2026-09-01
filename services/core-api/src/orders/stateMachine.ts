@@ -20,7 +20,7 @@ export function canTransition(from: OrderStatus, to: OrderStatus): boolean {
 export function assertTransition(from: OrderStatus, to: OrderStatus): void {
   if (!canTransition(from, to)) {
     throw new BadRequestException({
-      message: `เปลี่ยนสถานะออร์เดอร์จาก "${from}" ไป "${to}" ไม่ได้`,
+      message: `เปลี่ยนสถานะออเดอร์จาก "${from}" ไป "${to}" ไม่ได้`,
     });
   }
 }

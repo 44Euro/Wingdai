@@ -12,7 +12,7 @@ const tip = (over: Partial<Parameters<typeof assertCanTip>[0]> = {}) =>
   assertCanTip({ viewerId: 'u1', order: delivered, amountSatang: 2_000, ...over });
 
 describe('ให้ทิปได้เมื่อไหร่ (design C11)', () => {
-  it('ลูกค้าเจ้าของออร์เดอร์ที่ส่งถึงแล้ว ให้ทิปได้', () => {
+  it('ลูกค้าเจ้าของออเดอร์ที่ส่งถึงแล้ว ให้ทิปได้', () => {
     expect(() => tip()).not.toThrow();
   });
 
@@ -33,7 +33,7 @@ describe('ให้ทิปได้เมื่อไหร่ (design C11)', 
   });
 
   /** ไม่มีไรเดอร์ = เงินจะค้างในบัญชีบริษัทโดยไม่มีเจ้าของ */
-  it('ออร์เดอร์ที่ไม่มีไรเดอร์ ให้ทิปไม่ได้', () => {
+  it('ออเดอร์ที่ไม่มีไรเดอร์ ให้ทิปไม่ได้', () => {
     expect(() => tip({ order: { ...delivered, riderId: null } })).toThrow(/ไม่มีไรเดอร์/);
   });
 

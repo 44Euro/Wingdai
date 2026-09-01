@@ -146,7 +146,7 @@ async function main() {
     ])}`;
   });
 
-  console.log('\nกฎออร์เดอร์ (product-spec §4.3 · §6.1)');
+  console.log('\nกฎออเดอร์ (product-spec §4.3 · §6.1)');
 
   await mustAllow('ลูกค้าทั่วไปสั่งร้านอื่นได้', async (tx) => {
     const s = await seed(tx);
@@ -158,7 +158,7 @@ async function main() {
     await tx`insert into orders ${tx(order(s, { customer_id: s.owner }))}`;
   });
 
-  await mustReject('ไรเดอร์รับงานออร์เดอร์ที่ตัวเองสั่งไม่ได้', 'orders_rider_is_not_customer', async (tx) => {
+  await mustReject('ไรเดอร์รับงานออเดอร์ที่ตัวเองสั่งไม่ได้', 'orders_rider_is_not_customer', async (tx) => {
     const s = await seed(tx);
     await tx`insert into orders ${tx(order(s, { rider_id: s.customer }))}`;
   });

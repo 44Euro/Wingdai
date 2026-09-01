@@ -80,7 +80,7 @@ export function MerchantOrdersScreen({ navigation }: Props) {
                     {t('merchant.orders.prepTime', { minutes: shop.prepTimeMinutes })}
                   </Text>
                 </View>
-                {/* ปิดร้านคือ "หยุดรับออร์เดอร์ใหม่" ไม่ใช่ทิ้งใบที่ค้างอยู่ */}
+                {/* ปิดร้านคือ "หยุดรับออเดอร์ใหม่" ไม่ใช่ทิ้งใบที่ค้างอยู่ */}
                 <Toggle
                   testID="toggle-shop-open"
                   value={shop.isOpen}
