@@ -27,9 +27,14 @@ export function Input({
         }}
         style={[
           {
-            backgroundColor: tokens.bgRaised,
+            /**
+             * พื้นจมกว่าการ์ดที่มันวางอยู่ข้างใน ไม่ใช่สีเดียวกัน
+             * และมีขอบตลอดเวลา ไม่ใช่โผล่ตอนโฟกัสอย่างเดียว
+             * ของเดิมพึ่งเงาให้เห็นขอบเขต ซึ่งเป็นสีดำจางจนโหมดมืดมองไม่เห็นทั้งช่อง
+             */
+            backgroundColor: tokens.bgSunken,
             borderWidth: 1.6,
-            borderColor: focused ? tokens.brandAccent : 'transparent',
+            borderColor: focused ? tokens.brandAccent : tokens.borderSubtle,
             borderRadius: p.radius.md,
             paddingHorizontal: p.space.lg,
             paddingVertical: 14,
