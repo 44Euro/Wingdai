@@ -253,16 +253,4 @@ CI ยังรันท่อข้อมูลสาธิตทั้งเ�
 ไฟล์ไหนใครถ่ายและใช้สัญญาอนุญาตอะไร ดูได้ที่ [`docs/photo-credits.md`](docs/photo-credits.md)
 ซึ่งสร้างด้วย `npm run db:photos`
 
----
 
-## โครงรีโป
-
-```
-apps/mobile           React Native + Expo — stack แยกตามบทบาท ชิ้นส่วน UI และภาษา
-services/core-api     NestJS — auth, catalog, orders, ledger, dispatch, refunds, admin
-docs/design           สเปกของ design system
-docs/product-spec.md  กติกาธุรกิจและวิศวกรรมที่โค้ดทั้งหมดเขียนตาม
-```
-
-คอมเมนต์ในโค้ดเป็นภาษาไทย และเขียนอธิบาย *เหตุผล* ที่กติกาข้อนั้นมีอยู่
-ไม่ใช่เล่าซ้ำว่าบรรทัดนั้นทำอะไร เพราะกติกาพวกนี้ส่วนใหญ่ถ้าใครทำพัง จะเสียเงินหรือเสียความเชื่อใจ
