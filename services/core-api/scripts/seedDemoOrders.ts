@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { withRetry } from './fetchRetry';
+import { createProofPath } from './proofPath';
 
 /**
  * ออเดอร์ตั้งต้นของฐานสาธิต ยิงผ่าน HTTP จริงแทนการ insert ตรง
@@ -110,17 +111,13 @@ async function main() {
   await toRider(done);
   const view = expect('ลูกค้าเปิดใบที่สี่', await call('GET', `/orders/${done}`, undefined, customer));
   /** ปิดงานต้องมีทั้งรูปและรหัสสี่หลัก (design R11) ขอเส้นทางในบักเก็ตก่อน ไม่ได้ตั้งชื่อเอง */
-  const proof = expect(
-    'ขอที่วางรูปยืนยันส่ง',
-    await call('POST', '/storage/delivery-proof/sign-upload', { orderId: done, ext: 'jpg' }, rider),
-    [200, 201],
-  );
+  const proofPath = await createProofPath(call, (l) => console.log(l))(done, rider!);
   expect(
     'ไรเดอร์ปิดงาน',
     await call('PATCH', `/orders/${done}/status`, {
       status: 'delivered',
       deliveryPin: view.deliveryPin,
-      photoPath: proof.path,
+      photoPath: proofPath,
     }, rider),
   );
   expect(

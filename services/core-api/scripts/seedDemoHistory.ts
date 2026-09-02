@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { withRetry } from './fetchRetry';
 import { mapLimit } from './mapLimit';
 import { runQueue, assertEnough } from './seedRun';
+import { createProofPath } from './proofPath';
 import { createScriptClient } from '../src/db/client';
 
 /**
@@ -25,9 +26,6 @@ const PASSWORD = 'wingdai1234';
 function say(line: string) {
   process.stdout.write(`${line}\n`);
 }
-
-/** ประกาศนอก main เพราะ walk ถูกเรียกก่อนบรรทัดที่ประกาศตัวแปรใน main จะทำงาน (TDZ) */
-let storageOff = false;
 
 /** อ่านค่าตัวเลขจากธง เช่น --delivered=6 ตอนไล่บั๊กจะได้ไม่ต้องรอรอบเต็ม */
 function flag(name: string, fallback: number, whole = true): number {
@@ -204,6 +202,7 @@ async function main() {
    * แอดมินเป็นคนกดแทนร้านได้ตามสิทธิ์ที่ §6.3 ให้ไว้ จึงไม่ต้องล็อกอินเจ้าของร้านทีละคน
    */
   const admin = tokens.get('admin_root')!;
+  const proofPath = createProofPath(call, say);
 
   for (const o of placed.filter((x) => x.cancelled)) {
     expect('ทีมงานยกเลิก', await call('PATCH', `/orders/${o.id}/status`,
@@ -271,21 +270,6 @@ async function main() {
       await new Promise((r) => setTimeout(r, 500));
     }
     throw new Error(`ไม่มีใครรับใบ ${orderId} ทั้งรอบอัตโนมัติและการสั่งจ่ายเอง`);
-  }
-
-  /**
-   * ที่วางรูปยืนยันส่ง จุดเดียวในสคริปต์ที่ต้องมี Supabase Storage
-   * บน CI ที่รันกับฐานเปล่าไม่มีกุญแจให้ ใช้เส้นทางสังเคราะห์แทนแล้วเดินต่อได้
-   * เพราะ assertDeliveryProof ตรวจแค่ว่าเส้นทางไม่ว่าง ไม่ได้เช็คว่าไฟล์มีจริง
-   * และสคริปต์ก็ไม่เคยอัปไฟล์ขึ้นไปอยู่แล้ว เส้นทางที่เก็บลงฐานจึงชี้ไปที่ไฟล์ที่ไม่มีอยู่ทั้งสองทาง
-   */
-  async function proofPath(orderId: string, riderToken: string): Promise<string> {
-    if (storageOff) return `delivery-proof/${orderId}.jpg`;
-    const res = await call('POST', '/storage/delivery-proof/sign-upload', { orderId, ext: 'jpg' }, riderToken);
-    if ([200, 201].includes(res.status)) return res.body.path;
-    storageOff = true;
-    say(`  ไม่มี Supabase Storage (${res.status}) ใช้เส้นทางสังเคราะห์แทนตั้งแต่ใบนี้ไป`);
-    return `delivery-proof/${orderId}.jpg`;
   }
 
   async function walk(o: Placed, rider: string, riderToken: string, admin: string) {
