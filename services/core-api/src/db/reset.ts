@@ -7,13 +7,23 @@ const client = createScriptClient();
 /**
  * ตารางของแอปอยู่ใน schema `public` ล้วน ๆ ส่วน migration ของ drizzle กับตารางของ Supabase
  * อยู่คนละ schema จึงไม่โดน ตารางใหม่ที่เพิ่มทีหลังก็ถูกกวาดเองโดยไม่ต้องมาแก้ไฟล์นี้
+ *
+ * ยกเว้นตารางที่เป็นของ extension บน Supabase นั้น PostGIS อยู่ schema `extensions` จึงรอด
+ * แต่อิมเมจ postgis ที่ใช้ตอนรันในเครื่องกับใน CI ติดตั้งมาไว้ที่ `public` เลย
+ * ถ้ากวาดไปด้วยจะล้าง `spatial_ref_sys` เกลี้ยง แล้วคิวรีระยะทางทุกอันตอบ
+ * "Cannot find SRID (4326)" ทั้งที่ตาราง seed กลับมาครบดูเหมือนไม่มีอะไรผิด
  */
 async function tableNames(): Promise<string[]> {
   const rows = await client<{ table_name: string }[]>`
-    select table_name
-    from information_schema.tables
-    where table_schema = 'public' and table_type = 'BASE TABLE'
-    order by table_name`;
+    select c.relname as table_name
+    from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relkind = 'r'
+      and not exists (
+        select 1 from pg_depend d
+        where d.objid = c.oid and d.deptype = 'e'
+      )
+    order by c.relname`;
   return rows.map((r) => r.table_name);
 }
 
