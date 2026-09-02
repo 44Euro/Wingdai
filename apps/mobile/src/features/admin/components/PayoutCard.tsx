@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Button } from '../../../ui/Button';
@@ -12,7 +13,7 @@ import type { PendingRiderPayout } from '../../../data/types';
 
 /** คำขอถอนเงินหนึ่งใบ (design R12 product-spec §10 "ไรเดอร์ขอ แอดมินยืนยัน") */
 export function PayoutCard({ payout }: { payout: PendingRiderPayout }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { primitives: p } = useTheme();
   const decide = useDecideRiderPayout();
   const [reason, setReason] = useState('');
@@ -63,7 +64,7 @@ export function PayoutCard({ payout }: { payout: PendingRiderPayout }) {
         {/* เซิร์ฟเวอร์ตรวจยอดซ้ำตอนกดยืนยัน (§6.2) ไรเดอร์อาจรับงานเงินสดเพิ่มระหว่างที่ */}
         {decide.isError ? (
           <Text testID={`payout-error-${payout.id}`} variant="small" color="danger">
-            {(decide.error as Error).message}
+            {errorText(decide.error, t, i18n.language)}
           </Text>
         ) : null}
       </View>

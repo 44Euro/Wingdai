@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
@@ -23,7 +24,7 @@ const PAUSE_CHOICES = [15, 30, 60] as const;
 
 /** M11 เวลาเปิด-ปิดร้าน และพักรับออเดอร์ชั่วคราว */
 export function MerchantHoursScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
 
   const { data: shops = [] } = useMyRestaurants();
@@ -163,7 +164,7 @@ export function MerchantHoursScreen({ navigation, route }: Props) {
 
         {setHours.isError ? (
           <Text testID="hours-error" variant="small" color="danger">
-            {(setHours.error as Error).message}
+            {errorText(setHours.error, t, i18n.language)}
           </Text>
         ) : null}
 

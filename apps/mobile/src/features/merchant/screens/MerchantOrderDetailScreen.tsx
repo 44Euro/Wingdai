@@ -2,6 +2,7 @@ import React from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
@@ -17,7 +18,7 @@ type Props = NativeStackScreenProps<MerchantStackParamList, 'MerchantOrderDetail
 
 /** M2 รับ/ปฏิเสธออเดอร์ พร้อมนาฬิกานับถอยหลัง ⭐ */
 export function MerchantOrderDetailScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
 
   // อ่านจากคิวที่โหลดไว้แล้ว ไม่ยิงคำขอใหม่ จอนี้เปิดจากการ์ดในคิวเสมอ
@@ -188,7 +189,7 @@ export function MerchantOrderDetailScreen({ navigation, route }: Props) {
 
         {update.isError ? (
           <Text testID="order-action-error" variant="small" color="danger">
-            {(update.error as Error).message}
+            {errorText(update.error, t, i18n.language)}
           </Text>
         ) : null}
       </ScrollView>

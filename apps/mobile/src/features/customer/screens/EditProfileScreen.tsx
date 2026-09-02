@@ -50,8 +50,9 @@ export function EditProfileScreen({ navigation }: Props) {
     try {
       await changePassword({ currentPassword, newPassword });
       setCurrentPassword(''); setNewPassword(''); setPwDone(true);
-    } catch (e) {
-      setPwError((e as Error).message);
+    } catch {
+      // ข้อความจาก API เป็นไทยตายตัว ตั้งแอปเป็นอังกฤษแล้วจะโผล่มาไทยประโยคเดียว
+      setPwError(t('customer.editProfile.wrongPassword'));
     } finally {
       setPwBusy(false);
     }
@@ -62,8 +63,8 @@ export function EditProfileScreen({ navigation }: Props) {
     try {
       await repos.auth.requestOtp(newPhone.trim());
       setCodeSent(true);
-    } catch (e) {
-      setPhoneError((e as Error).message);
+    } catch {
+      setPhoneError(t('customer.editProfile.sendFailed'));
     } finally {
       setPhoneBusy(false);
     }
@@ -75,8 +76,8 @@ export function EditProfileScreen({ navigation }: Props) {
       const verificationToken = await repos.auth.verifyOtp(newPhone.trim(), code.trim());
       await changePhone({ phone: newPhone.trim(), verificationToken });
       setNewPhone(''); setCode(''); setCodeSent(false); setPhoneDone(true);
-    } catch (e) {
-      setPhoneError((e as Error).message);
+    } catch {
+      setPhoneError(t('customer.editProfile.codeWrong'));
     } finally {
       setPhoneBusy(false);
     }
@@ -94,8 +95,8 @@ export function EditProfileScreen({ navigation }: Props) {
     try {
       await updateProfile({ fullName: fullName.trim(), email: email.trim() || null });
       setSaved(true);
-    } catch (e) {
-      setError((e as Error).message);
+    } catch {
+      setError(t('customer.editProfile.saveFailed'));
     } finally {
       setSaving(false);
     }

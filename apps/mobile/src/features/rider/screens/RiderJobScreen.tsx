@@ -2,6 +2,7 @@ import React from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
@@ -16,7 +17,7 @@ type Props = NativeStackScreenProps<RiderStackParamList, 'RiderJob'>;
 
 /** R2 งานที่กำลังทำ: ไปรับที่ไหน ส่งที่ไหน ต้องเก็บเงินไหม */
 export function RiderJobScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
 
   const { data: status } = useRiderStatus();
@@ -133,7 +134,7 @@ export function RiderJobScreen({ navigation, route }: Props) {
 
         {advance.isError ? (
           <Text testID="job-action-error" variant="small" color="danger">
-            {(advance.error as Error).message}
+            {errorText(advance.error, t, i18n.language)}
           </Text>
         ) : null}
 

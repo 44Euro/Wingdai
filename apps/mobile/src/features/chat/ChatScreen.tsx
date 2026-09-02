@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../lib/errorText';
 import { useTheme } from '../../theme/ThemeProvider';
 import { Text } from '../../ui/Text';
 import { Input } from '../../ui/Field';
@@ -37,7 +38,7 @@ export function ChatScreen({
   isRiderView?: boolean;
   onBack: () => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const { data: thread } = useChatThread(orderId, channel);
   const send = useSendMessage(orderId, channel);
@@ -154,7 +155,7 @@ export function ChatScreen({
 
       {send.isError ? (
         <Text testID="chat-error" variant="small" color="danger" style={{ paddingHorizontal: p.space.screen }}>
-          {(send.error as Error).message}
+          {errorText(send.error, t, i18n.language)}
         </Text>
       ) : null}
     </SafeAreaView>

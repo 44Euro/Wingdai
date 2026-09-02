@@ -1,6 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Button } from '../../../ui/Button';
@@ -11,7 +12,7 @@ import type { RiderCashHolder } from '../../../data/types';
 
 /** ไรเดอร์ที่ถือเงินสดของบริษัทอยู่ (product-spec §6.2) */
 export function CashCard({ holder }: { holder: RiderCashHolder }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { primitives: p } = useTheme();
   const settle = useSettleRiderCash();
 
@@ -45,7 +46,7 @@ export function CashCard({ holder }: { holder: RiderCashHolder }) {
 
         {settle.isError ? (
           <Text testID="cash-settle-error" variant="small" color="danger">
-            {(settle.error as Error).message}
+            {errorText(settle.error, t, i18n.language)}
           </Text>
         ) : null}
       </View>

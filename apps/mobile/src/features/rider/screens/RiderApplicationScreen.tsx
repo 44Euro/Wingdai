@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
@@ -26,7 +27,7 @@ const EMPTY: RiderApplicationDraft = {
 
 /** R5 ใบสมัครไรเดอร์ (product-spec §7) */
 export function RiderApplicationScreen({ navigation }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const qc = useQueryClient();
 
@@ -269,7 +270,7 @@ export function RiderApplicationScreen({ navigation }: Props) {
 
         {submit.isError ? (
           <Text testID="apply-error" variant="small" color="danger" style={{ textAlign: 'center' }}>
-            {(submit.error as Error).message}
+            {errorText(submit.error, t, i18n.language)}
           </Text>
         ) : null}
       </ScrollView>

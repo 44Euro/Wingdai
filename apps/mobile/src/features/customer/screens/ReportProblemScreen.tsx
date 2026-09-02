@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, ScrollView, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import { useMutation } from '@tanstack/react-query';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
@@ -21,7 +22,7 @@ const REASONS: RefundReason[] = [
 
 /** ลูกค้าแจ้งปัญหาออเดอร์ (product-spec §6.4) */
 export function ReportProblemScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
 
   const [reason, setReason] = useState<RefundReason | null>(null);
@@ -118,7 +119,7 @@ export function ReportProblemScreen({ navigation, route }: Props) {
 
             {submit.isError ? (
               <Text testID="report-error" variant="small" color="danger">
-                {submit.error.message}
+                {errorText(submit.error, t, i18n.language)}
               </Text>
             ) : null}
           </>

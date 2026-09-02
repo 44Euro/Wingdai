@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
@@ -19,7 +20,7 @@ type Props = NativeStackScreenProps<RiderStackParamList, 'RiderPickup'>;
 /** R10 จุดรับอาหาร */
 export function RiderPickupScreen({ navigation, route }: Props) {
   const { orderId } = route.params;
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
 
   const { data: status } = useRiderStatus();
@@ -161,7 +162,7 @@ export function RiderPickupScreen({ navigation, route }: Props) {
 
         {advance.isError ? (
           <Text testID="pickup-error" variant="small" color="danger">
-            {(advance.error as Error).message}
+            {errorText(advance.error, t, i18n.language)}
           </Text>
         ) : null}
 

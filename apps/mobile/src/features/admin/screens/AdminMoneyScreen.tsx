@@ -2,6 +2,7 @@ import React from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Button } from '../../../ui/Button';
@@ -19,7 +20,7 @@ import { useMerchantPayouts, useDecideMerchantPayout } from '../hooks';
 
 /** AD5 + AD7 รวมเป็นแท็บเดียว "วันนี้เงินไปไหนบ้าง" */
 export function AdminMoneyScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
 
   const { data: refunds = [] } = useOpenRefunds();
@@ -139,7 +140,7 @@ export function AdminMoneyScreen() {
 
 /** ยอดค้างจ่ายของร้านหนึ่ง (design AD7) */
 function PayableCard({ payable }: { payable: RestaurantPayable }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { primitives: p } = useTheme();
   const settle = useSettleRestaurant();
 
@@ -167,7 +168,7 @@ function PayableCard({ payable }: { payable: RestaurantPayable }) {
 
         {settle.isError ? (
           <Text testID="payable-settle-error" variant="small" color="danger">
-            {(settle.error as Error).message}
+            {errorText(settle.error, t, i18n.language)}
           </Text>
         ) : null}
       </View>

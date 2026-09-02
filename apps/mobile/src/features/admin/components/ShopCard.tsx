@@ -1,6 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Button } from '../../../ui/Button';
@@ -10,7 +11,7 @@ import type { PendingRestaurant } from '../../../data/types';
 
 /** ร้านที่รอตรวจ (product-spec §4.3 §7) */
 export function ShopCard({ shop }: { shop: PendingRestaurant }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { primitives: p } = useTheme();
   const decide = useDecideRestaurant();
 
@@ -43,7 +44,7 @@ export function ShopCard({ shop }: { shop: PendingRestaurant }) {
 
         {decide.isError ? (
           <Text testID="shop-decide-error" variant="small" color="danger">
-            {(decide.error as Error).message}
+            {errorText(decide.error, t, i18n.language)}
           </Text>
         ) : null}
       </View>

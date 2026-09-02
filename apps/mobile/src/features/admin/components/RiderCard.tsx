@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Button } from '../../../ui/Button';
@@ -17,7 +18,7 @@ export function RiderCard({
   rider: PendingRider;
   onOpenDocuments: (accountId: string) => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { primitives: p } = useTheme();
   const decide = useDecideRider();
   const [reason, setReason] = useState('');
@@ -85,7 +86,7 @@ export function RiderCard({
 
         {decide.isError ? (
           <Text testID="rider-decide-error" variant="small" color="danger">
-            {(decide.error as Error).message}
+            {errorText(decide.error, t, i18n.language)}
           </Text>
         ) : null}
       </View>

@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { View, ScrollView, TextInput, Pressable, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
@@ -20,7 +21,7 @@ const PIN_LENGTH = 4;
 /** R11 ยืนยันส่ง */
 export function RiderProofScreen({ navigation, route }: Props) {
   const { orderId } = route.params;
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const { data: status } = useRiderStatus(false);
   const advance = useAdvanceJob();
@@ -203,7 +204,7 @@ export function RiderProofScreen({ navigation, route }: Props) {
 
         {advance.isError || uploadPhoto.isError ? (
           <Text testID="proof-error" variant="small" color="danger">
-            {((advance.error ?? uploadPhoto.error) as Error).message}
+            {errorText(advance.error ?? uploadPhoto.error, t, i18n.language)}
           </Text>
         ) : null}
 

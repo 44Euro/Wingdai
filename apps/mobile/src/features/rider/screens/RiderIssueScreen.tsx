@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, ScrollView, TextInput, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
@@ -21,7 +22,7 @@ const KINDS: RiderIssueKind[] = ['cannot_reach_customer', 'bad_address', 'accide
 /** R9 แจ้งปัญหาระหว่างส่ง */
 export function RiderIssueScreen({ navigation, route }: Props) {
   const { orderId } = route.params;
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const report = useReportIssue();
 
@@ -104,7 +105,7 @@ export function RiderIssueScreen({ navigation, route }: Props) {
 
         {report.isError ? (
           <Text testID="issue-error" variant="small" color="danger">
-            {(report.error as Error).message}
+            {errorText(report.error, t, i18n.language)}
           </Text>
         ) : null}
 

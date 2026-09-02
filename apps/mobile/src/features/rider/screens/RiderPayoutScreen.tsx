@@ -2,6 +2,7 @@ import React from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -23,7 +24,7 @@ type Props = CompositeScreenProps<
 
 /** R12 รายได้และการถอนเงิน */
 export function RiderPayoutScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const { data: balance, isLoading } = useRiderBalance();
   const requestPayout = useRequestPayout();
@@ -110,7 +111,7 @@ export function RiderPayoutScreen() {
 
             {requestPayout.isError ? (
               <Text testID="payout-error" variant="small" color="danger">
-                {(requestPayout.error as Error).message}
+                {errorText(requestPayout.error, t, i18n.language)}
               </Text>
             ) : null}
           </>

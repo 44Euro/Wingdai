@@ -1,6 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Button } from '../../../ui/Button';
@@ -11,7 +12,7 @@ import type { RefundCase } from '../../../data/types';
 
 /** §6.4 ต้องโชว์ "ข้อเสนอพร้อมเหตุผล" ไม่ใช่ปุ่มคืนเงินเปล่า ๆ */
 export function RefundCard({ refundCase }: { refundCase: RefundCase }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { primitives: p } = useTheme();
   const decide = useDecideRefund();
 
@@ -67,7 +68,7 @@ export function RefundCard({ refundCase }: { refundCase: RefundCase }) {
 
         {decide.isError ? (
           <Text testID="refund-decide-error" variant="small" color="danger">
-            {(decide.error as Error).message}
+            {errorText(decide.error, t, i18n.language)}
           </Text>
         ) : null}
       </View>

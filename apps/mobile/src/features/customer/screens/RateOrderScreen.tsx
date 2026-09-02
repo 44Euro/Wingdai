@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
@@ -22,7 +23,7 @@ const TIP_CHOICES = [1_000, 2_000, 4_000];
 
 /** ให้คะแนนออเดอร์ (design C11) */
 export function RateOrderScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const { orderId } = route.params;
 
@@ -104,13 +105,13 @@ export function RateOrderScreen({ navigation, route }: Props) {
 
         {write.isError ? (
           <Text testID="rate-error" variant="small" color="danger">
-            {(write.error as Error).message}
+            {errorText(write.error, t, i18n.language)}
           </Text>
         ) : null}
 
         {sendTip.isError ? (
           <Text testID="tip-error" variant="small" color="danger">
-            {(sendTip.error as Error).message}
+            {errorText(sendTip.error, t, i18n.language)}
           </Text>
         ) : null}
 

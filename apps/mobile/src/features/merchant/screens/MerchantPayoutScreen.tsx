@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
@@ -26,7 +27,7 @@ const TONE: Record<string, 'brand' | 'teal' | 'neutral'> = {
  * §2 วางรอบโอนอัตโนมัติไว้เฟส 2 จอนี้คือฉบับที่มีคนกด แต่ลงบัญชีแบบเดียวกัน
  */
 export function MerchantPayoutScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const { restaurantId } = route.params;
 
@@ -84,7 +85,7 @@ export function MerchantPayoutScreen({ navigation, route }: Props) {
             />
             {request.isError ? (
               <Text testID="payout-error" variant="small" color="danger">
-                {(request.error as Error).message}
+                {errorText(request.error, t, i18n.language)}
               </Text>
             ) : null}
             <Button

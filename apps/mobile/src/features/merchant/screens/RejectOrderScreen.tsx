@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
@@ -26,7 +27,7 @@ const REASONS: { key: CancelReason; icon: IconName }[] = [
 
 /** M12 ปฏิเสธออเดอร์พร้อมเหตุผล */
 export function RejectOrderScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
 
   const { data: queue = [] } = useMerchantOrders('queue');
@@ -89,7 +90,7 @@ export function RejectOrderScreen({ navigation, route }: Props) {
 
         {update.isError ? (
           <Text testID="reject-error" variant="small" color="danger">
-            {(update.error as Error).message}
+            {errorText(update.error, t, i18n.language)}
           </Text>
         ) : null}
 

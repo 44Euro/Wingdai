@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
@@ -21,7 +22,7 @@ const CUISINES: CuisineCategory[] = ['rice', 'noodle', 'somtam', 'drink', 'desse
 
 /** "เปิดร้านของคุณ" (product-spec §4.3) */
 export function OpenRestaurantScreen({ navigation }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const qc = useQueryClient();
 
@@ -218,7 +219,7 @@ export function OpenRestaurantScreen({ navigation }: Props) {
 
             {register.isError ? (
               <Text testID="open-error" variant="small" color="danger">
-                {(register.error as Error).message}
+                {errorText(register.error, t, i18n.language)}
               </Text>
             ) : null}
           </>

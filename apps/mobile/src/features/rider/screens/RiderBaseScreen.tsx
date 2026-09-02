@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
@@ -21,7 +22,7 @@ const RADIUS_OPTIONS = [1, 2, 3, 5] as const;
 
 /** R7 จุดตั้งทำงาน */
 export function RiderBaseScreen({ navigation }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const { data: status } = useRiderStatus(false);
   const { data: base, isLoading } = useWorkBase();
@@ -119,7 +120,7 @@ export function RiderBaseScreen({ navigation }: Props) {
 
             {save.isError ? (
               <Text testID="base-error" variant="small" color="danger">
-                {(save.error as Error).message}
+                {errorText(save.error, t, i18n.language)}
               </Text>
             ) : null}
 

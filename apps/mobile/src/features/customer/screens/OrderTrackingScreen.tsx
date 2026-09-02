@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
@@ -26,7 +27,7 @@ type Props = NativeStackScreenProps<CustomerStackParamList, 'OrderTracking'>;
 
 /** C6 แผนที่ + ไทม์ไลน์สถานะ + การ์ดร้าน + ยอดแยก 3 ก้อน */
 export function OrderTrackingScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const { data: order } = useOrder(route.params.orderId);
   const { data: restaurant } = useRestaurant(order?.restaurantId ?? '');
@@ -221,7 +222,7 @@ export function OrderTrackingScreen({ navigation, route }: Props) {
             )}
             {cancel.isError ? (
               <Text testID="cancel-error" variant="small" color="danger">
-                {(cancel.error as Error).message}
+                {errorText(cancel.error, t, i18n.language)}
               </Text>
             ) : null}
           </Card>

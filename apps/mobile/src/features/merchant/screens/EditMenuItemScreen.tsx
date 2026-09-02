@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
@@ -21,7 +22,7 @@ const toBaht = (satang: number) => String(satang / 100);
 /** M13 แก้เมนูที่มีอยู่แล้ว */
 export function EditMenuItemScreen({ navigation, route }: Props) {
   const { restaurantId, menuItemId } = route.params;
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
 
   const { data: menu = [] } = useMenu(restaurantId);
@@ -125,7 +126,7 @@ export function EditMenuItemScreen({ navigation, route }: Props) {
 
         {update.isError ? (
           <Text testID="edit-item-error" variant="small" color="danger">
-            {(update.error as Error).message}
+            {errorText(update.error, t, i18n.language)}
           </Text>
         ) : null}
 

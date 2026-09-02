@@ -2,6 +2,7 @@ import React from 'react';
 import { View, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -27,7 +28,7 @@ type Props = CompositeScreenProps<
 
 /** R1 จอหลักของไรเดอร์: เปิด/ปิดรับงาน งานที่ถืออยู่ ข้อเสนอ 15 วินาที */
 export function RiderHomeScreen({ navigation }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
 
   const { data: status } = useRiderStatus();
@@ -100,7 +101,7 @@ export function RiderHomeScreen({ navigation }: Props) {
             <Text testID="rider-online-error" variant="small" color="danger">
               {locationError
                 ? t('rider.home.locationNeeded')
-                : (setOnline.error as Error).message}
+                : errorText(setOnline.error, t, i18n.language)}
             </Text>
           </View>
         ) : null}

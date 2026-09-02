@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { errorText } from '../../../lib/errorText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
@@ -29,7 +30,7 @@ const TONE: Record<RiderDocument['status'], 'brand' | 'teal' | 'neutral' | 'dang
 
 /** R8 เอกสารของฉัน */
 export function RiderDocumentsScreen({ navigation }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const { data: docs = [], isLoading } = useRiderDocuments();
   const upload = useUploadDocument();
@@ -71,7 +72,7 @@ export function RiderDocumentsScreen({ navigation }: Props) {
 
         {upload.isError ? (
           <Text testID="documents-error" variant="small" color="danger">
-            {(upload.error as Error).message}
+            {errorText(upload.error, t, i18n.language)}
           </Text>
         ) : null}
 
