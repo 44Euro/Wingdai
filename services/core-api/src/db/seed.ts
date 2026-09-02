@@ -64,34 +64,35 @@ type Cuisine = 'rice' | 'noodle' | 'somtam' | 'drink' | 'dessert';
 
 /** สามร้านท้ายสุดอยู่นอกรัศมี 5 กม. โดยตั้งใจ พิสูจน์ว่าด่านระยะทำงานจริง (§7) */
 const DEMO: {
-  key: string; name: string; cuisine: Cuisine; km: number; bearing: number;
+  key: string; name: string; nameEn: string; cuisine: Cuisine; km: number; bearing: number;
   prep: number; area: string; closed?: boolean;
 }[] = [
-  { key: 'khaomunkai', name: 'ข้าวมันไก่ประตูน้ำ', cuisine: 'rice', km: 0.4, bearing: 20, prep: 10, area: 'ซอยอารีย์ 2' },
-  { key: 'boatnoodle', name: 'ก๋วยเตี๋ยวเนื้อตุ๋นอารีย์', cuisine: 'noodle', km: 0.7, bearing: 75, prep: 9, area: 'ซอยอารีย์ 4' },
-  { key: 'tammua', name: 'ตำมั่วสาขาอารีย์', cuisine: 'somtam', km: 0.8, bearing: 140, prep: 11, area: 'พหลโยธิน ซอย 7' },
-  { key: 'boba', name: 'ชานมไข่มุกอารีย์', cuisine: 'drink', km: 0.5, bearing: 210, prep: 6, area: 'ตลาดอารีย์' },
-  { key: 'bingsu', name: 'บิงซูหวานเย็น', cuisine: 'dessert', km: 1.0, bearing: 265, prep: 8, area: 'ซอยอารีย์สัมพันธ์ 3' },
-  { key: 'moodaeng', name: 'ข้าวหมูแดงเจ๊หมวย', cuisine: 'rice', km: 1.2, bearing: 310, prep: 12, area: 'ซอยราชครู' },
-  { key: 'bamee', name: 'บะหมี่เกี๊ยวกุ้งสะพานควาย', cuisine: 'noodle', km: 1.5, bearing: 45, prep: 10, area: 'สะพานควาย' },
-  { key: 'somtamnua', name: 'ส้มตำนัวนัว', cuisine: 'somtam', km: 1.8, bearing: 120, prep: 13, area: 'ซอยพหลโยธิน 9' },
-  { key: 'coffee', name: 'กาแฟสดอารีย์โรสต์', cuisine: 'drink', km: 0.9, bearing: 340, prep: 5, area: 'ซอยอารีย์ 5' },
-  { key: 'roti', name: 'โรตีชาชักพหลโยธิน', cuisine: 'dessert', km: 1.6, bearing: 190, prep: 7, area: 'พหลโยธิน ซอย 3' },
-  { key: 'khamoo', name: 'ข้าวขาหมูตรอกซุง', cuisine: 'rice', km: 2.1, bearing: 95, prep: 11, area: 'ตรอกซุง' },
-  { key: 'tomyum', name: 'ก๋วยเตี๋ยวต้มยำเจ๊นิด', cuisine: 'noodle', km: 2.4, bearing: 240, prep: 12, area: 'ซอยเสนานิคม' },
-  { key: 'kaengpa', name: 'ข้าวแกงป้าอ้วน', cuisine: 'rice', km: 2.8, bearing: 15, prep: 9, area: 'ซอยวิภาวดี 5', closed: true },
-  { key: 'nampan', name: 'น้ำปั่นเจ๊แดง', cuisine: 'drink', km: 3.2, bearing: 160, prep: 6, area: 'อนุสาวรีย์ชัยฯ' },
-  { key: 'kanomkrok', name: 'ขนมครกโบราณ', cuisine: 'dessert', km: 3.6, bearing: 285, prep: 10, area: 'ซอยรางน้ำ' },
-  { key: 'pnual', name: 'ส้มตำป้านวล', cuisine: 'somtam', km: 4.2, bearing: 60, prep: 14, area: 'ลาดพร้าว ซอย 1' },
-  { key: 'silom', name: 'ข้าวต้มสีลม', cuisine: 'rice', km: 7.5, bearing: 185, prep: 12, area: 'สีลม ซอย 3' },
-  { key: 'thonglor', name: 'ราเมนทองหล่อ', cuisine: 'noodle', km: 8.4, bearing: 130, prep: 15, area: 'ทองหล่อ ซอย 10' },
-  { key: 'bangna', name: 'ส้มตำบางนา', cuisine: 'somtam', km: 14.2, bearing: 150, prep: 12, area: 'บางนา-ตราด กม.3' },
+  { key: 'khaomunkai', name: 'ข้าวมันไก่ประตูน้ำ', nameEn: 'Pratunam Chicken Rice', cuisine: 'rice', km: 0.4, bearing: 20, prep: 10, area: 'ซอยอารีย์ 2' },
+  { key: 'boatnoodle', name: 'ก๋วยเตี๋ยวเนื้อตุ๋นอารีย์', nameEn: 'Ari Braised Beef Noodles', cuisine: 'noodle', km: 0.7, bearing: 75, prep: 9, area: 'ซอยอารีย์ 4' },
+  { key: 'tammua', name: 'ตำมั่วสาขาอารีย์', nameEn: 'Tam Mua Ari', cuisine: 'somtam', km: 0.8, bearing: 140, prep: 11, area: 'พหลโยธิน ซอย 7' },
+  { key: 'boba', name: 'ชานมไข่มุกอารีย์', nameEn: 'Ari Bubble Tea', cuisine: 'drink', km: 0.5, bearing: 210, prep: 6, area: 'ตลาดอารีย์' },
+  { key: 'bingsu', name: 'บิงซูหวานเย็น', nameEn: 'Sweet Ice Bingsu', cuisine: 'dessert', km: 1.0, bearing: 265, prep: 8, area: 'ซอยอารีย์สัมพันธ์ 3' },
+  { key: 'moodaeng', name: 'ข้าวหมูแดงเจ๊หมวย', nameEn: 'Jay Muay Red Pork Rice', cuisine: 'rice', km: 1.2, bearing: 310, prep: 12, area: 'ซอยราชครู' },
+  { key: 'bamee', name: 'บะหมี่เกี๊ยวกุ้งสะพานควาย', nameEn: 'Saphan Khwai Shrimp Wonton Noodles', cuisine: 'noodle', km: 1.5, bearing: 45, prep: 10, area: 'สะพานควาย' },
+  { key: 'somtamnua', name: 'ส้มตำนัวนัว', nameEn: 'Som Tam Nua Nua', cuisine: 'somtam', km: 1.8, bearing: 120, prep: 13, area: 'ซอยพหลโยธิน 9' },
+  { key: 'coffee', name: 'กาแฟสดอารีย์โรสต์', nameEn: 'Ari Roast Coffee', cuisine: 'drink', km: 0.9, bearing: 340, prep: 5, area: 'ซอยอารีย์ 5' },
+  { key: 'roti', name: 'โรตีชาชักพหลโยธิน', nameEn: 'Phahonyothin Roti & Cha Chak', cuisine: 'dessert', km: 1.6, bearing: 190, prep: 7, area: 'พหลโยธิน ซอย 3' },
+  { key: 'khamoo', name: 'ข้าวขาหมูตรอกซุง', nameEn: 'Trok Sung Pork Leg Rice', cuisine: 'rice', km: 2.1, bearing: 95, prep: 11, area: 'ตรอกซุง' },
+  { key: 'tomyum', name: 'ก๋วยเตี๋ยวต้มยำเจ๊นิด', nameEn: 'Jay Nid Tom Yum Noodles', cuisine: 'noodle', km: 2.4, bearing: 240, prep: 12, area: 'ซอยเสนานิคม' },
+  { key: 'kaengpa', name: 'ข้าวแกงป้าอ้วน', nameEn: 'Pa Uan Curry Rice', cuisine: 'rice', km: 2.8, bearing: 15, prep: 9, area: 'ซอยวิภาวดี 5', closed: true },
+  { key: 'nampan', name: 'น้ำปั่นเจ๊แดง', nameEn: 'Jay Daeng Fruit Smoothies', cuisine: 'drink', km: 3.2, bearing: 160, prep: 6, area: 'อนุสาวรีย์ชัยฯ' },
+  { key: 'kanomkrok', name: 'ขนมครกโบราณ', nameEn: 'Old-Style Kanom Krok', cuisine: 'dessert', km: 3.6, bearing: 285, prep: 10, area: 'ซอยรางน้ำ' },
+  { key: 'pnual', name: 'ส้มตำป้านวล', nameEn: 'Pa Nuan Som Tam', cuisine: 'somtam', km: 4.2, bearing: 60, prep: 14, area: 'ลาดพร้าว ซอย 1' },
+  { key: 'silom', name: 'ข้าวต้มสีลม', nameEn: 'Silom Rice Porridge', cuisine: 'rice', km: 7.5, bearing: 185, prep: 12, area: 'สีลม ซอย 3' },
+  { key: 'thonglor', name: 'ราเมนทองหล่อ', nameEn: 'Thonglor Ramen', cuisine: 'noodle', km: 8.4, bearing: 130, prep: 15, area: 'ทองหล่อ ซอย 10' },
+  { key: 'bangna', name: 'ส้มตำบางนา', nameEn: 'Bangna Som Tam', cuisine: 'somtam', km: 14.2, bearing: 150, prep: 12, area: 'บางนา-ตราด กม.3' },
 ];
 
 const demoShops = DEMO.map((s) => ({
   key: s.key,
   owner: 'chai',
   name: s.name,
+  nameEn: s.nameEn,
   cuisine: s.cuisine,
   addressText: s.area,
   ...coordAt(s.km, s.bearing),
@@ -100,88 +101,97 @@ const demoShops = DEMO.map((s) => ({
   prepTimeMinutes: s.prep,
 }));
 
+type OptionGroup = {
+  id: string;
+  name: string;
+  nameEn: string;
+  minSelect: number;
+  maxSelect: number;
+  choices: { id: string; name: string; nameEn: string; priceDelta: number }[];
+};
+
 /** แม่แบบเมนูต่อหมวด ตรงกับฝั่งแอป ร้านที่กดเข้าไปแล้วเมนูว่างคือจอที่พังในสายตาคนดู */
-const MENU_TEMPLATE: Record<Cuisine, { name: string; priceSatang: number }[]> = {
+const MENU_TEMPLATE: Record<Cuisine, { name: string; nameEn: string; priceSatang: number }[]> = {
   rice: [
-    { name: 'ข้าวกะเพราหมู', priceSatang: 5000 },
-    { name: 'ข้าวผัดหมู', priceSatang: 5500 },
-    { name: 'ข้าวไข่เจียว', priceSatang: 4000 },
+    { name: 'ข้าวกะเพราหมู', nameEn: 'Pork Basil Rice', priceSatang: 5000 },
+    { name: 'ข้าวผัดหมู', nameEn: 'Pork Fried Rice', priceSatang: 5500 },
+    { name: 'ข้าวไข่เจียว', nameEn: 'Thai Omelette Rice', priceSatang: 4000 },
   ],
   noodle: [
-    { name: 'ก๋วยเตี๋ยวหมูน้ำใส', priceSatang: 5000 },
-    { name: 'บะหมี่แห้ง', priceSatang: 5500 },
-    { name: 'เกาเหลารวมมิตร', priceSatang: 6500 },
+    { name: 'ก๋วยเตี๋ยวหมูน้ำใส', nameEn: 'Clear Pork Noodle Soup', priceSatang: 5000 },
+    { name: 'บะหมี่แห้ง', nameEn: 'Dry Egg Noodles', priceSatang: 5500 },
+    { name: 'เกาเหลารวมมิตร', nameEn: 'Mixed Soup, No Noodles', priceSatang: 6500 },
   ],
   somtam: [
-    { name: 'ส้มตำไทย', priceSatang: 4000 },
-    { name: 'ไก่ย่าง', priceSatang: 6500 },
-    { name: 'ข้าวเหนียว', priceSatang: 1000 },
+    { name: 'ส้มตำไทย', nameEn: 'Thai Papaya Salad', priceSatang: 4000 },
+    { name: 'ไก่ย่าง', nameEn: 'Grilled Chicken', priceSatang: 6500 },
+    { name: 'ข้าวเหนียว', nameEn: 'Sticky Rice', priceSatang: 1000 },
   ],
   drink: [
-    { name: 'ชาไทยเย็น', priceSatang: 2500 },
-    { name: 'อเมริกาโน่เย็น', priceSatang: 5500 },
-    { name: 'น้ำส้มคั้นสด', priceSatang: 4500 },
+    { name: 'ชาไทยเย็น', nameEn: 'Thai Iced Tea', priceSatang: 2500 },
+    { name: 'อเมริกาโน่เย็น', nameEn: 'Iced Americano', priceSatang: 5500 },
+    { name: 'น้ำส้มคั้นสด', nameEn: 'Fresh Orange Juice', priceSatang: 4500 },
   ],
   dessert: [
-    { name: 'บัวลอยไข่หวาน', priceSatang: 4000 },
-    { name: 'ไอศกรีมกะทิ', priceSatang: 3500 },
-    { name: 'ขนมครก', priceSatang: 3000 },
+    { name: 'บัวลอยไข่หวาน', nameEn: 'Bua Loy with Sweet Egg', priceSatang: 4000 },
+    { name: 'ไอศกรีมกะทิ', nameEn: 'Coconut Ice Cream', priceSatang: 3500 },
+    { name: 'ขนมครก', nameEn: 'Kanom Krok', priceSatang: 3000 },
   ],
 };
 
 // ตัวเลือกต่อหมวด กลุ่มแรกบังคับเลือกหนึ่งอย่าง กลุ่มที่สองเลือกได้หลายอย่างและบวกราคา
-const OPTIONS_TEMPLATE: Record<Cuisine, { id: string; name: string; minSelect: number; maxSelect: number; choices: { id: string; name: string; priceDelta: number }[] }[]> = {
+const OPTIONS_TEMPLATE: Record<Cuisine, OptionGroup[]> = {
   rice: [
-    { id: 'spicy', name: 'ระดับเผ็ด', minSelect: 1, maxSelect: 1, choices: [
-      { id: 'spicy-none', name: 'ไม่เผ็ด', priceDelta: 0 },
-      { id: 'spicy-mild', name: 'เผ็ดน้อย', priceDelta: 0 },
-      { id: 'spicy-hot', name: 'เผ็ดมาก', priceDelta: 0 },
+    { id: 'spicy', name: 'ระดับเผ็ด', nameEn: 'Spice level', minSelect: 1, maxSelect: 1, choices: [
+      { id: 'spicy-none', name: 'ไม่เผ็ด', nameEn: 'Not spicy', priceDelta: 0 },
+      { id: 'spicy-mild', name: 'เผ็ดน้อย', nameEn: 'Mild', priceDelta: 0 },
+      { id: 'spicy-hot', name: 'เผ็ดมาก', nameEn: 'Extra spicy', priceDelta: 0 },
     ] },
-    { id: 'extra', name: 'เพิ่มพิเศษ', minSelect: 0, maxSelect: 2, choices: [
-      { id: 'extra-egg', name: 'ไข่ดาว', priceDelta: 1000 },
-      { id: 'extra-rice', name: 'ข้าวเพิ่ม', priceDelta: 500 },
+    { id: 'extra', name: 'เพิ่มพิเศษ', nameEn: 'Add-ons', minSelect: 0, maxSelect: 2, choices: [
+      { id: 'extra-egg', name: 'ไข่ดาว', nameEn: 'Fried egg', priceDelta: 1000 },
+      { id: 'extra-rice', name: 'ข้าวเพิ่ม', nameEn: 'Extra rice', priceDelta: 500 },
     ] },
   ],
   noodle: [
-    { id: 'noodle-type', name: 'เส้น', minSelect: 1, maxSelect: 1, choices: [
-      { id: 'noodle-sen-lek', name: 'เส้นเล็ก', priceDelta: 0 },
-      { id: 'noodle-sen-yai', name: 'เส้นใหญ่', priceDelta: 0 },
-      { id: 'noodle-bamee', name: 'บะหมี่', priceDelta: 0 },
+    { id: 'noodle-type', name: 'เส้น', nameEn: 'Noodle type', minSelect: 1, maxSelect: 1, choices: [
+      { id: 'noodle-sen-lek', name: 'เส้นเล็ก', nameEn: 'Thin rice noodles', priceDelta: 0 },
+      { id: 'noodle-sen-yai', name: 'เส้นใหญ่', nameEn: 'Wide rice noodles', priceDelta: 0 },
+      { id: 'noodle-bamee', name: 'บะหมี่', nameEn: 'Egg noodles', priceDelta: 0 },
     ] },
-    { id: 'noodle-extra', name: 'เพิ่มพิเศษ', minSelect: 0, maxSelect: 2, choices: [
-      { id: 'noodle-extra-meat', name: 'เนื้อเพิ่ม', priceDelta: 2000 },
-      { id: 'noodle-extra-ball', name: 'ลูกชิ้นเพิ่ม', priceDelta: 1500 },
+    { id: 'noodle-extra', name: 'เพิ่มพิเศษ', nameEn: 'Add-ons', minSelect: 0, maxSelect: 2, choices: [
+      { id: 'noodle-extra-meat', name: 'เนื้อเพิ่ม', nameEn: 'Extra beef', priceDelta: 2000 },
+      { id: 'noodle-extra-ball', name: 'ลูกชิ้นเพิ่ม', nameEn: 'Extra meatballs', priceDelta: 1500 },
     ] },
   ],
   somtam: [
-    { id: 'tam-spicy', name: 'ระดับเผ็ด', minSelect: 1, maxSelect: 1, choices: [
-      { id: 'tam-1', name: '1 เม็ด', priceDelta: 0 },
-      { id: 'tam-3', name: '3 เม็ด', priceDelta: 0 },
-      { id: 'tam-5', name: '5 เม็ด', priceDelta: 0 },
+    { id: 'tam-spicy', name: 'ระดับเผ็ด', nameEn: 'Spice level', minSelect: 1, maxSelect: 1, choices: [
+      { id: 'tam-1', name: '1 เม็ด', nameEn: '1 chilli', priceDelta: 0 },
+      { id: 'tam-3', name: '3 เม็ด', nameEn: '3 chillies', priceDelta: 0 },
+      { id: 'tam-5', name: '5 เม็ด', nameEn: '5 chillies', priceDelta: 0 },
     ] },
-    { id: 'tam-extra', name: 'เพิ่มพิเศษ', minSelect: 0, maxSelect: 2, choices: [
-      { id: 'tam-pu', name: 'ปูดอง', priceDelta: 2000 },
-      { id: 'tam-khai-kem', name: 'ไข่เค็ม', priceDelta: 1500 },
+    { id: 'tam-extra', name: 'เพิ่มพิเศษ', nameEn: 'Add-ons', minSelect: 0, maxSelect: 2, choices: [
+      { id: 'tam-pu', name: 'ปูดอง', nameEn: 'Pickled crab', priceDelta: 2000 },
+      { id: 'tam-khai-kem', name: 'ไข่เค็ม', nameEn: 'Salted egg', priceDelta: 1500 },
     ] },
   ],
   drink: [
-    { id: 'sweet', name: 'ความหวาน', minSelect: 1, maxSelect: 1, choices: [
-      { id: 'sweet-0', name: 'ไม่หวาน', priceDelta: 0 },
-      { id: 'sweet-50', name: 'หวานน้อย', priceDelta: 0 },
-      { id: 'sweet-100', name: 'หวานปกติ', priceDelta: 0 },
+    { id: 'sweet', name: 'ความหวาน', nameEn: 'Sweetness', minSelect: 1, maxSelect: 1, choices: [
+      { id: 'sweet-0', name: 'ไม่หวาน', nameEn: 'No sugar', priceDelta: 0 },
+      { id: 'sweet-50', name: 'หวานน้อย', nameEn: 'Less sweet', priceDelta: 0 },
+      { id: 'sweet-100', name: 'หวานปกติ', nameEn: 'Normal sweet', priceDelta: 0 },
     ] },
-    { id: 'drink-extra', name: 'เพิ่มพิเศษ', minSelect: 0, maxSelect: 2, choices: [
-      { id: 'drink-shot', name: 'ช็อตเพิ่ม', priceDelta: 1500 },
-      { id: 'drink-pearl', name: 'ไข่มุก', priceDelta: 1000 },
+    { id: 'drink-extra', name: 'เพิ่มพิเศษ', nameEn: 'Add-ons', minSelect: 0, maxSelect: 2, choices: [
+      { id: 'drink-shot', name: 'ช็อตเพิ่ม', nameEn: 'Extra shot', priceDelta: 1500 },
+      { id: 'drink-pearl', name: 'ไข่มุก', nameEn: 'Tapioca pearls', priceDelta: 1000 },
     ] },
   ],
   dessert: [
-    { id: 'dessert-serve', name: 'เสิร์ฟแบบ', minSelect: 1, maxSelect: 1, choices: [
-      { id: 'dessert-cold', name: 'เย็น', priceDelta: 0 },
-      { id: 'dessert-warm', name: 'อุ่น', priceDelta: 0 },
+    { id: 'dessert-serve', name: 'เสิร์ฟแบบ', nameEn: 'Served', minSelect: 1, maxSelect: 1, choices: [
+      { id: 'dessert-cold', name: 'เย็น', nameEn: 'Cold', priceDelta: 0 },
+      { id: 'dessert-warm', name: 'อุ่น', nameEn: 'Warm', priceDelta: 0 },
     ] },
-    { id: 'dessert-extra', name: 'เพิ่มพิเศษ', minSelect: 0, maxSelect: 1, choices: [
-      { id: 'dessert-topping', name: 'ท็อปปิ้งเพิ่ม', priceDelta: 1000 },
+    { id: 'dessert-extra', name: 'เพิ่มพิเศษ', nameEn: 'Add-ons', minSelect: 0, maxSelect: 1, choices: [
+      { id: 'dessert-topping', name: 'ท็อปปิ้งเพิ่ม', nameEn: 'Extra topping', priceDelta: 1000 },
     ] },
   ],
 };
@@ -191,6 +201,7 @@ const demoMenu = DEMO.flatMap((s) =>
     key: `${s.key}-${i + 1}`,
     restaurant: s.key,
     name: item.name,
+    nameEn: item.nameEn,
     priceSatang: item.priceSatang,
     category: s.cuisine,
     // จานสุดท้ายของทุกร้านหมด เพื่อให้ป้าย "วันนี้หมดแล้ว" มีของให้เห็นทุกร้าน
@@ -230,22 +241,22 @@ async function main() {
       });
 
     const people = [
-      { key: 'somchai', accountType: 'user', fullName: 'สมชาย ใจดี', phone: '0812345678' },
-      { key: 'malee', accountType: 'user', fullName: 'มาลี ศรีสุข', phone: '0823456789' },
-      { key: 'chai', accountType: 'user', fullName: 'ชัย รุ่งเรือง', phone: '0867890123' },
+      { key: 'somchai', accountType: 'user', fullName: 'สมชาย ใจดี', fullNameEn: 'Somchai Jaidee', phone: '0812345678' },
+      { key: 'malee', accountType: 'user', fullName: 'มาลี ศรีสุข', fullNameEn: 'Malee Srisuk', phone: '0823456789' },
+      { key: 'chai', accountType: 'user', fullName: 'ชัย รุ่งเรือง', fullNameEn: 'Chai Rungrueang', phone: '0867890123' },
       /** ลูกค้าเพิ่มอีกสี่คน ประวัติการสั่งย้อนหลังกระจายไปหลายคน ตัวเลขในจอแอดมินจึงอ่านเหมือนของจริง */
-      { key: 'nid', accountType: 'user', fullName: 'นิด แสงทอง', phone: '0891112221' },
-      { key: 'ploy', accountType: 'user', fullName: 'พลอย จันทรา', phone: '0891112222' },
-      { key: 'wut', accountType: 'user', fullName: 'วุฒิ ตั้งมั่น', phone: '0891112223' },
-      { key: 'fah', accountType: 'user', fullName: 'ฟ้า ชื่นบาน', phone: '0891112224' },
-      { key: 'rider_ann', accountType: 'rider', fullName: 'อรอนงค์ ว่องไว', phone: '0834567890' },
+      { key: 'nid', accountType: 'user', fullName: 'นิด แสงทอง', fullNameEn: 'Nid Saengthong', phone: '0891112221' },
+      { key: 'ploy', accountType: 'user', fullName: 'พลอย จันทรา', fullNameEn: 'Ploy Chantra', phone: '0891112222' },
+      { key: 'wut', accountType: 'user', fullName: 'วุฒิ ตั้งมั่น', fullNameEn: 'Wut Tangman', phone: '0891112223' },
+      { key: 'fah', accountType: 'user', fullName: 'ฟ้า ชื่นบาน', fullNameEn: 'Fah Chuenban', phone: '0891112224' },
+      { key: 'rider_ann', accountType: 'rider', fullName: 'อรอนงค์ ว่องไว', fullNameEn: 'Onanong Wongwai', phone: '0834567890' },
       /** ไรเดอร์ที่อนุมัติแล้วต้องมีมากกว่าคนเดียว ไม่งั้นออเดอร์ต่อชั่วโมงต่อไรเดอร์เพี้ยน */
-      { key: 'rider_som', accountType: 'rider', fullName: 'สมหมาย ขยันดี', phone: '0834567891' },
-      { key: 'rider_kai', accountType: 'rider', fullName: 'ไก่ นำทาง', phone: '0834567892' },
-      { key: 'rider_new', accountType: 'rider', fullName: 'ณัฐพล เพิ่งสมัคร', phone: '0845678901' },
-      { key: 'admin_root', accountType: 'admin', fullName: 'ผู้ดูแลระบบ', phone: '0856789012' },
+      { key: 'rider_som', accountType: 'rider', fullName: 'สมหมาย ขยันดี', fullNameEn: 'Sommai Khayandee', phone: '0834567891' },
+      { key: 'rider_kai', accountType: 'rider', fullName: 'ไก่ นำทาง', fullNameEn: 'Kai Namthang', phone: '0834567892' },
+      { key: 'rider_new', accountType: 'rider', fullName: 'ณัฐพล เพิ่งสมัคร', fullNameEn: 'Nattapon Newapplicant', phone: '0845678901' },
+      { key: 'admin_root', accountType: 'admin', fullName: 'ผู้ดูแลระบบ', fullNameEn: 'Administrator', phone: '0856789012' },
       /** ซูเปอร์แอดมิน (product-spec §7 คลื่น 2) */
-      { key: 'super_root', accountType: 'super_admin', fullName: 'ผู้ดูแลระบบระดับสูง', phone: '0867890124' },
+      { key: 'super_root', accountType: 'super_admin', fullName: 'ผู้ดูแลระบบระดับสูง', fullNameEn: 'Super Administrator', phone: '0867890124' },
     ] as const;
 
     for (const p of people) {
@@ -257,6 +268,7 @@ async function main() {
           username: p.key,
           passwordHash,
           fullName: p.fullName,
+          fullNameEn: p.fullNameEn,
           phone: p.phone,
           // บัญชีทดสอบข้ามขั้นยืนยันเบอร์ ไม่มีผู้ให้บริการ SMS ให้ส่งจริงอยู่แล้ว (product-spec §11 ข้อ 3)
           phoneVerifiedAt: now,
@@ -264,7 +276,13 @@ async function main() {
         })
         .onConflictDoUpdate({
           target: schema.accounts.id,
-          set: { passwordHash, fullName: p.fullName, phone: p.phone, phoneVerifiedAt: now },
+          set: {
+            passwordHash,
+            fullName: p.fullName,
+            fullNameEn: p.fullNameEn,
+            phone: p.phone,
+            phoneVerifiedAt: now,
+          },
         });
     }
 
@@ -303,22 +321,22 @@ async function main() {
 
     const restaurants = [
       {
-        key: 'malee', owner: 'malee', name: 'ครัวมาลี', cuisine: 'rice' as const,
+        key: 'malee', owner: 'malee', name: 'ครัวมาลี', nameEn: 'Malee Kitchen', cuisine: 'rice' as const,
         addressText: 'ซอยอารีย์ 1 พหลโยธิน', lng: 100.5432, lat: 13.7802,
         isApproved: true, isOpen: true, prepTimeMinutes: 12,
       },
       {
-        key: 'somtam', owner: 'chai', name: 'ส้มตำแซ่บนัว', cuisine: 'somtam' as const,
+        key: 'somtam', owner: 'chai', name: 'ส้มตำแซ่บนัว', nameEn: 'Saep Nua Som Tam', cuisine: 'somtam' as const,
         addressText: 'ซอยอารีย์สัมพันธ์ 7', lng: 100.5388, lat: 13.7821,
         isApproved: true, isOpen: true, prepTimeMinutes: 10,
       },
       {
-        key: 'closed', owner: 'chai', name: 'ก๋วยเตี๋ยวเรือ', cuisine: 'noodle' as const,
+        key: 'closed', owner: 'chai', name: 'ก๋วยเตี๋ยวเรือ', nameEn: 'Boat Noodles', cuisine: 'noodle' as const,
         addressText: 'ตลาดอารีย์', lng: 100.5405, lat: 13.7776,
         isApproved: true, isOpen: false, prepTimeMinutes: 8,
       },
       {
-        key: 'pending', owner: 'somchai', name: 'ร้านรออนุมัติ', cuisine: 'rice' as const,
+        key: 'pending', owner: 'somchai', name: 'ร้านรออนุมัติ', nameEn: 'Pending Approval Shop', cuisine: 'rice' as const,
         addressText: 'ซอยพหลโยธิน 7', lng: 100.5441, lat: 13.7768,
         isApproved: false, isOpen: false, prepTimeMinutes: 15,
       },
@@ -331,6 +349,7 @@ async function main() {
         ownerUserId: id(`account:${r.owner}`),
         zoneId: id('zone:ari'),
         name: r.name,
+        nameEn: r.nameEn,
         cuisine: r.cuisine,
         addressText: r.addressText,
         location: at(r.lng, r.lat),
@@ -349,89 +368,89 @@ async function main() {
     /** ราคาเป็นสตางค์และต้องเท่าราคาหน้าร้านเป๊ะ ห้ามบวกค่าธรรมเนียมลงไป (product-spec §3 ข้อ 2) */
     const menu = [
       {
-        key: 'malee-1', restaurant: 'malee', name: 'ข้าวกะเพราหมูสับ', description: 'ไข่ดาวกรอบ',
+        key: 'malee-1', restaurant: 'malee', name: 'ข้าวกะเพราหมูสับ', nameEn: 'Minced Pork Basil Rice', description: 'ไข่ดาวกรอบ',
         priceSatang: 5000, category: 'rice' as const, isAvailable: true,
         optionGroups: [
-          { id: 'g-spicy', name: 'ระดับเผ็ด', minSelect: 1, maxSelect: 1, choices: [
-            { id: 'c-spicy-low', name: 'เผ็ดน้อย', priceDelta: 0 },
-            { id: 'c-spicy-mid', name: 'เผ็ดกลาง', priceDelta: 0 },
-            { id: 'c-spicy-high', name: 'เผ็ดมาก', priceDelta: 0 },
+          { id: 'g-spicy', name: 'ระดับเผ็ด', nameEn: 'Spice level', minSelect: 1, maxSelect: 1, choices: [
+            { id: 'c-spicy-low', name: 'เผ็ดน้อย', nameEn: 'Mild', priceDelta: 0 },
+            { id: 'c-spicy-mid', name: 'เผ็ดกลาง', nameEn: 'Medium', priceDelta: 0 },
+            { id: 'c-spicy-high', name: 'เผ็ดมาก', nameEn: 'Extra spicy', priceDelta: 0 },
           ] },
-          { id: 'g-topping', name: 'ท็อปปิ้ง', minSelect: 0, maxSelect: 2, choices: [
-            { id: 'c-egg', name: 'ไข่ดาว', priceDelta: 1500 },
-            { id: 'c-sausage', name: 'กุนเชียง', priceDelta: 1500 },
+          { id: 'g-topping', name: 'ท็อปปิ้ง', nameEn: 'Toppings', minSelect: 0, maxSelect: 2, choices: [
+            { id: 'c-egg', name: 'ไข่ดาว', nameEn: 'Fried egg', priceDelta: 1500 },
+            { id: 'c-sausage', name: 'กุนเชียง', nameEn: 'Chinese sausage', priceDelta: 1500 },
           ] },
         ],
       },
       {
-        key: 'malee-2', restaurant: 'malee', name: 'ข้าวผัดกุ้ง',
+        key: 'malee-2', restaurant: 'malee', name: 'ข้าวผัดกุ้ง', nameEn: 'Shrimp Fried Rice',
         priceSatang: 6000, category: 'rice' as const, isAvailable: true,
         optionGroups: [
-          { id: 'g-m2-spicy', name: 'ระดับเผ็ด', minSelect: 1, maxSelect: 1, choices: [
-            { id: 'c-m2-mild', name: 'ไม่เผ็ด', priceDelta: 0 },
-            { id: 'c-m2-hot', name: 'เผ็ด', priceDelta: 0 },
+          { id: 'g-m2-spicy', name: 'ระดับเผ็ด', nameEn: 'Spice level', minSelect: 1, maxSelect: 1, choices: [
+            { id: 'c-m2-mild', name: 'ไม่เผ็ด', nameEn: 'Not spicy', priceDelta: 0 },
+            { id: 'c-m2-hot', name: 'เผ็ด', nameEn: 'Spicy', priceDelta: 0 },
           ] },
-          { id: 'g-m2-extra', name: 'เพิ่มพิเศษ', minSelect: 0, maxSelect: 2, choices: [
-            { id: 'c-m2-shrimp', name: 'เพิ่มกุ้ง', priceDelta: 3000 },
-            { id: 'c-m2-egg', name: 'ไข่ดาว', priceDelta: 1500 },
+          { id: 'g-m2-extra', name: 'เพิ่มพิเศษ', nameEn: 'Add-ons', minSelect: 0, maxSelect: 2, choices: [
+            { id: 'c-m2-shrimp', name: 'เพิ่มกุ้ง', nameEn: 'Extra shrimp', priceDelta: 3000 },
+            { id: 'c-m2-egg', name: 'ไข่ดาว', nameEn: 'Fried egg', priceDelta: 1500 },
           ] },
         ],
       },
       {
-        key: 'malee-3', restaurant: 'malee', name: 'ข้าวมันไก่',
+        key: 'malee-3', restaurant: 'malee', name: 'ข้าวมันไก่', nameEn: 'Chicken Rice',
         priceSatang: 4500, category: 'rice' as const, isAvailable: true,
         optionGroups: [
-          { id: 'g-m3-part', name: 'ส่วนของไก่', minSelect: 1, maxSelect: 1, choices: [
-            { id: 'c-m3-thigh', name: 'สะโพก', priceDelta: 0 },
-            { id: 'c-m3-breast', name: 'อก', priceDelta: 0 },
+          { id: 'g-m3-part', name: 'ส่วนของไก่', nameEn: 'Chicken cut', minSelect: 1, maxSelect: 1, choices: [
+            { id: 'c-m3-thigh', name: 'สะโพก', nameEn: 'Thigh', priceDelta: 0 },
+            { id: 'c-m3-breast', name: 'อก', nameEn: 'Breast', priceDelta: 0 },
           ] },
         ],
       },
-      { key: 'malee-4', restaurant: 'malee', name: 'ชาไทยเย็น', priceSatang: 2500, category: 'drink' as const, isAvailable: true, optionGroups: [] },
-      { key: 'malee-5', restaurant: 'malee', name: 'ข้าวหมูทอด', priceSatang: 5000, category: 'rice' as const, isAvailable: false, optionGroups: [] },
+      { key: 'malee-4', restaurant: 'malee', name: 'ชาไทยเย็น', nameEn: 'Thai Iced Tea', priceSatang: 2500, category: 'drink' as const, isAvailable: true, optionGroups: [] },
+      { key: 'malee-5', restaurant: 'malee', name: 'ข้าวหมูทอด', nameEn: 'Fried Pork Rice', priceSatang: 5000, category: 'rice' as const, isAvailable: false, optionGroups: [] },
       {
-        key: 'somtam-1', restaurant: 'somtam', name: 'ส้มตำไทย',
+        key: 'somtam-1', restaurant: 'somtam', name: 'ส้มตำไทย', nameEn: 'Thai Papaya Salad',
         priceSatang: 4000, category: 'somtam' as const, isAvailable: true,
         optionGroups: [
-          { id: 'g-st1-spicy', name: 'ระดับเผ็ด', minSelect: 1, maxSelect: 1, choices: [
-            { id: 'c-st1-1', name: 'เผ็ดน้อย', priceDelta: 0 },
-            { id: 'c-st1-2', name: 'เผ็ดกลาง', priceDelta: 0 },
-            { id: 'c-st1-3', name: 'เผ็ดมาก', priceDelta: 0 },
+          { id: 'g-st1-spicy', name: 'ระดับเผ็ด', nameEn: 'Spice level', minSelect: 1, maxSelect: 1, choices: [
+            { id: 'c-st1-1', name: 'เผ็ดน้อย', nameEn: 'Mild', priceDelta: 0 },
+            { id: 'c-st1-2', name: 'เผ็ดกลาง', nameEn: 'Medium', priceDelta: 0 },
+            { id: 'c-st1-3', name: 'เผ็ดมาก', nameEn: 'Extra spicy', priceDelta: 0 },
           ] },
-          { id: 'g-st1-add', name: 'เพิ่มเติม', minSelect: 0, maxSelect: 2, choices: [
-            { id: 'c-st1-shrimp', name: 'กุ้งสด', priceDelta: 2000 },
-            { id: 'c-st1-crab', name: 'ปูเค็ม', priceDelta: 1500 },
+          { id: 'g-st1-add', name: 'เพิ่มเติม', nameEn: 'Extras', minSelect: 0, maxSelect: 2, choices: [
+            { id: 'c-st1-shrimp', name: 'กุ้งสด', nameEn: 'Fresh shrimp', priceDelta: 2000 },
+            { id: 'c-st1-crab', name: 'ปูเค็ม', nameEn: 'Salted crab', priceDelta: 1500 },
           ] },
         ],
       },
       {
-        key: 'somtam-2', restaurant: 'somtam', name: 'ไก่ย่าง',
+        key: 'somtam-2', restaurant: 'somtam', name: 'ไก่ย่าง', nameEn: 'Grilled Chicken',
         priceSatang: 6500, category: 'somtam' as const, isAvailable: true,
         optionGroups: [
-          { id: 'g-st2-part', name: 'ส่วน', minSelect: 1, maxSelect: 1, choices: [
-            { id: 'c-st2-leg', name: 'น่อง', priceDelta: 0 },
-            { id: 'c-st2-breast', name: 'อก', priceDelta: 0 },
-            { id: 'c-st2-thigh', name: 'สะโพก', priceDelta: 0 },
+          { id: 'g-st2-part', name: 'ส่วน', nameEn: 'Cut', minSelect: 1, maxSelect: 1, choices: [
+            { id: 'c-st2-leg', name: 'น่อง', nameEn: 'Drumstick', priceDelta: 0 },
+            { id: 'c-st2-breast', name: 'อก', nameEn: 'Breast', priceDelta: 0 },
+            { id: 'c-st2-thigh', name: 'สะโพก', nameEn: 'Thigh', priceDelta: 0 },
           ] },
         ],
       },
-      { key: 'somtam-3', restaurant: 'somtam', name: 'ข้าวเหนียว', priceSatang: 1000, category: 'rice' as const, isAvailable: true, optionGroups: [] },
-      { key: 'somtam-4', restaurant: 'somtam', name: 'น้ำมะพร้าว', priceSatang: 3000, category: 'drink' as const, isAvailable: true, optionGroups: [] },
+      { key: 'somtam-3', restaurant: 'somtam', name: 'ข้าวเหนียว', nameEn: 'Sticky Rice', priceSatang: 1000, category: 'rice' as const, isAvailable: true, optionGroups: [] },
+      { key: 'somtam-4', restaurant: 'somtam', name: 'น้ำมะพร้าว', nameEn: 'Coconut Water', priceSatang: 3000, category: 'drink' as const, isAvailable: true, optionGroups: [] },
       {
-        key: 'closed-1', restaurant: 'closed', name: 'ก๋วยเตี๋ยวเรือหมู',
+        key: 'closed-1', restaurant: 'closed', name: 'ก๋วยเตี๋ยวเรือหมู', nameEn: 'Pork Boat Noodles',
         priceSatang: 5000, category: 'noodle' as const, isAvailable: true,
         optionGroups: [
-          { id: 'g-cl1-noodle', name: 'เส้น', minSelect: 1, maxSelect: 1, choices: [
-            { id: 'c-cl1-small', name: 'เส้นเล็ก', priceDelta: 0 },
-            { id: 'c-cl1-big', name: 'เส้นใหญ่', priceDelta: 0 },
-            { id: 'c-cl1-mama', name: 'บะหมี่', priceDelta: 0 },
+          { id: 'g-cl1-noodle', name: 'เส้น', nameEn: 'Noodle type', minSelect: 1, maxSelect: 1, choices: [
+            { id: 'c-cl1-small', name: 'เส้นเล็ก', nameEn: 'Thin rice noodles', priceDelta: 0 },
+            { id: 'c-cl1-big', name: 'เส้นใหญ่', nameEn: 'Wide rice noodles', priceDelta: 0 },
+            { id: 'c-cl1-mama', name: 'บะหมี่', nameEn: 'Egg noodles', priceDelta: 0 },
           ] },
-          { id: 'g-cl1-extra', name: 'พิเศษ', minSelect: 0, maxSelect: 1, choices: [
-            { id: 'c-cl1-meat', name: 'เพิ่มเนื้อ', priceDelta: 1500 },
+          { id: 'g-cl1-extra', name: 'พิเศษ', nameEn: 'Extras', minSelect: 0, maxSelect: 1, choices: [
+            { id: 'c-cl1-meat', name: 'เพิ่มเนื้อ', nameEn: 'Extra beef', priceDelta: 1500 },
           ] },
         ],
       },
-      { key: 'closed-2', restaurant: 'closed', name: 'เกาเหลา', priceSatang: 5500, category: 'noodle' as const, isAvailable: true, optionGroups: [] },
+      { key: 'closed-2', restaurant: 'closed', name: 'เกาเหลา', nameEn: 'Soup Without Noodles', priceSatang: 5500, category: 'noodle' as const, isAvailable: true, optionGroups: [] },
       ...demoMenu,
     ];
 
@@ -440,6 +459,7 @@ async function main() {
         id: id(`menu:${m.key}`),
         restaurantId: id(`restaurant:${m.restaurant}`),
         name: m.name,
+        nameEn: m.nameEn,
         description: 'description' in m ? m.description : null,
         priceSatang: m.priceSatang,
         category: m.category,

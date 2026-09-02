@@ -11,6 +11,8 @@ export type PublicRestaurant = {
   id: string;
   ownerUserId: string;
   name: string;
+  /** ชื่ออังกฤษ ว่างได้ แอปเป็นคนเลือกว่าจะโชว์อันไหนตามภาษาที่ผู้ใช้ตั้งไว้ */
+  nameEn: string | null;
   isApproved: boolean;
   /** เปิดรับออเดอร์อยู่จริงไหม ไม่ใช่แค่ค่าสวิตช์ในฐาน รวมตารางเวลา (design M11) */
   isOpen: boolean;
@@ -48,6 +50,7 @@ export class CatalogService {
       id: restaurants.id,
       ownerUserId: restaurants.ownerUserId,
       name: restaurants.name,
+      nameEn: restaurants.nameEn,
       isApproved: restaurants.isApproved,
       isOpen: restaurants.isOpen,
       cuisine: restaurants.cuisine,
@@ -217,6 +220,7 @@ export class CatalogService {
       id: m.id,
       restaurantId: m.restaurantId,
       name: m.name,
+      nameEn: m.nameEn,
       description: m.description ?? undefined,
       price: m.priceSatang,
       category: m.category,

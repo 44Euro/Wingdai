@@ -175,6 +175,7 @@ export class MerchantService {
       .select({
         order: orders,
         restaurantName: restaurants.name,
+        restaurantNameEn: restaurants.nameEn,
         customerName: accounts.fullName,
       })
       .from(orders)
@@ -461,7 +462,11 @@ export class MerchantService {
     const [row] = await this.db
       .update(menuItems)
       .set({
-        ...(patch.name !== undefined ? { name: patch.name } : {}),
+        /**
+         * แก้ชื่อไทยแล้วชื่ออังกฤษเดิมใช้ไม่ได้อีก ล้างทิ้งให้ตกกลับไปใช้ชื่อใหม่
+         * ไม่ล้าง คนที่ตั้งแอปเป็นอังกฤษจะยังเห็นชื่อเก่าอยู่เหมือนร้านกดบันทึกไม่ติด
+         */
+        ...(patch.name !== undefined ? { name: patch.name, nameEn: null } : {}),
         ...(patch.description !== undefined ? { description: patch.description } : {}),
         ...(patch.price !== undefined ? { priceSatang: patch.price } : {}),
         ...(patch.isAvailable !== undefined ? { isAvailable: patch.isAvailable } : {}),
@@ -559,6 +564,7 @@ export class MerchantService {
         id: merchantPayouts.id,
         restaurantId: merchantPayouts.restaurantId,
         restaurantName: restaurants.name,
+        restaurantNameEn: restaurants.nameEn,
         amountSatang: merchantPayouts.amountSatang,
         requestedAt: merchantPayouts.requestedAt,
       })

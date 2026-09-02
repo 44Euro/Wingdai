@@ -25,13 +25,14 @@ export class AdminOrdersService {
       reference: string;
       status: OrderStatus;
       restaurant_name: string;
+      restaurant_name_en: string | null;
       dropoff_label: string;
       rider_name: string | null;
       grand_total_satang: number;
       created_at: Date;
       minutes_elapsed: number;
     }>(sql`
-      select o.id, o.reference, o.status, r.name as restaurant_name,
+      select o.id, o.reference, o.status, r.name as restaurant_name, r.name_en as restaurant_name_en,
              a.label as dropoff_label, ra.full_name as rider_name,
              /** ยอดที่ลูกค้าจ่ายไม่มีเก็บเป็นคอลัมน์ บวกสามช่องเอา */
              (o.food_total_satang + o.delivery_fee_satang + o.service_fee_satang)
@@ -52,6 +53,7 @@ export class AdminOrdersService {
         reference: r.reference,
         status: r.status,
         restaurantName: r.restaurant_name,
+        restaurantNameEn: r.restaurant_name_en,
         dropoffLabel: r.dropoff_label,
         riderName: r.rider_name,
         grandTotalSatang: r.grand_total_satang,

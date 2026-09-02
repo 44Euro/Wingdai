@@ -19,6 +19,8 @@ export type SetOpenInput = z.infer<typeof SetOpenSchema>;
 const OptionGroupSchema = z.object({
   id: z.string().min(1),
   name: z.string().trim().min(1).max(60),
+  /** ชื่ออังกฤษของกลุ่มและตัวเลือก ไม่บังคับ ร้านที่ไม่กรอกจะโชว์ชื่อไทยให้ทุกภาษา */
+  nameEn: z.string().trim().max(60).nullish(),
   minSelect: z.number().int().min(0).max(20),
   maxSelect: z.number().int().min(1).max(20),
   choices: z
@@ -26,6 +28,7 @@ const OptionGroupSchema = z.object({
       z.object({
         id: z.string().min(1),
         name: z.string().trim().min(1).max(60),
+        nameEn: z.string().trim().max(60).nullish(),
         /** สตางค์จำนวนเต็ม และห้ามติดลบ ตัวเลือกที่ "ลดราคา" คือส่วนลดแฝง ซึ่ง §3 ข้อ 3 ห้ามไว้ */
         priceDelta: z.number().int().min(0).max(100_000),
       }),

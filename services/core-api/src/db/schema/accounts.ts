@@ -26,6 +26,8 @@ export const accounts = pgTable(
     /** `sub` จาก Google id_token เป็นตัวระบุตัวตนที่ Google การันตีว่าไม่เปลี่ยนและไม่ซ้ำ */
     googleSub: text('google_sub'),
     fullName: text('full_name').notNull(),
+    /** ชื่อที่เขียนด้วยอักษรละติน ว่างได้ ใช้ตอนแอปตั้งเป็นภาษาอื่นที่ไม่ใช่ไทย */
+    fullNameEn: text('full_name_en'),
     phone: text('phone').notNull(),
     /** ยืนยันเบอร์ครั้งเดียวตอนสมัคร ไม่ใช่ทุกครั้งที่ล็อกอิน (product-spec §4.2) */
     phoneVerifiedAt: timestamp('phone_verified_at', { withTimezone: true }),

@@ -1537,6 +1537,14 @@ async function main() {
   check('ราคาเป็นสตางค์จำนวนเต็ม', Number.isInteger(kaphrao?.price) && kaphrao.price === 5000);
   check('กลุ่มตัวเลือกติดมาด้วย', kaphrao?.optionGroups?.length === 2);
 
+  /** seed เคยประกาศชื่ออังกฤษไว้ครบแต่ไม่ได้เขียนลงฐาน จอภาษาอังกฤษจึงขึ้นชื่อไทยทั้งหน้า */
+  check('ร้านมีชื่ออังกฤษติดมาด้วย', typeof malee.nameEn === 'string' && malee.nameEn.length > 0,
+    `ได้ ${malee.nameEn}`);
+  check('จานมีชื่ออังกฤษ', kaphrao?.nameEn === 'Minced Pork Basil Rice', `ได้ ${kaphrao?.nameEn}`);
+  check('กลุ่มตัวเลือกและตัวเลือกมีชื่ออังกฤษครบ',
+    kaphrao?.optionGroups?.every((g: any) => g.nameEn && g.choices.every((c: any) => c.nameEn)),
+    JSON.stringify(kaphrao?.optionGroups?.map((g: any) => g.nameEn)));
+
   console.log('\nสั่งอาหาร — เซิร์ฟเวอร์ต้องเป็นคนคิดเงิน');
 
   const kaphraoId = kaphrao.id as string;

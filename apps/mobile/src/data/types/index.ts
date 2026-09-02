@@ -21,6 +21,8 @@ export interface Restaurant {
   id: string;
   ownerUserId: string;
   name: string;
+  /** ชื่ออังกฤษ ว่างได้ ชั้นข้อมูลเป็นคนเลือกว่าจะโชว์อันไหน */
+  nameEn?: string | null;
   isApproved: boolean;
   /** เปิดรับออเดอร์อยู่จริงไหม เซิร์ฟเวอร์รวมตารางเวลากับการพักมาให้แล้ว (design M11) */
   isOpen: boolean;
@@ -40,6 +42,8 @@ export interface Restaurant {
 export interface OptionChoice {
   id: string;
   name: string;
+  /** ชื่ออังกฤษ ว่างได้ ชั้นข้อมูลเป็นคนเลือกว่าจะโชว์อันไหน */
+  nameEn?: string | null;
   /** ส่วนต่างราคาเป็นสตางค์ (0 = ฟรี) */
   priceDelta: number;
 }
@@ -47,6 +51,7 @@ export interface OptionChoice {
 export interface OptionGroup {
   id: string;
   name: string;
+  nameEn?: string | null;
   /** จำนวนที่ต้องเลือกอย่างน้อย (0 = ไม่บังคับ) */
   minSelect: number;
   /** จำนวนที่เลือกได้มากสุด (min=max=1 = radio) */
@@ -58,6 +63,8 @@ export interface MenuItem {
   id: string;
   restaurantId: string;
   name: string;
+  /** ชื่ออังกฤษ ว่างได้ ชั้นข้อมูลเป็นคนเลือกว่าจะโชว์อันไหน */
+  nameEn?: string | null;
   description?: string;
   /** สตางค์ (product-spec §7) */
   price: number;

@@ -169,6 +169,13 @@
       "when": 1788282872996,
       "tag": "0023_crazy_jane_foster",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1788353579914,
+      "tag": "0024_shocking_onslaught",
+      "breakpoints": true
     }
   ]
 }

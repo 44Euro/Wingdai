@@ -47,6 +47,8 @@ export type PublicAccount = {
   accountType: AccountType;
   username: string;
   fullName: string;
+  /** ชื่ออักษรละติน ว่างได้ แอปเลือกเองว่าจะโชว์อันไหนตามภาษาที่ตั้งไว้ */
+  fullNameEn: string | null;
   phone: string;
   email: string | null;
   riderApproval?: 'pending' | 'approved' | 'rejected';
@@ -338,6 +340,7 @@ export class AuthService {
       accountType: row.accountType,
       username: row.username,
       fullName: row.fullName,
+      fullNameEn: row.fullNameEn,
       phone: row.phone,
       email: row.email,
       ownedRestaurantIds: owned.map((r) => r.id),

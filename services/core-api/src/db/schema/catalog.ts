@@ -26,6 +26,11 @@ export const restaurants = pgTable(
     /** โซนเป็น ข้อมูลประกอบ ไม่ใช่ด่าน ร้านอยู่ที่ไหนในไทยก็เปิดได้ */
     zoneId: uuid('zone_id').references(() => zones.id),
     name: text('name').notNull(),
+    /**
+     * ชื่ออังกฤษของร้านและจาน ว่างได้ ถ้าไม่มีให้ตกกลับไปใช้ชื่อไทย
+     * ร้านไทยจริง ๆ ตั้งชื่อเป็นไทย การบังคับให้กรอกอังกฤษด้วยคือการบังคับให้แปลชื่อตัวเอง
+     */
+    nameEn: text('name_en'),
     cuisine: cuisineCategory('cuisine').notNull(),
     addressText: text('address_text').notNull(),
     location: point('location').notNull(),
@@ -66,6 +71,7 @@ export const menuItems = pgTable(
       .notNull()
       .references(() => restaurants.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
+    nameEn: text('name_en'),
     description: text('description'),
     /** ราคาเท่าหน้าร้านเป๊ะ (product-spec §3 ข้อ 2) */
     priceSatang: satang('price_satang').notNull(),

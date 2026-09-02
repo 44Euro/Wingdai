@@ -12,6 +12,7 @@ export type AdminOrderRow = {
   reference: string;
   status: OrderStatus;
   restaurantName: string;
+  restaurantNameEn: string | null;
   dropoffLabel: string;
   riderName: string | null;
   grandTotalSatang: number;

@@ -956,6 +956,8 @@ export function createMockRepos(): Repos {
         const shop = item && restaurants.find((r) => r.id === item.restaurantId);
         if (!item || shop?.ownerUserId !== me.id) throw new Error('ไม่พบเมนูนี้');
         Object.assign(item, patch);
+        // แก้ชื่อไทยแล้วชื่ออังกฤษเดิมใช้ไม่ได้อีก ล้างทิ้งให้ตกกลับไปใช้ชื่อใหม่ (เหมือนฝั่งเซิร์ฟเวอร์)
+        if (patch.name !== undefined) item.nameEn = null;
         return { ...item };
       },
 
@@ -2161,6 +2163,26 @@ export function createMockRepos(): Repos {
             phone: a.phone,
             role: a.accountType,
           }));
+      },
+
+      async createAdmin(input) {
+        await delay();
+        requireSuper();
+        if (accounts.some((a) => a.username === input.username)) {
+          throw new Error('ชื่อผู้ใช้นี้มีคนใช้แล้ว');
+        }
+        if (accounts.some((a) => a.phone === input.phone)) throw new Error('เบอร์นี้มีคนใช้แล้ว');
+        const created = {
+          ...accounts[0]!,
+          id: `acc-${input.username}`,
+          username: input.username,
+          fullName: input.fullName,
+          phone: input.phone,
+          accountType: input.role,
+          email: undefined,
+        };
+        accounts.push(created);
+        return { accountId: created.id, role: input.role };
       },
 
       async grantAdmin(username, role) {

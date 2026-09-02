@@ -1,3 +1,5 @@
+import { activeLanguage } from '../../lib/activeLanguage';
+import { localiseNames } from '../../lib/localiseNames';
 /** ตัวห่อ fetch ตัวเดียวของแอป ทุก request ไป core-api ผ่านทางนี้ */
 
 /** รูปร่าง error ที่ core-api ตอบกลับ ตรงกับ ZodBody กับ exception ทั้งหมดฝั่งเซิร์ฟเวอร์ */
@@ -64,7 +66,11 @@ export function createClient(baseUrl: string) {
       );
     }
 
-    return body as T;
+    /**
+     * แทนชื่อเป็นภาษาที่ผู้ใช้ตั้งไว้ตั้งแต่ทางเข้า จอทั้งห้าสิบกว่าจุดจึงไม่ต้องรู้เรื่องนี้เลย
+     * ภาษาไทยคืนของเดิมทั้งก้อนโดยไม่เดินซ้ำ ไม่มีค่าใช้จ่ายเพิ่มสำหรับผู้ใช้ส่วนใหญ่
+     */
+    return localiseNames(body, activeLanguage()) as T;
   };
 }
 

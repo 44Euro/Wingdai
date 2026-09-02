@@ -10,6 +10,7 @@ function row(over: Partial<AdminOrderRow> = {}): AdminOrderRow {
     reference: 'WD-ABC123',
     status: 'preparing',
     restaurantName: 'ครัวบ้านอารีย์',
+    restaurantNameEn: 'Ari Home Kitchen',
     dropoffLabel: 'พหลโยธิน 7',
     riderName: null,
     grandTotalSatang: 17000,

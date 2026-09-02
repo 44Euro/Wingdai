@@ -14,7 +14,7 @@ import { RootNavigator } from './src/app/RootNavigator';
 import { NoConnectionScreen } from './src/app/NoConnectionScreen';
 import { useConnectionStore, reportRequestError } from './src/app/connectionStore';
 import { WebFrame } from './src/app/WebFrame';
-import { initI18n } from './src/i18n';
+import { initI18n, i18n } from './src/i18n';
 import { initDataSource, pingApi } from './src/data';
 
 // คำขอที่ไปไม่ถึงเซิร์ฟเวอร์รู้ได้ที่นี่ที่เดียว แทนที่จะให้ทุกจอตรวจเอง (SY1)
@@ -43,6 +43,16 @@ export default function App() {
 
   useEffect(() => {
     Promise.all([initI18n(), initDataSource()]).then(() => setReady(true));
+  }, []);
+
+  /**
+   * ชื่อร้านกับชื่อคนถูกเลือกภาษาตั้งแต่ตอนอ่านจาก API แล้วเก็บลงแคช
+   * เปลี่ยนภาษาแล้วไม่ล้าง ของในแคชจะยังเป็นภาษาเดิมจนกว่าจะหมดอายุเอง
+   */
+  useEffect(() => {
+    const refetch = () => { void queryClient.refetchQueries(); };
+    i18n.on('languageChanged', refetch);
+    return () => { i18n.off('languageChanged', refetch); };
   }, []);
 
   // ฟอนต์โหลดไม่ขึ้นก็ยังต้องเข้าแอปได้ ใช้ฟอนต์ระบบแทน
