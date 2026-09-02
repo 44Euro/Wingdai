@@ -42,3 +42,39 @@ describe('แบนเนอร์ประกาศแบบสไลด์', (
     expect(width('banner-dot-0')).toBeGreaterThan(width('banner-dot-1'));
   });
 });
+
+/**
+ * บนเว็บ useWindowDimensions คืนความกว้างของหน้าต่างเบราว์เซอร์ ไม่ใช่ของกรอบมือถือ
+ * การ์ดจึงกว้างเกินกรอบ และใบถัดไปโผล่มาชิดขอบแบบไม่มีช่องไฟคั่น
+ */
+describe('ขนาดสไลด์ต้องพอดีกรอบและไม่ติดกัน', () => {
+  function laidOut(width: number) {
+    const tree = mount();
+    const [outer] = hosts(tree, 'home-banner-frame');
+    act(() => outer!.props.onLayout({ nativeEvent: { layout: { width } } }));
+    return tree;
+  }
+
+  const flat = (s: unknown) => Object.assign({}, ...[s].flat(3).filter(Boolean));
+
+  it('สไลด์กว้างไม่เกินกรอบที่วัดได้จริง ไม่ได้อิงความกว้างหน้าต่าง', () => {
+    const tree = laidOut(390);
+    const slide = flat(hosts(tree, 'banner-slide-0')[0]!.props.style);
+    expect(slide.width).toBeLessThanOrEqual(390);
+    expect(slide.width).toBeGreaterThan(0);
+  });
+
+  it('มีช่องไฟคั่นระหว่างใบ ใบสุดท้ายไม่ต้องมี', () => {
+    const tree = laidOut(390);
+    const gap = flat(hosts(tree, 'banner-slide-0')[0]!.props.style).marginRight;
+    expect(gap).toBeGreaterThan(0);
+    expect(flat(hosts(tree, 'banner-slide-2')[0]!.props.style).marginRight).toBe(0);
+  });
+
+  it('ระยะ snap ต้องเท่ากับความกว้างใบบวกช่องไฟ ไม่งั้นเลื่อนแล้วค้างคร่อมสองใบ', () => {
+    const tree = laidOut(390);
+    const [list] = hosts(tree, 'home-banner');
+    const slide = flat(hosts(tree, 'banner-slide-0')[0]!.props.style);
+    expect(list!.props.snapToInterval).toBe(slide.width + slide.marginRight);
+  });
+});

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, ScrollView, Pressable, useWindowDimensions } from 'react-native';
+import { View, ScrollView, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
@@ -15,44 +15,61 @@ const AUTO_MS = 5000;
 export function AnnouncementCarousel({ restaurantCount }: { restaurantCount: number }) {
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
-  const { width } = useWindowDimensions();
   const scroller = useRef<ScrollView>(null);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [frameWidth, setFrameWidth] = useState(0);
 
-  // การ์ดกว้างเท่าจอลบขอบสองข้าง กรอบเว็บกว้างสุด 430 จึงไม่ยืดเกินนั้น
-  const slideWidth = Math.min(width, 430) - p.space.screen * 2;
+  /**
+   * วัดกรอบที่ตัวเองอยู่จริง ไม่ใช่ความกว้างหน้าต่าง
+   * บนเว็บ useWindowDimensions คืนขนาดของเบราว์เซอร์ทั้งบาน แต่แอปถูกครอบด้วยกรอบมือถือ
+   * การ์ดจึงเคยกว้างเกินกรอบ แล้วใบถัดไปโผล่มาชิดขอบโดยไม่มีช่องไฟคั่น
+   */
+  const slideWidth = Math.max(frameWidth - p.space.screen * 2, 0);
+  const gap = p.space.md;
+  const step = slideWidth + gap;
 
   useEffect(() => {
-    if (paused) return undefined;
+    if (paused || slideWidth === 0) return undefined;
     const timer = setInterval(() => {
       setIndex((current) => {
         const next = (current + 1) % SLIDE_COUNT;
-        scroller.current?.scrollTo({ x: next * slideWidth, animated: true });
+        scroller.current?.scrollTo({ x: next * step, animated: true });
         return next;
       });
     }, AUTO_MS);
     return () => clearInterval(timer);
-  }, [paused, slideWidth]);
+  }, [paused, step, slideWidth]);
 
   return (
-    <View style={{ gap: p.space.sm }}>
+    <View
+      testID="home-banner-frame"
+      style={{ gap: p.space.sm }}
+      onLayout={(e) => setFrameWidth(e.nativeEvent.layout.width)}
+    >
       <ScrollView
         ref={scroller}
         testID="home-banner"
         horizontal
-        pagingEnabled
+        // pagingEnabled หยุดทีละ "หน้าจอ" ซึ่งไม่เท่ากับหนึ่งใบเมื่อมีช่องไฟคั่น จึงค้างคร่อมสองใบ
+        snapToInterval={step}
+        snapToAlignment="start"
+        decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
         style={{ flexGrow: 0 }}
         contentContainerStyle={{ paddingHorizontal: p.space.screen }}
         onScrollBeginDrag={() => setPaused(true)}
         onMomentumScrollEnd={(e) => {
-          setIndex(Math.round(e.nativeEvent.contentOffset.x / slideWidth));
+          if (step > 0) setIndex(Math.round(e.nativeEvent.contentOffset.x / step));
         }}
         scrollEventThrottle={16}
       >
         {Array.from({ length: SLIDE_COUNT }, (_, i) => (
-          <View key={i} testID={`banner-slide-${i}`} style={{ width: slideWidth }}>
+          <View
+            key={i}
+            testID={`banner-slide-${i}`}
+            style={{ width: slideWidth, marginRight: i === SLIDE_COUNT - 1 ? 0 : gap }}
+          >
             <Card tone="teal" style={{ overflow: 'hidden', minHeight: 108 }}>
               <Text variant="kicker" style={{ color: p.brand[300] }}>
                 {t(`customer.home.banner.slides.${i}.kicker`)}
@@ -89,7 +106,7 @@ export function AnnouncementCarousel({ restaurantCount }: { restaurantCount: num
             onPress={() => {
               setPaused(true);
               setIndex(i);
-              scroller.current?.scrollTo({ x: i * slideWidth, animated: true });
+              scroller.current?.scrollTo({ x: i * step, animated: true });
             }}
             style={{
               width: i === index ? 18 : 6,
