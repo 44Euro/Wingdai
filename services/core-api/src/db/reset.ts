@@ -32,7 +32,23 @@ async function main() {
   console.log(`${tables.length} ตาราง · บัญชีก่อนล้าง ${before?.n ?? 0}`);
 
   const list = tables.map((t) => `"public"."${t}"`).join(', ');
-  await client.unsafe(`truncate table ${list} restart identity cascade`);
+
+  /**
+   * API ที่ deploy อยู่ยังรับคำขอระหว่างที่เราล้าง คิวรีของมันถือล็อกแถวคาไว้
+   * truncate ขอล็อกทั้งตารางจึงชน postgres เลือกฆ่าฝั่งเราแล้วตอบ deadlock detected
+   * ล็อกพวกนั้นหลุดเองในไม่กี่วินาที ถอยแล้วลองใหม่จึงผ่าน
+   */
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      await client.unsafe(`truncate table ${list} restart identity cascade`);
+      break;
+    } catch (error) {
+      const message = (error as Error).message;
+      if (attempt >= 4 || !/deadlock|lock timeout|could not obtain lock/i.test(message)) throw error;
+      console.log(`  ชนล็อกกับ API (${message}) ลองใหม่ครั้งที่ ${attempt + 1}/4`);
+      await new Promise((r) => setTimeout(r, 2000 * attempt));
+    }
+  }
 
   console.log('ล้างเรียบร้อย รัน seed ต่อเพื่อใส่ข้อมูลตั้งต้นกลับเข้าไป');
   await client.end();
