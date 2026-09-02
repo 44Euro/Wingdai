@@ -26,11 +26,15 @@ function say(line: string) {
   process.stdout.write(`${line}\n`);
 }
 
+/** ประกาศนอก main เพราะ walk ถูกเรียกก่อนบรรทัดที่ประกาศตัวแปรใน main จะทำงาน (TDZ) */
+let storageOff = false;
+
 /** อ่านค่าตัวเลขจากธง เช่น --delivered=6 ตอนไล่บั๊กจะได้ไม่ต้องรอรอบเต็ม */
-function flag(name: string, fallback: number): number {
+function flag(name: string, fallback: number, whole = true): number {
   const hit = process.argv.find((a) => a.startsWith(`${name}=`));
   const n = hit ? Number(hit.slice(name.length + 1)) : NaN;
-  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
+  if (!Number.isFinite(n) || n <= 0) return fallback;
+  return whole ? Math.floor(n) : n;
 }
 
 const CUSTOMERS = ['somchai', 'nid', 'ploy', 'wut', 'fah'];
@@ -44,8 +48,12 @@ const RIDERS = ['rider_ann', 'rider_som', 'rider_kai'];
 const DELIVERED = flag('--delivered', 36);
 /** ยิงพร้อมกันได้เฉพาะขั้นที่แต่ละใบไม่ยุ่งกัน ไม่ใช่ขั้นเดินสถานะ */
 const PARALLEL = 6;
-/** ต่ำกว่านี้ถือว่าข้อมูลบางเกินกว่าจะเอาไปคำนวณตัวเลขใน §8 ได้ */
-const MIN_SUCCESS_RATE = 0.8;
+/**
+ * ต่ำกว่านี้ถือว่าข้อมูลบางเกินกว่าจะเอาไปคำนวณตัวเลขใน §8 ได้
+ * รอบ CI ที่ยิงไม่กี่ใบให้ลดเส้นลง เพราะมันถามแค่ว่าเครื่องจักรเดินครบไหม
+ * ไม่ได้ถามว่าข้อมูลดีพอไหม และเครื่องจ่ายงานข้ามใบที่ร้านไกลเป็นปกติอยู่แล้ว
+ */
+const MIN_SUCCESS_RATE = flag('--min-rate', 0.8, false);
 /** ยกเลิกไม่กี่ใบ ให้จอเคสกับอัตราปฏิเสธมีของให้ดู โดยยังไม่ทำให้ตัวเลขหลุดเกณฑ์ §8 */
 const CANCELLED = 3;
 const DAYS = 7;
@@ -265,6 +273,21 @@ async function main() {
     throw new Error(`ไม่มีใครรับใบ ${orderId} ทั้งรอบอัตโนมัติและการสั่งจ่ายเอง`);
   }
 
+  /**
+   * ที่วางรูปยืนยันส่ง จุดเดียวในสคริปต์ที่ต้องมี Supabase Storage
+   * บน CI ที่รันกับฐานเปล่าไม่มีกุญแจให้ ใช้เส้นทางสังเคราะห์แทนแล้วเดินต่อได้
+   * เพราะ assertDeliveryProof ตรวจแค่ว่าเส้นทางไม่ว่าง ไม่ได้เช็คว่าไฟล์มีจริง
+   * และสคริปต์ก็ไม่เคยอัปไฟล์ขึ้นไปอยู่แล้ว เส้นทางที่เก็บลงฐานจึงชี้ไปที่ไฟล์ที่ไม่มีอยู่ทั้งสองทาง
+   */
+  async function proofPath(orderId: string, riderToken: string): Promise<string> {
+    if (storageOff) return `delivery-proof/${orderId}.jpg`;
+    const res = await call('POST', '/storage/delivery-proof/sign-upload', { orderId, ext: 'jpg' }, riderToken);
+    if ([200, 201].includes(res.status)) return res.body.path;
+    storageOff = true;
+    say(`  ไม่มี Supabase Storage (${res.status}) ใช้เส้นทางสังเคราะห์แทนตั้งแต่ใบนี้ไป`);
+    return `delivery-proof/${orderId}.jpg`;
+  }
+
   async function walk(o: Placed, rider: string, riderToken: string, admin: string) {
     expect('ร้านรับ', await call('PATCH', `/orders/${o.id}/status`, { status: 'accepted' }, admin));
     /**
@@ -283,10 +306,8 @@ async function main() {
      */
     const [row] = await client<{ pin: string }[]>`
       select delivery_pin as pin from orders where id = ${o.id}`;
-    const proof = expect('ขอที่วางรูปยืนยันส่ง',
-      await call('POST', '/storage/delivery-proof/sign-upload', { orderId: o.id, ext: 'jpg' }, riderToken));
     expect('ไรเดอร์ปิดงาน', await call('PATCH', `/orders/${o.id}/status`, {
-      status: 'delivered', deliveryPin: row?.pin, photoPath: proof.path,
+      status: 'delivered', deliveryPin: row?.pin, photoPath: await proofPath(o.id, riderToken),
     }, riderToken));
 
     o.rider = rider;

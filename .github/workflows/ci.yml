@@ -39,3 +39,55 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+
+  # ท่อข้อมูลสาธิตเคยถูกทดสอบแค่ตอนรันจริงบนโปรดักชัน ซึ่งช้ายี่สิบนาทีและล้างฐานทิ้ง
+  # บั๊กจึงหลุดไปโผล่ตอนตีสองทุกครั้ง งานนี้เดินท่อทั้งเส้นบนฐานของตัวเองตั้งแต่ก่อน merge
+  demo-pipeline:
+    name: ท่อข้อมูลสาธิต
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/core-api
+    services:
+      # db:setup สั่ง create extension postgis เอง อิมเมจจึงต้องมี extension ให้สร้าง
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+      # createScriptClient เลือก POOL ก่อนเสมอ ตั้งให้ตรงกันไว้ไม่ให้เผลอไปโดนฐานอื่น
+      DATABASE_POOL_URL: postgres://postgres:postgres@localhost:5432/postgres
+      JWT_SECRET: ci-only-not-a-real-secret-longer-than-32-chars
+      PORT: 3000
+      DEMO_API_URL: http://localhost:3000/api
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: services/core-api/package-lock.json
+      - run: npm ci
+      - run: npm run db:setup
+      - run: npm run db:seed
+      - run: npm run build
+      - name: เปิด API แล้วรอจนตอบ /health
+        run: |
+          node dist/main.js > /tmp/api.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -sf --max-time 5 "$DEMO_API_URL/health" > /dev/null; then
+              echo "API พร้อมแล้วที่วินาทีที่ $i"; exit 0
+            fi
+            sleep 2
+          done
+          echo "API ไม่ตอบภายใน 60 วินาที"; cat /tmp/api.log; exit 1
+      - run: npm run db:demo-orders
+      # ยิงไม่กี่ใบและลดเส้นผ่านลง งานนี้ถามว่าเครื่องจักรเดินครบไหม ไม่ได้ถามว่าข้อมูลดีพอไหม
+      - run: npm run db:demo-history -- --delivered=12 --min-rate=0.5
+      - name: ล็อกของ API เมื่อมีขั้นไหนล้ม
+        if: failure()
+        run: cat /tmp/api.log
