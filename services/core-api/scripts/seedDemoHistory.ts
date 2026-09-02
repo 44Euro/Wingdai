@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { withRetry } from './fetchRetry';
+import { mapLimit } from './mapLimit';
 import { createScriptClient } from '../src/db/client';
 
 /**
@@ -18,8 +19,16 @@ const PASSWORD = 'wingdai1234';
 const CUSTOMERS = ['somchai', 'nid', 'ploy', 'wut', 'fah'];
 const RIDERS = ['rider_ann', 'rider_som', 'rider_kai'];
 
-/** จำนวนใบที่ส่งถึงแล้วในหน้าต่างเจ็ดวัน มากพอให้ค่ากลางและอัตราต่าง ๆ นิ่ง */
-const DELIVERED = 56;
+/**
+ * จำนวนใบที่ส่งถึงแล้วในหน้าต่างเจ็ดวัน มากพอให้ค่ากลางและอัตราต่าง ๆ นิ่ง
+ * เคยตั้งไว้ 56 แต่ใบหนึ่งกินเวลา 20-35 วินาที (หกคำขอ HTTP บวกรอรอบจ่ายงาน)
+ * รวมแล้วเกินครึ่งชั่วโมงต่อรอบ ยาวเกินไปสำหรับงานที่ต้องรันเองทุกคืนโดยไม่มีคนดู
+ */
+const DELIVERED = 36;
+/** ยิงพร้อมกันได้เฉพาะขั้นที่แต่ละใบไม่ยุ่งกัน ไม่ใช่ขั้นเดินสถานะ */
+const PARALLEL = 6;
+/** ต่ำกว่านี้ถือว่าข้อมูลบางเกินกว่าจะเอาไปคำนวณตัวเลขใน §8 ได้ */
+const MIN_SUCCESS_RATE = 0.8;
 /** ยกเลิกไม่กี่ใบ ให้จอเคสกับอัตราปฏิเสธมีของให้ดู โดยยังไม่ทำให้ตัวเลขหลุดเกณฑ์ §8 */
 const CANCELLED = 3;
 const DAYS = 7;
@@ -117,10 +126,14 @@ async function main() {
     menus.set(id, expect('อ่านเมนู', await call('GET', `/catalog/restaurants/${id}/menu`)));
   }
 
-  const placed: Placed[] = [];
   const now = new Date();
   const total = DELIVERED + CANCELLED;
 
+  /**
+   * เลือกของให้ครบทุกใบก่อน แล้วค่อยยิง
+   * rnd() เป็นลำดับเดียวกันทั้งสคริปต์ ถ้าเรียกมันระหว่างยิงพร้อมกัน ผลแต่ละรอบจะไม่เหมือนเดิม
+   */
+  const drafts = [];
   for (let i = 0; i < total; i += 1) {
     const customer = pick(CUSTOMERS);
     const choices = nearby.get(customer) ?? [];
@@ -131,25 +144,34 @@ async function main() {
     const dish = open[Math.floor(rnd() * open.length)]!;
     const required = (dish.optionGroups ?? []).filter((g: any) => g.minSelect > 0);
 
-    const order = expect(`สั่งใบที่ ${i + 1}`, await call('POST', '/orders', {
-      restaurantId: shop.id,
-      items: [{
-        menuItemId: dish.id,
-        choiceIds: required.map((g: any) => g.choices[0].id),
-        quantity: rnd() < 0.25 ? 2 : 1,
-      }],
-      paymentMethod: rnd() < 0.72 ? 'promptpay' : 'cash',
-    }, tokens.get(customer)!));
-
-    placed.push({
-      id: order.id,
+    drafts.push({
+      customer,
       at: orderedAt(now, i, total),
       cancelled: i >= DELIVERED,
-      customerToken: tokens.get(customer)!,
+      body: {
+        restaurantId: shop.id,
+        items: [{
+          menuItemId: dish.id,
+          choiceIds: required.map((g: any) => g.choices[0].id),
+          quantity: rnd() < 0.25 ? 2 : 1,
+        }],
+        paymentMethod: rnd() < 0.72 ? 'promptpay' : 'cash',
+      },
     });
   }
 
-  console.log(`สั่งแล้ว ${placed.length} ใบ กำลังเดินสถานะ`);
+  // แต่ละใบไม่ยุ่งกันเลยตอนสั่ง ยิงเรียงทีละใบเสียเวลาเปล่าเป็นนาที
+  const results = await mapLimit<typeof drafts[number], Placed | null>(drafts, PARALLEL, async (d, i) => {
+    const res = await call('POST', '/orders', d.body, tokens.get(d.customer)!);
+    if (![200, 201].includes(res.status)) {
+      console.log(`  สั่งใบที่ ${i + 1} ไม่ผ่าน — ${res.status} ${JSON.stringify(res.body)}`);
+      return null;
+    }
+    return { id: res.body.id, at: d.at, cancelled: d.cancelled, customerToken: tokens.get(d.customer)! };
+  });
+  const placed: Placed[] = results.filter((r): r is Placed => r !== null);
+
+  console.log(`สั่งแล้ว ${placed.length}/${drafts.length} ใบ กำลังเดินสถานะ`);
 
   /**
    * เดินผ่าน HTTP ทุกก้าว ไม่แตะสถานะด้วย SQL ตรง ๆ
@@ -168,6 +190,7 @@ async function main() {
    * จึงเปิดทีละคนแล้วปิดที่เหลือ ใบในรอบนั้นจึงตกไปที่คนที่ตั้งใจไว้แน่นอน
    */
   const queue = placed.filter((x) => !x.cancelled);
+  let failed = 0;
   for (const [n, rider] of RIDERS.entries()) {
     const riderToken = tokens.get(rider)!;
     for (const other of RIDERS) {
@@ -180,7 +203,19 @@ async function main() {
 
     const mine = queue.filter((_, i) => i % RIDERS.length === n);
     for (const o of mine) {
-      await walk(o, rider, riderToken, admin);
+      /**
+       * ใบเดียวสะดุดเคยทิ้งงานทั้งรอบ ซึ่งกินเวลาไปแล้วครึ่งชั่วโมงตอนที่รู้ตัว
+       * เก็บไว้แล้วไปต่อ แล้วค่อยตัดสินตอนจบว่าได้ของมากพอไหม
+       */
+      try {
+        await walk(o, rider, riderToken, admin);
+      } catch (error) {
+        console.log(`  ใบ ${o.id.slice(0, 8)} เดินสถานะไม่จบ — ${(error as Error).message}`);
+        await call('PATCH', `/orders/${o.id}/status`, { status: 'cancelled', reason: 'other' }, admin);
+        // ยกเป็นใบยกเลิกเลย ขั้นย้อนเวลากับรีวิวจะได้ไม่ไปใส่เวลาส่งถึงให้ใบที่ไม่เคยส่ง
+        o.cancelled = true;
+        failed += 1;
+      }
     }
   }
 
@@ -241,7 +276,18 @@ async function main() {
   }
 
 
-  console.log('เดินสถานะครบ กำลังใส่รีวิว');
+  const done = placed.filter((o) => !o.cancelled).length;
+  console.log(`เดินสถานะครบ ส่งถึง ${done}/${DELIVERED} ใบ${failed > 0 ? ` (พลาด ${failed})` : ''}`);
+
+  /**
+   * ของน้อยเกินไปทำให้ค่ากลางกับอัตราต่าง ๆ อ่านเพี้ยน ซึ่งคือปัญหาที่สคริปต์นี้เกิดมาเพื่อแก้
+   * ล้มตรงนี้บอกได้ว่าได้มาเท่าไร ต่างจากล้มกลางทางเพราะใบที่ 41 สะดุด
+   */
+  if (done < DELIVERED * MIN_SUCCESS_RATE) {
+    throw new Error(`ส่งถึงแค่ ${done} ใบ จากเป้า ${DELIVERED} น้อยเกินกว่าจะเอาไปคำนวณตัวเลขได้`);
+  }
+
+  console.log('กำลังใส่รีวิว');
   await reviews(client, placed, tokens);
 
   await refundCases(placed, tokens.get('admin_root')!);
@@ -271,18 +317,27 @@ async function reviews(
     'สั่งประจำ ไม่เคยพลาด',
     '',
   ];
-  let done = 0;
+  // เลือกคะแนนให้ครบก่อนเหมือนตอนสั่ง เพราะ rnd() ใช้ลำดับเดียวกันทั้งสคริปต์
+  const drafts = [];
   for (const o of placed) {
     if (o.cancelled || !o.customerToken || rnd() > 0.6) continue;
     const good = rnd() < 0.82;
-    const res = await call('POST', `/orders/${o.id}/review`, {
-      restaurantRating: good ? (rnd() < 0.6 ? 5 : 4) : (rnd() < 0.5 ? 3 : 2),
-      riderRating: good ? 5 : 4,
-      comment: pick(COMMENTS),
-    }, o.customerToken);
-    if ([200, 201].includes(res.status)) done += 1;
+    drafts.push({
+      token: o.customerToken,
+      id: o.id,
+      body: {
+        restaurantRating: good ? (rnd() < 0.6 ? 5 : 4) : (rnd() < 0.5 ? 3 : 2),
+        riderRating: good ? 5 : 4,
+        comment: pick(COMMENTS),
+      },
+    });
   }
-  console.log(`รีวิว ${done} ใบ`);
+
+  const results = await mapLimit(drafts, PARALLEL, async (d) => {
+    const res = await call('POST', `/orders/${d.id}/review`, d.body, d.token);
+    return [200, 201].includes(res.status);
+  });
+  console.log(`รีวิว ${results.filter(Boolean).length} ใบ`);
 }
 
 /**
