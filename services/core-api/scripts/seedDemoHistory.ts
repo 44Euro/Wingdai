@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { withRetry } from './fetchRetry';
 import { createScriptClient } from '../src/db/client';
 
 /**
@@ -50,14 +51,14 @@ type Res = { status: number; body: any };
 type Placed = { id: string; at: Date; cancelled: boolean; rider?: string; customerToken?: string };
 
 async function call(method: string, path: string, body?: unknown, token?: string): Promise<Res> {
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await withRetry(() => fetch(`${BASE}${path}`, {
     method,
     headers: {
       'content-type': 'application/json',
       ...(token ? { authorization: `Bearer ${token}` } : {}),
     },
     body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  }));
   const text = await res.text();
   return { status: res.status, body: text ? JSON.parse(text) : null };
 }

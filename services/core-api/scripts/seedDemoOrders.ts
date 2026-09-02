@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { withRetry } from './fetchRetry';
 
 /**
  * ออเดอร์ตั้งต้นของฐานสาธิต ยิงผ่าน HTTP จริงแทนการ insert ตรง
@@ -11,14 +12,14 @@ const PASSWORD = 'wingdai1234';
 type Res = { status: number; body: any };
 
 async function call(method: string, path: string, body?: unknown, token?: string): Promise<Res> {
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await withRetry(() => fetch(`${BASE}${path}`, {
     method,
     headers: {
       'content-type': 'application/json',
       ...(token ? { authorization: `Bearer ${token}` } : {}),
     },
     body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  }));
   const text = await res.text();
   return { status: res.status, body: text ? JSON.parse(text) : null };
 }
