@@ -17,6 +17,7 @@ import { MAX_ACTIVE_JOBS } from './scoring';
 import { validateRiderApplication, bankNameMatchesLegalName } from './riderApplication';
 import { periodStart, periodDays, type EarningsPeriod } from './earningsPeriod';
 import { canReportIssue, type RiderIssueKind } from './riderIssue';
+import { riderRate } from './riderRate';
 import { RIDER_DOCUMENT_KINDS, type RiderDocumentKind } from '../storage/storage.controller';
 import { StorageService } from '../storage/storage.service';
 
@@ -906,6 +907,7 @@ export class RiderService {
         orderId: orders.id,
         reference: orders.reference,
         restaurantName: restaurants.name,
+        restaurantNameEn: restaurants.nameEn,
         dropoffAddress: addresses.addressText,
         deliveredAt: orders.deliveredAt,
         riderPaySatang: orders.deliveryFeeSatang,
@@ -966,12 +968,6 @@ export class RiderService {
       where account_id = ${accountId} and online_at > now() - (${sinceDays} || ' days')::interval
     `);
 
-    const hours = row?.hours ?? 0;
-    return {
-      hours: Number(hours.toFixed(2)),
-      delivered: row?.delivered ?? 0,
-      // ยังไม่เคยออนไลน์ = ยังไม่มีค่านี้ ไม่ใช่ 0 (0 อ่านเหมือน "ทำได้แย่")
-      ordersPerHour: hours > 0 ? Number(((row?.delivered ?? 0) / hours).toFixed(2)) : null,
-    };
+    return riderRate(row?.hours ?? 0, row?.delivered ?? 0);
   }
 }
