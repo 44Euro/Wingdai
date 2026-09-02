@@ -5,6 +5,7 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Button } from '../../../ui/Button';
 import { Badge, Card } from '../../../ui/Surface';
+import { waitedLabel } from '../../../lib/waited';
 import { useForceDispatch, useResolveRiderIssue } from '../hooks';
 import type { OrderException } from '../../../data/types';
 
@@ -25,8 +26,18 @@ export function ExceptionCard({ exception }: { exception: OrderException }) {
           <Badge label={t(`admin.kind.${exception.kind}`)} tone="brand" />
         </View>
 
-        {/* บอกว่าต้องทำอะไร ไม่ใช่แค่ว่ามีอะไรผิด */}
-        <Text variant="small" color="danger">{exception.detail}</Text>
+        {/*
+          บอกว่าต้องทำอะไร ไม่ใช่แค่ว่ามีอะไรผิด
+          ประกอบประโยคที่นี่ ไม่ใช่รับข้อความสำเร็จรูปจากเซิร์ฟเวอร์ ไม่งั้นตั้งแอปเป็นอังกฤษ
+          แล้วบรรทัดนี้ยังเป็นไทยอยู่ประโยคเดียว · ใบที่ไรเดอร์พิมพ์เองยังใช้ข้อความจากเซิร์ฟเวอร์
+        */}
+        <Text variant="small" color="danger">
+          {exception.kind === 'rider_issue'
+            ? exception.detail
+            : t(`admin.exception.${exception.kind}`, {
+              waited: waitedLabel(exception.minutesWaiting, t),
+            })}
+        </Text>
 
         {exception.kind === 'no_rider' ? (
           <Button

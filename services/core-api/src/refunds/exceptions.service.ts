@@ -2,6 +2,7 @@ import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { sql, and, eq, isNull } from 'drizzle-orm';
 import { DB, type Db } from '../db/db.module';
 import { riderIssues } from '../db/schema';
+import { waitedFor } from './waitedFor';
 
 /** จอแอดมินแบบ exception-based (product-spec §7) */
 
@@ -20,6 +21,7 @@ export type OrderException = {
   orderId: string;
   reference: string;
   restaurantName: string;
+  restaurantNameEn: string | null;
   status: string;
   minutesWaiting: number;
   /** อธิบายเป็นภาษาคน แอดมินต้องรู้ว่าต้องทำอะไร ไม่ใช่แค่เห็นว่ามีอะไรผิด */
@@ -45,6 +47,7 @@ export class ExceptionsService {
       order_id: string;
       reference: string;
       restaurant_name: string;
+      restaurant_name_en: string | null;
       status: string;
       minutes_waiting: number;
       rider_issue_id: string | null;
@@ -53,7 +56,7 @@ export class ExceptionsService {
     }>(sql`
       -- ร้านยังไม่กดรับ
       select 'unaccepted'::text as kind, o.id as order_id, o.reference,
-             r.name as restaurant_name, o.status::text as status,
+             r.name as restaurant_name, r.name_en as restaurant_name_en, o.status::text as status,
              (extract(epoch from (now() - o.created_at)) / 60)::int as minutes_waiting,
              null::uuid as rider_issue_id, null::text as rider_issue_kind,
              null::text as rider_issue_detail
@@ -64,7 +67,7 @@ export class ExceptionsService {
       union all
 
       -- ร้านรับแล้วแต่ยังไม่มีไรเดอร์
-      select 'no_rider', o.id, o.reference, r.name, o.status::text,
+      select 'no_rider', o.id, o.reference, r.name, r.name_en, o.status::text,
              (extract(epoch from (now() - coalesce(o.accepted_at, o.created_at))) / 60)::int,
              null::uuid, null::text, null::text
         from orders o join restaurants r on r.id = o.restaurant_id
@@ -75,7 +78,7 @@ export class ExceptionsService {
       union all
 
       -- ไรเดอร์รับของไปแล้วแต่ยังไม่ถึง
-      select 'slow_delivery', o.id, o.reference, r.name, o.status::text,
+      select 'slow_delivery', o.id, o.reference, r.name, r.name_en, o.status::text,
              (extract(epoch from (now() - coalesce(o.picked_up_at, o.created_at))) / 60)::int,
              null::uuid, null::text, null::text
         from orders o join restaurants r on r.id = o.restaurant_id
@@ -85,7 +88,7 @@ export class ExceptionsService {
       union all
 
       -- ข้อพิพาทที่ยังไม่ตัดสิน
-      select 'open_dispute', o.id, o.reference, r.name, o.status::text,
+      select 'open_dispute', o.id, o.reference, r.name, r.name_en, o.status::text,
              (extract(epoch from (now() - rc.created_at)) / 60)::int,
              null::uuid, null::text, null::text
         from refund_cases rc
@@ -96,7 +99,7 @@ export class ExceptionsService {
       union all
 
       /** ไรเดอร์แจ้งปัญหาระหว่างส่ง (design R9) */
-      select 'rider_issue', o.id, o.reference, r.name, o.status::text,
+      select 'rider_issue', o.id, o.reference, r.name, r.name_en, o.status::text,
              (extract(epoch from (now() - ri.created_at)) / 60)::int,
              ri.id, ri.kind::text, ri.detail
         from rider_issues ri
@@ -113,6 +116,7 @@ export class ExceptionsService {
       orderId: r.order_id,
       reference: r.reference,
       restaurantName: r.restaurant_name,
+      restaurantNameEn: r.restaurant_name_en,
       status: r.status,
       minutesWaiting: r.minutes_waiting,
       detail: r.kind === 'rider_issue'
@@ -243,8 +247,8 @@ function riderIssueDetail(kind: string | null, typed: string | null): string {
 }
 
 const DETAIL: Record<Exclude<ExceptionKind, 'rider_issue'>, (m: number) => string> = {
-  unaccepted: (m) => `ร้านยังไม่กดรับมา ${m} นาที — ติดต่อร้านหรือยกเลิกให้ลูกค้า`,
-  no_rider: (m) => `ยังไม่มีไรเดอร์รับมา ${m} นาที — สั่งจ่ายงานมือหรือหาไรเดอร์เพิ่มในโซนนี้`,
-  slow_delivery: (m) => `ไรเดอร์รับของไปแล้ว ${m} นาทีแต่ยังไม่ถึง — โทรเช็คว่าเกิดอะไรขึ้น`,
-  open_dispute: (m) => `ลูกค้าแจ้งปัญหามา ${m} นาทีแล้วยังไม่ได้ตัดสิน`,
+  unaccepted: (m) => `ร้านยังไม่กดรับมา ${waitedFor(m)} — ติดต่อร้านหรือยกเลิกให้ลูกค้า`,
+  no_rider: (m) => `ยังไม่มีไรเดอร์รับมา ${waitedFor(m)} — สั่งจ่ายงานมือหรือหาไรเดอร์เพิ่มในโซนนี้`,
+  slow_delivery: (m) => `ไรเดอร์รับของไปแล้ว ${waitedFor(m)}แต่ยังไม่ถึง — โทรเช็คว่าเกิดอะไรขึ้น`,
+  open_dispute: (m) => `ลูกค้าแจ้งปัญหามา ${waitedFor(m)}แล้วยังไม่ได้ตัดสิน`,
 };
