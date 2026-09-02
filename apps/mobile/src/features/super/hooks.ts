@@ -41,6 +41,16 @@ export function useSetAdminRole() {
   });
 }
 
+/** ยกบัญชีที่ยังไม่ใช่แอดมินขึ้นมา จอลิสต์เฉพาะแอดมิน จึงต้องพิมพ์ชื่อผู้ใช้เอา */
+export function useGrantAdmin() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ username, role }: { username: string; role: AccountType }) =>
+      repos.super.grantAdmin(username, role),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['super'] }),
+  });
+}
+
 /** SA4 + SA6 อยู่จอเดียวกัน จึงอ่านมาก้อนเดียว */
 export function useSuperConfig() {
   return useQuery({ queryKey: ['super', 'config'], queryFn: () => repos.super.config() });

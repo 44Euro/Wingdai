@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, ScrollView, Modal } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -7,11 +7,13 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Button } from '../../../ui/Button';
 import { Card, Badge } from '../../../ui/Surface';
+import { Input } from '../../../ui/Field';
 import { ScreenHeader } from '../../../ui/ScreenHeader';
+import { Dialog } from '../../../ui/Dialog';
 import { useAuthStore } from '../../auth/authStore';
 import type { SuperStackParamList } from '../../../app/navigators/SuperAdminStack';
 import type { AccountType, AdminAccountRow } from '../../../data/types';
-import { useAdminAccounts, useSetAdminRole } from '../hooks';
+import { useAdminAccounts, useSetAdminRole, useGrantAdmin } from '../hooks';
 import { SkeletonCards } from '../../../ui/motion';
 
 type Props = NativeStackScreenProps<SuperStackParamList, 'SuperRoles'>;
@@ -24,6 +26,8 @@ export function SuperRolesScreen({ navigation }: Props) {
 
   const { data: admins = [], isPending } = useAdminAccounts();
   const setRole = useSetAdminRole();
+  const grant = useGrantAdmin();
+  const [username, setUsername] = useState('');
 
   /** คนที่กดไว้แต่ยังไม่ยืนยัน การเปลี่ยนสิทธิ์คนอื่นต้องผ่านการอ่านทวนหนึ่งจังหวะ */
   const [pending, setPending] = useState<{ row: AdminAccountRow; next: AccountType } | null>(null);
@@ -43,6 +47,47 @@ export function SuperRolesScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
       >
         <Text variant="small" color="muted">{t('super.roles.subtitle')}</Text>
+
+        {/*
+          จอนี้ลิสต์เฉพาะคนที่เป็นแอดมินอยู่แล้ว ถอนสิทธิ์คนสุดท้ายออกแล้วเคยกู้กลับไม่ได้เลย
+          ต้องมีทางยกบัญชีอื่นขึ้นมาด้วย ไม่งั้นเป็นประตูทางเดียว
+        */}
+        <Card testID="grant-admin">
+          <View style={{ gap: p.space.sm }}>
+            <Text variant="body" bold>{t('super.roles.grantTitle')}</Text>
+            <Text variant="small" color="muted">{t('super.roles.grantHint')}</Text>
+            <Input
+              testID="input-grant-username"
+              value={username}
+              onChangeText={setUsername}
+              placeholder={t('super.roles.grantPlaceholder')}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <Button
+              testID="btn-grant-admin"
+              label={t('super.roles.grantAction')}
+              disabled={username.trim().length === 0 || grant.isPending}
+              loading={grant.isPending}
+              onPress={() => {
+                grant.mutate(
+                  { username: username.trim(), role: 'admin' },
+                  { onSuccess: () => setUsername('') },
+                );
+              }}
+            />
+            {grant.isError ? (
+              <Text testID="grant-admin-error" variant="small" color="danger">
+                {t('super.roles.grantNotFound')}
+              </Text>
+            ) : null}
+            {grant.isSuccess ? (
+              <Text testID="grant-admin-done" variant="small" color="muted">
+                {t('super.roles.grantDone')}
+              </Text>
+            ) : null}
+          </View>
+        </Card>
 
         {admins.length === 0 ? (
           isPending ? (
@@ -112,48 +157,32 @@ export function SuperRolesScreen({ navigation }: Props) {
         ) : null}
       </ScrollView>
 
-      <Modal
-        visible={pending !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setPending(null)}
-      >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(27,25,23,0.55)',
-            justifyContent: 'center',
-            padding: p.space.xl,
+      <Dialog testID="confirm-role-dialog" visible={pending !== null} onClose={() => setPending(null)}>
+        <Text variant="h3">{t('super.roles.confirmTitle')}</Text>
+        {/* เขียนชื่อคนกับบทบาทปลายทางให้ครบ ไม่ใช่ถาม "แน่ใจไหม" ที่ตอบไม่ได้ว่าจะเกิดอะไร */}
+        <Text variant="body" color="muted">
+          {t('super.roles.confirmBody', {
+            name: pending?.row.fullName ?? '',
+            role: pending ? t(`super.roles.role.${pending.next}`) : '',
+          })}
+        </Text>
+        <Button
+          testID="confirm-role"
+          label={t('common.save')}
+          onPress={() => {
+            if (pending) {
+              setRole.mutate({ accountId: pending.row.accountId, role: pending.next });
+            }
+            setPending(null);
           }}
-        >
-          <Card style={{ gap: p.space.md, padding: p.space.xl }}>
-            <Text variant="h3">{t('super.roles.confirmTitle')}</Text>
-            {/* เขียนชื่อคนกับบทบาทปลายทางให้ครบ ไม่ใช่ถาม "แน่ใจไหม" ที่ตอบไม่ได้ว่าจะเกิดอะไร */}
-            <Text variant="body" color="muted">
-              {t('super.roles.confirmBody', {
-                name: pending?.row.fullName ?? '',
-                role: pending ? t(`super.roles.role.${pending.next}`) : '',
-              })}
-            </Text>
-            <Button
-              testID="confirm-role"
-              label={t('common.save')}
-              onPress={() => {
-                if (pending) {
-                  setRole.mutate({ accountId: pending.row.accountId, role: pending.next });
-                }
-                setPending(null);
-              }}
-            />
-            <Button
-              testID="cancel-role"
-              variant="secondary"
-              label={t('common.cancel')}
-              onPress={() => setPending(null)}
-            />
-          </Card>
-        </View>
-      </Modal>
+        />
+        <Button
+          testID="cancel-role"
+          variant="secondary"
+          label={t('common.cancel')}
+          onPress={() => setPending(null)}
+        />
+      </Dialog>
     </SafeAreaView>
   );
 }

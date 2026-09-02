@@ -31,6 +31,12 @@ const ZoneSchema = z.object({
 /** §7 บทบาทมีสองค่าเท่านั้น ไม่มี "agent อ่านอย่างเดียว" ที่ดีไซน์วาดไว้ */
 const RoleSchema = z.object({ role: z.enum(['admin', 'super_admin', 'user']) });
 
+/** ยกบัญชีที่ยังไม่ใช่แอดมินขึ้นมา ค้นด้วยชื่อผู้ใช้ ซูเปอร์แอดมินไม่รู้ uuid ของใคร */
+const GrantSchema = z.object({
+  username: z.string().trim().min(1, 'ใส่ชื่อผู้ใช้ที่จะให้สิทธิ์'),
+  role: z.enum(['admin', 'super_admin']).default('admin'),
+});
+
 /** เส้นทางของซูเปอร์แอดมิน (design SA1–SA6) */
 @Controller('super')
 @UseGuards(JwtGuard, SuperAdminGuard)
@@ -75,6 +81,15 @@ export class SuperController {
   @Get('admins')
   listAdmins() {
     return this.roles.list();
+  }
+
+  @Post('admins')
+  @HttpCode(200)
+  grant(
+    @Body(new ZodBody(GrantSchema)) body: z.infer<typeof GrantSchema>,
+    @CurrentAccount() me: SessionClaims,
+  ) {
+    return this.roles.grantByUsername(me.sub, body.username, body.role);
   }
 
   @Post('admins/:accountId/role')
