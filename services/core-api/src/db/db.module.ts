@@ -3,6 +3,7 @@ import postgres from 'postgres';
 import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { loadEnv } from '../config';
 import * as schema from './schema';
+import { sslMode } from './sslMode';
 
 export const DB = 'WINGDAI_DB';
 export const PG_CLIENT = 'WINGDAI_PG_CLIENT';
@@ -17,7 +18,7 @@ function createClient() {
 
   return postgres(url, {
     max: 10,
-    ssl: 'require',
+    ssl: sslMode(url),
     prepare: !throughPooler,
     // Supabase วาง PostGIS ไว้ที่ schema `extensions` ไม่ใส่ตรงนี้จะอ้างชนิด geometry ไม่เจอ
     connection: { search_path: 'public,extensions' },

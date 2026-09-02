@@ -1,4 +1,5 @@
 import postgres from 'postgres';
+import { sslMode } from './sslMode';
 
 /** คอนเนกชันสำหรับ "สคริปต์" (seed / verify / setup / smoke) คนละตัวกับของแอปใน db.module.ts */
 export function createScriptClient(opts: { max?: number } = {}) {
@@ -10,7 +11,7 @@ export function createScriptClient(opts: { max?: number } = {}) {
 
   return postgres(url, {
     max: opts.max ?? 1,
-    ssl: 'require',
+    ssl: sslMode(url),
     prepare: !throughPooler,
     // Supabase วาง PostGIS ไว้ที่ schema `extensions` ไม่ใส่ตรงนี้จะอ้างชนิด geometry ไม่เจอ
     connection: { search_path: 'public,extensions' },
