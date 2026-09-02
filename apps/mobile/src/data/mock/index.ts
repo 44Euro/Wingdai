@@ -548,6 +548,28 @@ export function createMockRepos(): Repos {
         current = { ...row };
         return { ...row };
       },
+
+      async changePassword(input) {
+        await delay();
+        const me = requireLogin();
+        // โหมดจำลองไม่ได้เก็บ hash จริง เทียบกับรหัสของชุดข้อมูลจำลองแทน
+        if (input.currentPassword !== MOCK_PASSWORD) {
+          throw new Error('รหัสผ่านเดิมไม่ถูกต้อง');
+        }
+        return { ...accounts.find((a) => a.id === me.id)! };
+      },
+
+      async changePhone(input) {
+        await delay();
+        const me = requireLogin();
+        if (accounts.some((a) => a.id !== me.id && a.phone === input.phone)) {
+          throw new Error('เบอร์นี้มีคนใช้แล้ว');
+        }
+        const row = accounts.find((a) => a.id === me.id)!;
+        row.phone = input.phone;
+        current = { ...row };
+        return { ...row };
+      },
     },
 
     catalog: {
@@ -2139,6 +2161,13 @@ export function createMockRepos(): Repos {
             phone: a.phone,
             role: a.accountType,
           }));
+      },
+
+      async grantAdmin(username, role) {
+        await delay();
+        const target = accounts.find((a) => a.username === username.trim());
+        if (!target) throw new Error(`ไม่พบบัญชีชื่อ ${username}`);
+        return this.setRole(target.id, role);
       },
 
       async setRole(accountId, role) {

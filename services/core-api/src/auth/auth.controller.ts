@@ -11,6 +11,8 @@ import {
   GoogleSignInSchema, type GoogleSignInInput,
   GoogleRegisterSchema, type GoogleRegisterInput,
   UpdateProfileSchema, type UpdateProfileInput,
+  ChangePasswordSchema, type ChangePasswordInput,
+  ChangePhoneSchema, type ChangePhoneInput,
 } from './dto';
 
 /** ลำดับการสมัครตรงกับที่แอปทำอยู่ (product-spec §4.2): */
@@ -73,5 +75,26 @@ export class AuthController {
       fullName: body.fullName,
       email: body.email ?? null,
     });
+  }
+
+  /** เปลี่ยนรหัสผ่าน ต้องยืนยันรหัสเดิมก่อน */
+  @Post('me/password')
+  @HttpCode(200)
+  @UseGuards(JwtGuard)
+  changePassword(
+    @CurrentAccount() claims: SessionClaims,
+    @Body(new ZodBody(ChangePasswordSchema)) body: ChangePasswordInput,
+  ): Promise<PublicAccount> {
+    return this.auth.changePassword(claims.sub, body);
+  }
+
+  /** เปลี่ยนเบอร์ ต้องยืนยัน OTP ของเบอร์ใหม่ก่อน เหมือนตอนสมัคร */
+  @Patch('me/phone')
+  @UseGuards(JwtGuard)
+  changePhone(
+    @CurrentAccount() claims: SessionClaims,
+    @Body(new ZodBody(ChangePhoneSchema)) body: ChangePhoneInput,
+  ): Promise<PublicAccount> {
+    return this.auth.changePhone(claims.sub, body);
   }
 }

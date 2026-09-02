@@ -25,6 +25,8 @@ type AuthState = {
   logout: () => Promise<void>;
   /** C21 แก้ชื่อ/อีเมล แล้วอัปเดตบัญชีในสโตร์ทันที เพราะทุกจอที่โชว์ชื่ออ่านจากตรงนี้ */
   updateProfile: (input: { fullName: string; email: string | null }) => Promise<void>;
+  changePassword: (input: { currentPassword: string; newPassword: string }) => Promise<void>;
+  changePhone: (input: { phone: string; verificationToken: string }) => Promise<void>;
   setActiveCapability: (cap: Capability) => void;
 };
 
@@ -120,6 +122,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   /** ไม่แตะ capabilities/restaurants แก้ชื่อกับอีเมลไม่ได้เปลี่ยนสิทธิ์อะไรเลย */
   async updateProfile(input) {
     const account = await repos.auth.updateProfile(input);
+    set({ account });
+  },
+
+  async changePassword(input) {
+    // ไม่ต้อง set อะไร รหัสผ่านไม่ได้อยู่ใน state อยู่แล้ว แต่ให้เซิร์ฟเวอร์ยืนยันก่อนเสมอ
+    await repos.auth.changePassword(input);
+  },
+
+  async changePhone(input) {
+    const account = await repos.auth.changePhone(input);
     set({ account });
   },
 

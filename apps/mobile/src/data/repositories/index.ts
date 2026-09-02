@@ -90,6 +90,10 @@ export interface AuthRepo {
   logout(): Promise<void>;
   /** C21 แก้โปรไฟล์ แก้ได้แค่ชื่อกับอีเมล */
   updateProfile(input: { fullName: string; email: string | null }): Promise<Account>;
+  /** เปลี่ยนรหัสผ่าน ต้องยืนยันรหัสเดิมก่อน */
+  changePassword(input: { currentPassword: string; newPassword: string }): Promise<Account>;
+  /** เปลี่ยนเบอร์ ต้องผ่าน OTP ของเบอร์ใหม่ก่อน เหมือนตอนสมัคร */
+  changePhone(input: { phone: string; verificationToken: string }): Promise<Account>;
 }
 
 /** ข้อมูลเมนูใหม่จากหน้าเพิ่มเมนูของร้าน (ยังไม่มี id repo เป็นคนตั้ง) */
@@ -346,6 +350,8 @@ export interface SuperRepo {
   admins(): Promise<AdminAccountRow[]>;
   /** ให้/ถอนสิทธิ์ผู้ดูแลระบบ ถอนของตัวเองไม่ได้ */
   setRole(accountId: string, role: AccountType): Promise<{ accountId: string; role: AccountType }>;
+  /** ยกบัญชีที่ยังไม่ใช่แอดมินขึ้นมา ค้นด้วยชื่อผู้ใช้เพราะจอลิสต์เฉพาะคนที่เป็นแอดมินอยู่แล้ว */
+  grantAdmin(username: string, role: AccountType): Promise<{ accountId: string; role: AccountType }>;
   /** SA4 กับ SA6 อยู่จอเดียวกัน จึงอ่านมาด้วยกันครั้งเดียว */
   config(): Promise<SuperConfig>;
   /** เปลี่ยนราคา เซิร์ฟเวอร์เขียน audit ในทรานแซกชันเดียวกันเสมอ (product-spec §6.1) */

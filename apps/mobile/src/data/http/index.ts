@@ -111,6 +111,18 @@ export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
           token: auth(),
         });
       },
+
+      async changePassword(input): Promise<Account> {
+        return request<Account>('/auth/me/password', {
+          method: 'POST', body: input, token: auth(),
+        });
+      },
+
+      async changePhone(input): Promise<Account> {
+        return request<Account>('/auth/me/phone', {
+          method: 'PATCH', body: input, token: auth(),
+        });
+      },
     },
 
     catalog: {
@@ -636,6 +648,13 @@ export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
         return request<{ accountId: string; role: AccountType }>(
           `/super/admins/${accountId}/role`,
           { method: 'POST', body: { role }, token: auth() },
+        );
+      },
+
+      async grantAdmin(username, role) {
+        return request<{ accountId: string; role: AccountType }>(
+          '/super/admins',
+          { method: 'POST', body: { username, role }, token: auth() },
         );
       },
 

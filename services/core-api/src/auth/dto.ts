@@ -78,3 +78,17 @@ export const UpdateProfileSchema = z.object({
   email: z.union([z.email('อีเมลไม่ถูกต้อง').max(254), z.literal('')]).optional(),
 });
 export type UpdateProfileInput = z.infer<typeof UpdateProfileSchema>;
+
+/** เปลี่ยนรหัสผ่าน ต้องยืนยันรหัสเดิมเสมอ กันคนที่ยืมเครื่องไปตอนล็อกอินค้างไว้ */
+export const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'กรุณากรอกรหัสผ่านเดิม').max(PASSWORD_MAX_LENGTH),
+  newPassword: password,
+});
+export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
+
+/** เปลี่ยนเบอร์ ต้องผ่าน OTP ของเบอร์ใหม่ก่อน เบอร์คือช่องทางล็อกอินและกู้บัญชี */
+export const ChangePhoneSchema = z.object({
+  phone,
+  verificationToken: z.string().min(1, 'ต้องยืนยันเบอร์ใหม่ด้วยรหัส OTP ก่อน'),
+});
+export type ChangePhoneInput = z.infer<typeof ChangePhoneSchema>;

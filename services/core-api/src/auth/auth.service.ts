@@ -13,7 +13,7 @@ import { hashPassword, verifyPassword, burnPasswordTime } from './password';
 import { normalizePhone, THAI_MOBILE } from './phone';
 import { OtpService } from './otp.service';
 import { GoogleVerifier } from './google';
-import type { RegisterInput, LoginInput, GoogleRegisterInput } from './dto';
+import type { RegisterInput, LoginInput, GoogleRegisterInput, ChangePasswordInput, ChangePhoneInput } from './dto';
 import type { AccountType } from './roles';
 import { PlatformService } from '../platform/platform.service';
 
@@ -264,6 +264,59 @@ export class AuthService {
     const [row] = await this.db
       .update(accounts)
       .set({ fullName: input.fullName.trim(), email })
+      .where(eq(accounts.id, accountId))
+      .returning({ id: accounts.id });
+
+    if (!row) throw new UnauthorizedException({ message: 'ไม่พบบัญชีนี้' });
+    return this.publicAccount(accountId);
+  }
+
+  /**
+   * เปลี่ยนรหัสผ่าน ต้องผ่านรหัสเดิมก่อนเสมอ
+   * เผาเวลาเท่ากันทุกทางเหมือนตอนล็อกอิน ไม่งั้นเวลาตอบบอกได้ว่ารหัสเดิมถูกหรือผิด
+   */
+  async changePassword(accountId: string, input: ChangePasswordInput): Promise<PublicAccount> {
+    const [row] = await this.db
+      .select({ passwordHash: accounts.passwordHash })
+      .from(accounts)
+      .where(eq(accounts.id, accountId))
+      .limit(1);
+
+    if (!row?.passwordHash) {
+      await burnPasswordTime(input.currentPassword);
+      throw new UnauthorizedException({ message: 'ไม่พบบัญชีนี้' });
+    }
+    if (!(await verifyPassword(input.currentPassword, row.passwordHash))) {
+      throw new UnauthorizedException({ fields: { currentPassword: 'รหัสผ่านเดิมไม่ถูกต้อง' } });
+    }
+
+    await this.db
+      .update(accounts)
+      .set({ passwordHash: await hashPassword(input.newPassword) })
+      .where(eq(accounts.id, accountId));
+
+    return this.publicAccount(accountId);
+  }
+
+  /**
+   * เปลี่ยนเบอร์ ต้องยืนยัน OTP ของเบอร์ใหม่ก่อน
+   * เบอร์ใช้ล็อกอินได้และเป็นช่องทางกู้บัญชี ปล่อยให้แก้ลอย ๆ คือเปิดทางยึดบัญชี
+   */
+  async changePhone(accountId: string, input: ChangePhoneInput): Promise<PublicAccount> {
+    await this.otp.assertPhoneVerified(input.verificationToken, input.phone);
+
+    const clash = await this.db
+      .select({ id: accounts.id })
+      .from(accounts)
+      .where(eq(accounts.phone, input.phone))
+      .limit(1);
+    if (clash[0] && clash[0].id !== accountId) {
+      throw new ConflictException({ fields: { phone: 'เบอร์นี้มีคนใช้แล้ว' } });
+    }
+
+    const [row] = await this.db
+      .update(accounts)
+      .set({ phone: input.phone })
       .where(eq(accounts.id, accountId))
       .returning({ id: accounts.id });
 
