@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { withRetry } from './fetchRetry';
 import { mapLimit } from './mapLimit';
+import { runQueue, assertEnough } from './seedRun';
 import { createScriptClient } from '../src/db/client';
 
 /**
@@ -16,6 +17,22 @@ import { createScriptClient } from '../src/db/client';
 const BASE = process.env.DEMO_API_URL ?? 'http://localhost:3000/api';
 const PASSWORD = 'wingdai1234';
 
+/**
+ * เขียนออกทันทีทีละบรรทัด ไม่ผ่านบัฟเฟอร์ของ console.log
+ * รอบเต็มกินเวลาสิบกว่านาที ถ้าโดนฆ่ากลางคันบรรทัดที่ค้างในบัฟเฟอร์จะหายไปทั้งก้อน
+ * ซึ่งเคยทำให้บอกไม่ได้เลยว่ามันไปตายที่ใบไหน
+ */
+function say(line: string) {
+  process.stdout.write(`${line}\n`);
+}
+
+/** อ่านค่าตัวเลขจากธง เช่น --delivered=6 ตอนไล่บั๊กจะได้ไม่ต้องรอรอบเต็ม */
+function flag(name: string, fallback: number): number {
+  const hit = process.argv.find((a) => a.startsWith(`${name}=`));
+  const n = hit ? Number(hit.slice(name.length + 1)) : NaN;
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
+}
+
 const CUSTOMERS = ['somchai', 'nid', 'ploy', 'wut', 'fah'];
 const RIDERS = ['rider_ann', 'rider_som', 'rider_kai'];
 
@@ -24,7 +41,7 @@ const RIDERS = ['rider_ann', 'rider_som', 'rider_kai'];
  * เคยตั้งไว้ 56 แต่ใบหนึ่งกินเวลา 20-35 วินาที (หกคำขอ HTTP บวกรอรอบจ่ายงาน)
  * รวมแล้วเกินครึ่งชั่วโมงต่อรอบ ยาวเกินไปสำหรับงานที่ต้องรันเองทุกคืนโดยไม่มีคนดู
  */
-const DELIVERED = 36;
+const DELIVERED = flag('--delivered', 36);
 /** ยิงพร้อมกันได้เฉพาะขั้นที่แต่ละใบไม่ยุ่งกัน ไม่ใช่ขั้นเดินสถานะ */
 const PARALLEL = 6;
 /** ต่ำกว่านี้ถือว่าข้อมูลบางเกินกว่าจะเอาไปคำนวณตัวเลขใน §8 ได้ */
@@ -191,6 +208,7 @@ async function main() {
    */
   const queue = placed.filter((x) => !x.cancelled);
   let failed = 0;
+  let walked = 0;
   for (const [n, rider] of RIDERS.entries()) {
     const riderToken = tokens.get(rider)!;
     for (const other of RIDERS) {
@@ -202,21 +220,20 @@ async function main() {
       await call('POST', '/rider/online', { isOnline: true, lat: 13.7805, lng: 100.5435 }, riderToken));
 
     const mine = queue.filter((_, i) => i % RIDERS.length === n);
-    for (const o of mine) {
-      /**
-       * ใบเดียวสะดุดเคยทิ้งงานทั้งรอบ ซึ่งกินเวลาไปแล้วครึ่งชั่วโมงตอนที่รู้ตัว
-       * เก็บไว้แล้วไปต่อ แล้วค่อยตัดสินตอนจบว่าได้ของมากพอไหม
-       */
-      try {
+    const out = await runQueue(mine, {
+      walk: async (o) => {
+        walked += 1;
+        // เงียบยาวสิบกว่านาทีระหว่างสองบรรทัดทำให้บอกไม่ได้ว่าตายที่ใบไหนตอนมันหายไปเฉย ๆ
+        say(`  [${walked}/${queue.length}] ${o.id.slice(0, 8)} → ${rider}`);
         await walk(o, rider, riderToken, admin);
-      } catch (error) {
-        console.log(`  ใบ ${o.id.slice(0, 8)} เดินสถานะไม่จบ — ${(error as Error).message}`);
-        await call('PATCH', `/orders/${o.id}/status`, { status: 'cancelled', reason: 'other' }, admin);
-        // ยกเป็นใบยกเลิกเลย ขั้นย้อนเวลากับรีวิวจะได้ไม่ไปใส่เวลาส่งถึงให้ใบที่ไม่เคยส่ง
-        o.cancelled = true;
-        failed += 1;
-      }
-    }
+      },
+      cancel: async (o) => {
+        expect('ยกเลิกใบที่เดินไม่จบ',
+          await call('PATCH', `/orders/${o.id}/status`, { status: 'cancelled', reason: 'other' }, admin));
+      },
+      log: say,
+    });
+    failed += out.failed;
   }
 
   for (const rider of RIDERS) {
@@ -283,9 +300,7 @@ async function main() {
    * ของน้อยเกินไปทำให้ค่ากลางกับอัตราต่าง ๆ อ่านเพี้ยน ซึ่งคือปัญหาที่สคริปต์นี้เกิดมาเพื่อแก้
    * ล้มตรงนี้บอกได้ว่าได้มาเท่าไร ต่างจากล้มกลางทางเพราะใบที่ 41 สะดุด
    */
-  if (done < DELIVERED * MIN_SUCCESS_RATE) {
-    throw new Error(`ส่งถึงแค่ ${done} ใบ จากเป้า ${DELIVERED} น้อยเกินกว่าจะเอาไปคำนวณตัวเลขได้`);
-  }
+  assertEnough(done, DELIVERED, MIN_SUCCESS_RATE);
 
   console.log('กำลังใส่รีวิว');
   await reviews(client, placed, tokens);
@@ -301,9 +316,12 @@ async function main() {
 }
 
 /**
- * รีวิวราวหกในสิบใบ ร้านส่วนใหญ่จึงมีดาว แทนที่จะเป็น null ทั้งหน้าแรก
+ * ร้านส่วนใหญ่ต้องมีดาว ไม่ใช่ null ทั้งหน้าแรก
+ * เคยรีวิวหกในสิบใบตอนที่มี 56 ใบ พอลดเหลือ 36 ใบและถ่วงให้ครัวมาลีหนึ่งในสาม
+ * ร้านที่ได้ดาวเหลือแค่ 9 จาก 22 หน้าแรกจึงขึ้นสถานะแทนคะแนนเป็นส่วนใหญ่
  * คะแนนเอียงไปทางสูงเหมือนของจริง คนไม่พอใจส่วนน้อยถึงจะมาให้สองดาว
  */
+const REVIEW_RATE = 0.9;
 async function reviews(
   client: ReturnType<typeof createScriptClient>,
   placed: Placed[],
@@ -320,7 +338,7 @@ async function reviews(
   // เลือกคะแนนให้ครบก่อนเหมือนตอนสั่ง เพราะ rnd() ใช้ลำดับเดียวกันทั้งสคริปต์
   const drafts = [];
   for (const o of placed) {
-    if (o.cancelled || !o.customerToken || rnd() > 0.6) continue;
+    if (o.cancelled || !o.customerToken || rnd() > REVIEW_RATE) continue;
     const good = rnd() < 0.82;
     drafts.push({
       token: o.customerToken,
@@ -470,7 +488,18 @@ async function sessions(client: ReturnType<typeof createScriptClient>, placed: P
   console.log(`กะไรเดอร์ ${rows} ช่วง`);
 }
 
+/**
+ * คอนเนกชันของ postgres.js ที่หลุดกลางคันโผล่มานอกสายโซ่ promise ได้
+ * ไม่ดักไว้ process จะหายไปเงียบ ๆ ทิ้งฐานค้างครึ่งทางโดยไม่มีใครรู้ว่าเกิดอะไร (เคยเจอมาแล้ว)
+ */
+for (const signal of ['unhandledRejection', 'uncaughtException'] as const) {
+  process.on(signal, (error: unknown) => {
+    say(`ตายนอกสายโซ่ (${signal}): ${(error as Error)?.stack ?? String(error)}`);
+    process.exit(1);
+  });
+}
+
 main().catch((error) => {
-  console.error('สร้างประวัติสาธิตไม่สำเร็จ:', (error as Error).message);
+  say(`สร้างประวัติสาธิตไม่สำเร็จ: ${(error as Error).message}`);
   process.exit(1);
 });
