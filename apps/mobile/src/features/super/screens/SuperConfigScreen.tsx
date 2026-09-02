@@ -101,10 +101,7 @@ export function SuperConfigScreen() {
               <View style={{ gap: p.space.md }}>
                 <Text variant="kicker" color="muted">{t('super.config.pricingTitle')}</Text>
 
-                <Field
-                  label={t('super.config.commission')}
-                  hint={t('super.config.commissionHint')}
-                >
+                <Field label={t('super.config.commission')}>
                   <Input
                     testID="input-commission"
                     value={draft.commissionPercent}
@@ -122,10 +119,7 @@ export function SuperConfigScreen() {
                   />
                 </Field>
 
-                <Field
-                  label={t('super.config.deliveryPerKm')}
-                  hint={t('super.config.deliveryPerKmHint')}
-                >
+                <Field label={t('super.config.deliveryPerKm')}>
                   <Input
                     testID="input-delivery-per-km"
                     value={draft.deliveryPerKmBaht}

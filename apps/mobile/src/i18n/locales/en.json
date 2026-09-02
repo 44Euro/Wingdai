@@ -472,7 +472,11 @@
       "codeSent": "Code sent to the new number",
       "code": "6-digit code",
       "confirmPhone": "Confirm new number",
-      "phoneSaved": "Phone changed"
+      "phoneSaved": "Phone changed",
+      "wrongPassword": "Current password is incorrect",
+      "codeWrong": "The code is wrong or expired, or the number is already in use",
+      "sendFailed": "Could not send the code — check the number",
+      "saveFailed": "Could not save — please try again"
     },
     "filters": {
       "title": "Filters",
@@ -1071,6 +1075,19 @@
       "title": "Merchant withdrawals",
       "empty": "No merchant requests",
       "approve": "Approve and pay"
+    },
+    "waited": {
+      "minutes": "{{count}} min",
+      "hours": "{{count}} hr",
+      "hoursMinutes": "{{hours}} hr {{minutes}} min",
+      "days": "{{count}} d",
+      "daysHours": "{{days}} d {{hours}} hr"
+    },
+    "exception": {
+      "unaccepted": "Waiting {{waited}} for the restaurant to accept — call them or cancel for the customer",
+      "no_rider": "No rider for {{waited}} — dispatch manually or get more riders in this zone",
+      "slow_delivery": "Picked up {{waited}} ago and still not delivered — call to find out why",
+      "open_dispute": "Reported {{waited}} ago and still undecided"
     }
   },
   "super": {
@@ -1109,7 +1126,15 @@
       "grantPlaceholder": "Username, e.g. somchai",
       "grantAction": "Grant",
       "grantDone": "Access granted",
-      "grantNotFound": "No account with that username"
+      "grantNotFound": "No account with that username",
+      "createTitle": "Create an admin account",
+      "createHint": "New team members do not need to sign up as a customer first",
+      "createName": "Full name",
+      "createUsername": "Username",
+      "createPhone": "Phone",
+      "createPassword": "Password, at least 8 characters",
+      "createAction": "Create account",
+      "createDone": "Admin account created"
     },
     "zones": {
       "title": "Zones",
@@ -1140,10 +1165,8 @@
       "subtitle": "Fees and switches that really change server behaviour",
       "pricingTitle": "Fees",
       "commission": "Commission (%)",
-      "commissionHint": "Charged on food subtotal only, never on delivery or service fees. Default 15%.",
       "deliveryBase": "Base delivery fee (THB)",
       "deliveryPerKm": "Per kilometre (THB)",
-      "deliveryPerKmHint": "Added after the first kilometre, rounded up per km",
       "serviceFee": "Service fee (THB)",
       "badAmount": "Every field must be a whole number of satang",
       "badRate": "Commission must be between 1% and 30%",
