@@ -9,6 +9,7 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Button } from '../../../ui/Button';
 import { Card, Chip } from '../../../ui/Surface';
+import { WhoAmICard } from '../../admin/components/WhoAmICard';
 import { RoleSwitcher } from '../../../app/RoleSwitcher';
 import { useAuthStore } from '../../auth/authStore';
 import { SUPER_TAB_CLEARANCE } from '../../../app/navigators/SuperAdminTabBar';
@@ -90,6 +91,7 @@ export function SuperHomeScreen({ navigation }: Props) {
 
         {/* ทางกลับไปทำงานแอดมินประจำวัน ซูเปอร์แอดมินคือคนเดิมที่มีสิทธิ์เพิ่ม */}
         <View style={{ paddingHorizontal: p.space.screen, gap: p.space.md }}>
+          <WhoAmICard />
           {/* ภาษาและธีมอยู่จอเดียวกันทุกบทบาท ไม่ได้ทำจอตั้งค่าแยกต่อบทบาท */}
           <Button
             testID="btn-go-settings"

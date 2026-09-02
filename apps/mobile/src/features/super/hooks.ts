@@ -51,6 +51,17 @@ export function useGrantAdmin() {
   });
 }
 
+/** สร้างบัญชีผู้ดูแลระบบใหม่ ทีมงานที่เพิ่งเข้ามาไม่ต้องไปสมัครเป็นลูกค้าก่อน */
+export function useCreateAdmin() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: {
+      username: string; fullName: string; phone: string; password: string; role: AccountType;
+    }) => repos.super.createAdmin(input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['super'] }),
+  });
+}
+
 /** SA4 + SA6 อยู่จอเดียวกัน จึงอ่านมาก้อนเดียว */
 export function useSuperConfig() {
   return useQuery({ queryKey: ['super', 'config'], queryFn: () => repos.super.config() });

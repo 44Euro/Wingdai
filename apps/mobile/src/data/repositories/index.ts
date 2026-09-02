@@ -352,6 +352,10 @@ export interface SuperRepo {
   setRole(accountId: string, role: AccountType): Promise<{ accountId: string; role: AccountType }>;
   /** ยกบัญชีที่ยังไม่ใช่แอดมินขึ้นมา ค้นด้วยชื่อผู้ใช้เพราะจอลิสต์เฉพาะคนที่เป็นแอดมินอยู่แล้ว */
   grantAdmin(username: string, role: AccountType): Promise<{ accountId: string; role: AccountType }>;
+  /** สร้างบัญชีผู้ดูแลระบบใหม่ ทางสมัครปกติสร้าง admin ไม่ได้ */
+  createAdmin(input: {
+    username: string; fullName: string; phone: string; password: string; role: AccountType;
+  }): Promise<{ accountId: string; role: AccountType }>;
   /** SA4 กับ SA6 อยู่จอเดียวกัน จึงอ่านมาด้วยกันครั้งเดียว */
   config(): Promise<SuperConfig>;
   /** เปลี่ยนราคา เซิร์ฟเวอร์เขียน audit ในทรานแซกชันเดียวกันเสมอ (product-spec §6.1) */

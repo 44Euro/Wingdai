@@ -12,6 +12,7 @@ import { Card } from '../../../ui/Surface';
 import { formatBaht } from '../../../lib/format';
 import { ADMIN_TAB_CLEARANCE } from '../../../app/navigators/AdminTabBar';
 import type { AdminStackParamList, AdminTabParamList } from '../../../app/navigators/AdminStack';
+import { WhoAmICard } from '../components/WhoAmICard';
 import { RoleSwitcher } from '../../../app/RoleSwitcher';
 import { useAuthStore } from '../../auth/authStore';
 import { useExceptions, useAdminMetrics, useLiveOps } from '../hooks';
@@ -87,6 +88,7 @@ export function AdminHomeScreen({ navigation }: Props) {
 
         {/* ตัวสลับโหมด + ออกจากระบบ อยู่ท้ายจอแรกเพราะ AdminStack ไม่มีจอโปรไฟล์ */}
         <View style={{ paddingHorizontal: p.space.screen, gap: p.space.md }}>
+          <WhoAmICard />
           {/* ภาษาและธีมอยู่จอเดียวกันทุกบทบาท ไม่ได้ทำจอตั้งค่าแยกต่อบทบาท */}
           <Button
             testID="btn-go-settings"

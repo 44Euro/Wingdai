@@ -16,6 +16,7 @@ export const AUDIT_ACTIONS = [
   'pricing.changed',
   'flag.changed',
   'role.changed',
+  'admin.created',
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];

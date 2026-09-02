@@ -31,6 +31,16 @@ const ZoneSchema = z.object({
 /** §7 บทบาทมีสองค่าเท่านั้น ไม่มี "agent อ่านอย่างเดียว" ที่ดีไซน์วาดไว้ */
 const RoleSchema = z.object({ role: z.enum(['admin', 'super_admin', 'user']) });
 
+/** สร้างบัญชีผู้ดูแลระบบใหม่ ทางสมัครปกติสร้าง admin ไม่ได้ตาม §4.1 */
+const CreateAdminSchema = z.object({
+  username: z.string().trim().toLowerCase().min(3, 'ชื่อผู้ใช้ต้องยาวอย่างน้อย 3 ตัวอักษร').max(24)
+    .regex(/^[a-z0-9_]+$/, 'ชื่อผู้ใช้ใช้ได้เฉพาะ a-z, 0-9 และ _'),
+  fullName: z.string().trim().min(1, 'กรุณากรอกชื่อ-นามสกุล').max(120),
+  phone: z.string().trim().regex(/^0[0-9]{8,9}$/, 'เบอร์โทรไม่ถูกต้อง'),
+  password: z.string().min(8, 'รหัสผ่านต้องยาวอย่างน้อย 8 ตัวอักษร').max(128),
+  role: z.enum(['admin', 'super_admin']).default('admin'),
+});
+
 /** ยกบัญชีที่ยังไม่ใช่แอดมินขึ้นมา ค้นด้วยชื่อผู้ใช้ ซูเปอร์แอดมินไม่รู้ uuid ของใคร */
 const GrantSchema = z.object({
   username: z.string().trim().min(1, 'ใส่ชื่อผู้ใช้ที่จะให้สิทธิ์'),
@@ -81,6 +91,15 @@ export class SuperController {
   @Get('admins')
   listAdmins() {
     return this.roles.list();
+  }
+
+  @Post('admins/create')
+  @HttpCode(201)
+  createAdmin(
+    @Body(new ZodBody(CreateAdminSchema)) body: z.infer<typeof CreateAdminSchema>,
+    @CurrentAccount() me: SessionClaims,
+  ) {
+    return this.roles.createAdmin(me.sub, body);
   }
 
   @Post('admins')

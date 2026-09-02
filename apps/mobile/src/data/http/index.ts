@@ -658,6 +658,13 @@ export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
         );
       },
 
+      async createAdmin(input) {
+        return request<{ accountId: string; role: AccountType }>(
+          '/super/admins/create',
+          { method: 'POST', body: input, token: auth() },
+        );
+      },
+
       async config(): Promise<SuperConfig> {
         return request<SuperConfig>('/super/config', { token: auth() });
       },

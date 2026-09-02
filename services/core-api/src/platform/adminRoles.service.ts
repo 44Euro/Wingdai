@@ -1,8 +1,9 @@
-import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
-import { eq, inArray } from 'drizzle-orm';
+import { Injectable, Inject, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { eq, or, inArray } from 'drizzle-orm';
 import { DB, type Db } from '../db/db.module';
 import { accounts } from '../db/schema';
 import { writeAudit } from './audit.service';
+import { hashPassword } from '../auth/password';
 import type { AccountType } from '../auth/roles';
 
 export type AdminRow = {
@@ -74,6 +75,59 @@ export class AdminRolesService {
       });
 
       return { accountId, role };
+    });
+  }
+
+  /**
+   * สร้างบัญชีผู้ดูแลระบบขึ้นมาใหม่ทั้งใบ
+   *
+   * ทางสมัครปกติสร้างได้แค่ user กับ rider ตาม §4.1 แอดมินคนแรกจึงมาจาก seed เท่านั้น
+   * ไม่มีทางนี้ ทีมงานที่เพิ่งเข้ามาใหม่ต้องไปสมัครเป็นลูกค้าก่อนแล้วให้คนอื่นยกให้ ซึ่งอ้อมเกินไป
+   * ไม่ต้องยืนยัน OTP เพราะซูเปอร์แอดมินเป็นคนกรอกเบอร์ให้เอง ไม่ใช่เจ้าตัวสมัครเข้ามา
+   */
+  async createAdmin(
+    actorId: string,
+    input: { username: string; fullName: string; phone: string; password: string; role: AccountType },
+  ) {
+    const clash = await this.db
+      .select({ username: accounts.username, phone: accounts.phone })
+      .from(accounts)
+      .where(or(eq(accounts.username, input.username), eq(accounts.phone, input.phone)));
+
+    if (clash.length > 0) {
+      const fields: Record<string, string> = {};
+      if (clash.some((c) => c.username === input.username)) fields.username = 'ชื่อผู้ใช้นี้มีคนใช้แล้ว';
+      if (clash.some((c) => c.phone === input.phone)) fields.phone = 'เบอร์นี้มีคนใช้แล้ว';
+      throw new ConflictException({ message: 'สร้างบัญชีไม่สำเร็จ', fields });
+    }
+
+    // hash ก่อนเปิดทรานแซกชัน argon2 กินเวลาราว 50ms ไม่ควรถือ transaction ค้างไว้รอ
+    const passwordHash = await hashPassword(input.password);
+
+    return this.db.transaction(async (tx) => {
+      const [created] = await tx
+        .insert(accounts)
+        .values({
+          accountType: input.role,
+          username: input.username,
+          passwordHash,
+          fullName: input.fullName,
+          phone: input.phone,
+          // ซูเปอร์แอดมินยืนยันตัวคนนี้ด้วยตัวเองแล้ว ไม่ต้องส่ง OTP ซ้ำ
+          phoneVerifiedAt: new Date(),
+        })
+        .returning({ id: accounts.id });
+
+      await writeAudit(tx, {
+        actorId,
+        action: 'admin.created',
+        subjectType: 'account',
+        subjectId: created!.id,
+        before: null,
+        after: { username: input.username, role: input.role },
+      });
+
+      return { accountId: created!.id, role: input.role };
     });
   }
 
