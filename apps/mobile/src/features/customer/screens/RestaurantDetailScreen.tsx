@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, ScrollView, Pressable, Modal } from 'react-native';
+import { View, ScrollView, Pressable } from 'react-native';
+import { Dialog } from '../../../ui/Dialog';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -198,16 +199,12 @@ export function RestaurantDetailScreen({ navigation, route }: Props) {
         </View>
       ) : null}
 
-      <Modal visible={pendingItem !== null} transparent animationType="fade" onRequestClose={() => setPendingItem(null)}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(27,25,23,0.55)', justifyContent: 'center', padding: p.space.xl }}>
-          <Card testID="confirm-different" style={{ gap: p.space.md, padding: p.space.xl }}>
+      <Dialog testID="confirm-different" visible={pendingItem !== null} onClose={() => setPendingItem(null)}>
             <Text variant="h3">{t('customer.restaurant.differentTitle')}</Text>
             <Text variant="body" color="muted">{t('customer.restaurant.differentBody')}</Text>
             <Button testID="confirm-clear-add" label={t('customer.restaurant.clearAndAdd')} onPress={confirmDifferent} />
             <Button testID="confirm-cancel" label={t('customer.restaurant.cancel')} variant="secondary" onPress={() => setPendingItem(null)} />
-          </Card>
-        </View>
-      </Modal>
+          </Dialog>
     </SafeAreaView>
   );
 }

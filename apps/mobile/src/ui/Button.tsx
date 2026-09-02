@@ -67,14 +67,15 @@ export function Button({
         style,
       ]}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: p.space.sm }}>
+      {/* ป้ายยาวเกินปุ่มต้องถูกตัด ไม่ใช่ล้นออกไปทับของข้าง ๆ */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: p.space.sm, flexShrink: 1, minWidth: 0 }}>
         {loading ? <ActivityIndicator color={tokens.textOnBrand} /> : null}
-        <Text variant="body" color={labelColor} bold>
+        <Text variant="body" color={labelColor} bold numberOfLines={1} style={{ flexShrink: 1 }}>
           {label}
         </Text>
       </View>
       {trailingLabel ? (
-        <Text variant="body" color={labelColor} bold>
+        <Text variant="body" color={labelColor} bold numberOfLines={1}>
           {trailingLabel}
         </Text>
       ) : (

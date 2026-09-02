@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, Modal } from 'react-native';
+import { View, ScrollView } from 'react-native';
+import { Dialog } from '../../../ui/Dialog';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../theme/ThemeProvider';
@@ -193,21 +194,7 @@ export function SuperConfigScreen() {
         ) : null}
       </ScrollView>
 
-      <Modal
-        visible={confirming}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setConfirming(false)}
-      >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(27,25,23,0.55)',
-            justifyContent: 'center',
-            padding: p.space.xl,
-          }}
-        >
-          <Card style={{ gap: p.space.md, padding: p.space.xl }}>
+      <Dialog testID="confirm-config-dialog" visible={confirming} onClose={() => setConfirming(false)}>
             <Text variant="h3">{t('super.config.confirmTitle')}</Text>
             {/* ค่าเก่า → ค่าใหม่ ทีละบรรทัด §6.1 ห้ามให้ตัวเลขนี้เลื่อนแบบที่ไม่มีใครเห็น */}
             {config && next && allValid ? (
@@ -260,9 +247,7 @@ export function SuperConfigScreen() {
               label={t('common.cancel')}
               onPress={() => setConfirming(false)}
             />
-          </Card>
-        </View>
-      </Modal>
+          </Dialog>
     </SafeAreaView>
   );
 }

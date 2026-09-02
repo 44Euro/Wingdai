@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Modal } from 'react-native';
+import { View } from 'react-native';
+import { Dialog } from '../ui/Dialog';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme/ThemeProvider';
 import { Text } from '../ui/Text';
@@ -77,21 +78,7 @@ export function RoleSwitcher() {
         />
       ))}
 
-      <Modal
-        visible={pending !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setPending(null)}
-      >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(27,25,23,0.55)',
-            justifyContent: 'center',
-            padding: p.space.xl,
-          }}
-        >
-          <Card style={{ gap: p.space.md, padding: p.space.xl }}>
+      <Dialog testID="role-switch-dialog" visible={pending !== null} onClose={() => setPending(null)}>
             <Text variant="h3">{t('roleSwitcher.confirmTitle')}</Text>
             {/* บอกชื่อโหมดปลายทาง ไม่ใช่ถาม "แน่ใจไหม" ลอย ๆ ที่ตอบไม่ได้ว่ากำลังจะไปไหน */}
             <Text variant="body" color="muted">
@@ -113,9 +100,7 @@ export function RoleSwitcher() {
               label={t('common.cancel')}
               onPress={() => setPending(null)}
             />
-          </Card>
-        </View>
-      </Modal>
+          </Dialog>
     </View>
   );
 }
