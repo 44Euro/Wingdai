@@ -30,15 +30,23 @@ export function buildDocumentPath(accountId: string, kind: string, ext: string):
 /** ทางเข้าเดียวสู่ Supabase Storage */
 @Injectable()
 export class StorageService {
-  private readonly client: SupabaseClient;
+  private cached: SupabaseClient | null = null;
 
-  constructor() {
+  /**
+   * สร้างตอนใช้จริง ไม่ใช่ตอนบูต
+   * โมดูลนี้เป็น @Global() Nest จึงสร้าง service ตอนเปิดแอปเสมอ ถ้าโยนตรงนั้นแปลว่า
+   * ไม่มีกุญแจ Supabase แล้วทั้ง API เปิดไม่ขึ้น ทั้งที่มีแค่ไม่กี่เส้นทางที่ใช้ Storage
+   * ซึ่งทำให้รันบน CI หรือเครื่อง dev ที่ยังไม่มีกุญแจไม่ได้เลย
+   */
+  private get client(): SupabaseClient {
+    if (this.cached) return this.cached;
     const url = process.env.SUPABASE_URL;
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!url || !key) {
       throw new Error('ต้องตั้ง SUPABASE_URL และ SUPABASE_SERVICE_ROLE_KEY ก่อนใช้ Storage');
     }
-    this.client = createClient(url, key, { auth: { persistSession: false } });
+    this.cached = createClient(url, key, { auth: { persistSession: false } });
+    return this.cached;
   }
 
   /** แอปอัปโหลดเข้า URL นี้โดยตรง service role key ไม่เคยออกจากเซิร์ฟเวอร์ */

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildDocumentPath, assertAllowedExtension } from './storage.service';
+import { buildDocumentPath, assertAllowedExtension, StorageService } from './storage.service';
 
 /** เส้นทางไฟล์ใน Storage */
 describe('เส้นทางไฟล์ใน Storage', () => {
@@ -39,5 +39,28 @@ describe('เส้นทางไฟล์ใน Storage', () => {
     await new Promise((r) => { setTimeout(r, 2); });
     const b = buildDocumentPath('acc-1', 'selfie', 'jpg');
     expect(a).not.toBe(b);
+  });
+});
+
+/**
+ * StorageModule เป็น @Global() Nest จึงสร้าง service นี้ตอนบูตเสมอ
+ * โยนใน constructor แปลว่าไม่มีกุญแจ Supabase แล้วทั้ง API เปิดไม่ขึ้น
+ * ทั้งที่มีแค่สองสามเส้นทางที่ใช้ Storage จริง — CI กับเครื่อง dev จึงรัน API ไม่ได้เลย
+ */
+describe('เปิด API ได้แม้ยังไม่ได้ตั้งกุญแจ Storage', () => {
+  const clear = () => {
+    delete process.env.SUPABASE_URL;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+  };
+
+  it('สร้าง service ได้โดยไม่โยน', () => {
+    clear();
+    expect(() => new StorageService()).not.toThrow();
+  });
+
+  it('ต่อเมื่อเรียกใช้จริงถึงบอกว่ายังไม่ได้ตั้งกุญแจ', async () => {
+    clear();
+    await expect(new StorageService().signUpload('public-media', 'a/b.jpg'))
+      .rejects.toThrow(/SUPABASE_URL/);
   });
 });
