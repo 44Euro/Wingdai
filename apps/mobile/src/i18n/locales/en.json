@@ -460,8 +460,19 @@
       "emailInvalid": "That email is not valid",
       "username": "Username",
       "phone": "Phone",
-      "lockedNote": "Username and phone cannot be changed here — the username is your login, and the phone was verified by OTP",
-      "saved": "Saved"
+      "lockedNote": "The username cannot be changed here — it is your login",
+      "saved": "Saved",
+      "passwordTitle": "Change password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "passwordSaved": "Password changed",
+      "phoneTitle": "Change phone",
+      "newPhone": "New phone number",
+      "sendCode": "Send code",
+      "codeSent": "Code sent to the new number",
+      "code": "6-digit code",
+      "confirmPhone": "Confirm new number",
+      "phoneSaved": "Phone changed"
     },
     "filters": {
       "title": "Filters",
@@ -958,6 +969,7 @@
     "noPendingShops": "No restaurants awaiting approval",
     "shopMenuCount": "{{count}} menu items (needs at least 3)",
     "approveShop": "Approve restaurant",
+    "approveRefund": "Approve refund",
     "riders": {
       "title": "Rider applications",
       "empty": "No applications waiting",
@@ -1091,7 +1103,13 @@
         "user": "Revoke all access"
       },
       "confirmTitle": "Confirm access change",
-      "confirmBody": "{{name}} becomes {{role}} as soon as you save, and the change is written to the history log."
+      "confirmBody": "{{name}} becomes {{role}} as soon as you save, and the change is written to the history log.",
+      "grantTitle": "Grant admin access",
+      "grantHint": "Type the username of the account to promote to admin",
+      "grantPlaceholder": "Username, e.g. somchai",
+      "grantAction": "Grant",
+      "grantDone": "Access granted",
+      "grantNotFound": "No account with that username"
     },
     "zones": {
       "title": "Zones",
@@ -1243,7 +1261,7 @@
       "super_admin": "Super admin"
     },
     "badgeLive": "Test accounts",
-    "hintLive": "Connected to the live API. Tap to fill an account."
+    "hintLive": "Connected to the live API. Tap to fill a test account."
   },
   "intro": {
     "skip": "Skip",

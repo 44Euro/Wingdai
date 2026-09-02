@@ -9,6 +9,7 @@ import { formatBaht } from '../../../lib/format';
 import { ADMIN_TAB_CLEARANCE } from '../../../app/navigators/AdminTabBar';
 import { useAdminOrders } from '../hooks';
 import { isDelayed } from '../../../lib/adminOrders';
+import { orderStatusTone } from '../orderStatusTone';
 import type { AdminOrderFilter, AdminOrderRow } from '../../../data/types';
 
 const FILTERS: AdminOrderFilter[] = ['all', 'delayed', 'unassigned'];
@@ -90,7 +91,10 @@ function OrderRow({ order }: { order: AdminOrderRow }) {
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text variant="h3" numberOfLines={1}>{order.reference}</Text>
           </View>
-          <Badge label={t(`orderStatus.${order.status}`)} tone={late ? 'danger' : 'teal'} />
+          <Badge
+            label={t(`customer.orders.status.${order.status}`)}
+            tone={orderStatusTone(order.status, late)}
+          />
         </View>
 
         <Text variant="small" color="muted" numberOfLines={1}>

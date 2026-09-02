@@ -52,7 +52,7 @@ export function RefundCard({ refundCase }: { refundCase: RefundCase }) {
         <View style={{ gap: p.space.sm }}>
           <Button
             testID={`btn-approve-${refundCase.id}`}
-            label={t('admin.approve')}
+            label={t('admin.approveRefund')}
             disabled={decide.isPending || !canOneTap}
             onPress={() => decide.mutate({ caseId: refundCase.id, approve: true })}
           />
