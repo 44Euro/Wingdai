@@ -15,6 +15,7 @@ import { matchesFilter } from '../../lib/adminOrders';
 import { commissionOf } from '../../lib/commission';
 import { deliveryFeeOf } from '../../features/cart/pricing';
 import { canOrderFromRestaurant, canPayNowWithPromptPay } from '../../lib/rules';
+import type { OtpPurpose } from '../repositories';
 import { isAdmin } from '../../lib/capabilities';
 import { validateDraft } from '../../lib/riderApplication';
 import { isOutsideOfficeHours, nextOpenAt } from '../../lib/officeHours';
@@ -33,6 +34,14 @@ const QUEUE_STATUSES: OrderStatus[] = ['created', 'accepted', 'preparing'];
 /** รหัส OTP ที่ mock ยอมรับ ของจริงสุ่มหกหลักแล้วส่ง SMS */
 export const MOCK_OTP = '123456';
 export const MOCK_VERIFICATION_TOKEN = 'mock-verification-token';
+/**
+ * ตั๋วของโหมดจำลองแยกตามวัตถุประสงค์เหมือนของจริง (§4.2) ตั๋วสมัครสมาชิกจึงเอาไปตั้ง
+ * รหัสผ่านใหม่ไม่ได้ ซึ่งเป็นกติกาที่ผู้ใช้สัมผัสได้จากลำดับจอ
+ *
+ * แต่โหมดนี้ **ไม่** บังคับ "ใช้ครั้งเดียว" ตั้งใจ — ตั๋วตรงนี้เป็นสตริงคงที่ ไม่ได้เซ็นด้วยกุญแจ
+ * จึงไม่มีคุณสมบัติด้านความปลอดภัยให้ป้องกันตั้งแต่แรก การกันเล่นซ้ำเป็นงานของเซิร์ฟเวอร์จริง
+ */
+export const MOCK_RESET_TOKEN = 'mock-reset-token';
 const MOCK_GOOGLE_TOKEN = 'mock-google-token';
 
 /** เพดานเงินสดในมือ ตรงกับ rider_profiles.cash_limit_satang ฝั่งเซิร์ฟเวอร์ (฿1,500) */
@@ -240,6 +249,10 @@ export function createMockRepos(): Repos {
     cash_payment: true, card_payment: false, auto_dispatch: true, registration_open: true,
   };
   const zoneList = MOCK_ZONES.map((z) => ({ ...z }));
+  /** วัตถุประสงค์ของรหัสชุดล่าสุดต่อเบอร์ ของจริงเก็บเป็นคอลัมน์บนแถว phone_verifications */
+  const lastOtpPurpose = new Map<string, OtpPurpose>();
+  /** รหัสผ่านที่ถูกตั้งใหม่ในรอบนี้ โหมดสาธิตเริ่มจากรหัสกลางตัวเดียวสำหรับทุกบัญชี */
+  const passwordOverrides = new Map<string, string>();
   /** ประวัติการกระทำ เพิ่มได้อย่างเดียว ไม่มีที่ไหนในไฟล์นี้ที่แก้หรือลบแถวเดิม */
   const auditRows: AuditRow[] = [];
 
@@ -490,25 +503,43 @@ export function createMockRepos(): Repos {
         await delay();
         // identifier = username หรือเบอร์โทร (product-spec §4.2) อีเมลใช้ล็อกอินไม่ได้
         const acc = accounts.find((a) => a.username === identifier || a.phone === identifier);
-        if (!acc || password !== MOCK_PASSWORD) {
+        // บัญชีที่เพิ่งตั้งรหัสใหม่ในรอบนี้ใช้รหัสของตัวเอง ที่เหลือใช้รหัสกลางของโหมดสาธิต
+        const expected = acc ? (passwordOverrides.get(acc.username) ?? MOCK_PASSWORD) : MOCK_PASSWORD;
+        if (!acc || password !== expected) {
           throw new Error('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
         }
         current = acc;
         return { ...acc };
       },
 
-      async requestOtp(phone) {
+      async requestOtp(phone, purpose = 'phone_verify') {
         await delay();
-        if (accounts.some((a) => a.phone === phone)) {
+        const known = accounts.some((a) => a.phone === phone);
+
+        if (purpose === 'phone_verify' && known) {
           throw new Error('เบอร์นี้สมัครไว้แล้ว เข้าสู่ระบบได้เลย');
         }
+        // เบอร์ที่ไม่มีบัญชีต้องได้คำตอบหน้าตาเหมือนเบอร์ที่มี ไม่งั้นเป็นเครื่องไล่เดาเบอร์
+        lastOtpPurpose.set(phone, purpose);
         return { devCode: MOCK_OTP };
       },
 
-      async verifyOtp(_phone, code) {
+      async verifyOtp(phone, code) {
         await delay();
         if (code !== MOCK_OTP) throw new Error('รหัสไม่ถูกต้อง');
-        return MOCK_VERIFICATION_TOKEN;
+        return lastOtpPurpose.get(phone) === 'password_reset'
+          ? MOCK_RESET_TOKEN
+          : MOCK_VERIFICATION_TOKEN;
+      },
+
+      async resetPassword(input) {
+        await delay();
+        if (input.verificationToken !== MOCK_RESET_TOKEN) {
+          throw new Error('ต้องยืนยันเบอร์ด้วยรหัส OTP ก่อน');
+        }
+        // เบอร์ที่ไม่มีบัญชีก็ตอบว่าสำเร็จ คำตอบต้องไม่บอกว่าเบอร์ไหนมีบัญชี
+        const target = accounts.find((a) => a.phone === input.phone);
+        if (target) passwordOverrides.set(target.username, input.newPassword);
       },
 
       async register(input: RegisterInput) {

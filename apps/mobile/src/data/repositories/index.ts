@@ -74,11 +74,25 @@ export interface CreateOrderInput {
   leaveAtDoor?: boolean;
 }
 
+/** ตั๋วยืนยันเบอร์ผูกกับงานเดียว (product-spec §4.2) */
+export type OtpPurpose = 'phone_verify' | 'password_reset';
+
+export interface ResetPasswordInput {
+  phone: string;
+  verificationToken: string;
+  newPassword: string;
+}
+
 export interface AuthRepo {
   /** identifier รับได้ทั้ง username หรือเบอร์โทร อีเมลใช้ล็อกอินไม่ได้ (product-spec §4.2) */
   login(identifier: string, password: string): Promise<Account>;
-  /** ขอรหัส OTP `devCode` มีเฉพาะตอนเซิร์ฟเวอร์ไม่ใช่ production (ยังไม่มีผู้ให้บริการ SMS) */
-  requestOtp(phone: string): Promise<{ devCode?: string }>;
+  /**
+   * ขอรหัส OTP `devCode` มีเฉพาะตอนเซิร์ฟเวอร์ไม่ใช่ production (ยังไม่มีผู้ให้บริการ SMS)
+   * `purpose` ผูกตั๋วที่จะได้กับงานเดียว ตั๋วสมัครสมาชิกเอาไปรีเซ็ตรหัสผ่านไม่ได้ (§4.2)
+   */
+  requestOtp(phone: string, purpose?: OtpPurpose): Promise<{ devCode?: string }>;
+  /** ตั้งรหัสผ่านใหม่หลังยืนยันเบอร์ ไม่ต้องล็อกอิน สำเร็จหรือไม่ก็ตอบเหมือนกัน (§4.2) */
+  resetPassword(input: ResetPasswordInput): Promise<void>;
   /** ตรวจรหัสแล้วคืนตั๋วยืนยันเบอร์ ที่ต้องยื่นตอนสมัคร */
   verifyOtp(phone: string, code: string): Promise<string>;
   register(input: RegisterInput): Promise<Account>;

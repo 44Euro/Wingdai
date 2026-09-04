@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { normalizePhone, THAI_MOBILE } from './phone';
 import { PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH } from './password';
+import { VERIFICATION_PURPOSES } from './ticket';
 
 const phone = z
   .string()
@@ -12,8 +13,26 @@ const password = z
   .min(PASSWORD_MIN_LENGTH, `รหัสผ่านต้องยาวอย่างน้อย ${PASSWORD_MIN_LENGTH} ตัวอักษร`)
   .max(PASSWORD_MAX_LENGTH);
 
-export const OtpRequestSchema = z.object({ phone });
+/**
+ * วัตถุประสงค์เลือกตอนขอรหัส ไม่ใช่ตอนยืนยัน ข้อความ SMS จึงบอกได้ว่ารหัสนี้ใช้ทำอะไร
+ * และตั๋วที่ออกให้ผูกกับงานเดียว เอาไปใช้ข้ามงานไม่ได้ (product-spec §4.2)
+ */
+export const OtpRequestSchema = z.object({
+  phone,
+  purpose: z.enum(VERIFICATION_PURPOSES).default('phone_verify'),
+});
 export type OtpRequestInput = z.infer<typeof OtpRequestSchema>;
+
+/**
+ * ตั้งรหัสผ่านใหม่หลังยืนยันเบอร์ ไม่ต้องล็อกอิน — ต่างจาก `ChangePasswordSchema`
+ * ที่บังคับรหัสเดิม เพราะคนที่ลืมรหัสผ่านย่อมกรอกรหัสเดิมไม่ได้
+ */
+export const ResetPasswordSchema = z.object({
+  phone,
+  verificationToken: z.string().min(1, 'ต้องยืนยันเบอร์ด้วยรหัส OTP ก่อน'),
+  newPassword: password,
+});
+export type ResetPasswordInput = z.infer<typeof ResetPasswordSchema>;
 
 export const OtpVerifySchema = z.object({
   phone,

@@ -83,7 +83,17 @@
       "title": "Forgot password",
       "description": "Enter the phone number you signed up with and we'll send you a code",
       "submit": "Send code",
-      "sent": "If that number has an account, we've sent a code"
+      "sent": "If that number has an account, we've sent a code",
+      "codeTitle": "Enter the code",
+      "codeDescription": "We are sending a 6-digit code to {{phone}} if that number has an account",
+      "newPasswordTitle": "Set a new password",
+      "newPasswordDescription": "Your new password must be at least 8 characters",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "mismatch": "The two passwords do not match",
+      "save": "Save new password",
+      "done": "Password updated. You can sign in with it now.",
+      "failed": "Could not set the password. Please verify your number again."
     },
     "pending": {
       "title": "Awaiting approval",

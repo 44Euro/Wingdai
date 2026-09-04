@@ -48,11 +48,15 @@ export function createHttpRepos(baseUrl: string, session: TokenStore): Repos {
         );
       },
 
-      async requestOtp(phone) {
+      async requestOtp(phone, purpose = 'phone_verify') {
         return request<{ devCode?: string }>('/auth/otp/request', {
           method: 'POST',
-          body: { phone },
+          body: { phone, purpose },
         });
+      },
+
+      async resetPassword(input) {
+        await request<void>('/auth/password/reset', { method: 'POST', body: input });
       },
 
       async verifyOtp(phone, code) {

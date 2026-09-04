@@ -1479,22 +1479,102 @@ async function main() {
   check('สมัครสำเร็จ', registered.status === 201, JSON.stringify(registered.body));
   check('สมัครเสร็จได้ token เลย ไม่ต้องล็อกอินซ้ำ', typeof registered.body?.token === 'string');
 
+  /** §4.2 ตั๋วใบเดิมใช้ซ้ำไม่ได้ หนึ่ง OTP ต้องแลกได้ครั้งเดียว ไม่ใช่ทั้งอายุตั๋ว */
+  const reused = await call('POST', '/auth/register', {
+    username: `${SMOKE_USERNAME}_again`,
+    password: SMOKE_PASSWORD,
+    fullName: 'ผู้ทดสอบ ซ้ำ',
+    phone: SMOKE_PHONE,
+    accountType: 'user',
+    verificationToken,
+  });
+  check('ตั๋วยืนยันเบอร์ใบเดิมใช้ซ้ำไม่ได้', reused.status === 400, `ได้ ${reused.status}`);
+
   check(
     'ล็อกอินด้วยบัญชีที่เพิ่งสมัครได้',
     (await call('POST', '/auth/login', { identifier: SMOKE_USERNAME, password: SMOKE_PASSWORD }))
       .status === 200,
   );
 
-  // product-spec §4.1 admin ไม่มีทางสร้างผ่านช่องทางสาธารณะ
+  // ── ลืมรหัสผ่าน (§4.2) ──
+  const unknownPhone = '0611111111';
+  const resetUnknown = await call('POST', '/auth/otp/request',
+    { phone: unknownPhone, purpose: 'password_reset' });
+  const resetKnown = await call('POST', '/auth/otp/request',
+    { phone: SMOKE_PHONE, purpose: 'password_reset' });
+
+  /** ปลายทางนี้ไม่ต้องล็อกอินและยกบัญชีให้ ถ้าตอบต่างกันมันคือเครื่องไล่เดาว่าเบอร์ไหนมีบัญชี */
+  check('ขอรหัสรีเซ็ตของเบอร์ที่ไม่มีบัญชี ตอบเหมือนเบอร์ที่มี',
+    resetUnknown.status === resetKnown.status
+    && Object.keys(resetUnknown.body ?? {}).sort().join() ===
+       Object.keys(resetKnown.body ?? {}).sort().join(),
+    `${resetUnknown.status}/${JSON.stringify(resetUnknown.body)} vs ${resetKnown.status}`);
+
+  const resetCode = resetKnown.body?.devCode as string;
+  const resetTicket = (await call('POST', '/auth/otp/verify',
+    { phone: SMOKE_PHONE, code: resetCode })).body?.verificationToken as string;
+  check('ยืนยันรหัสรีเซ็ตแล้วได้ตั๋ว', typeof resetTicket === 'string');
+
+  /** §4.2 ตั๋วผูกวัตถุประสงค์ ตั๋วรีเซ็ตเอาไปสมัครสมาชิกไม่ได้ และกลับกันก็ไม่ได้ */
+  const crossPurpose = await call('POST', '/auth/register', {
+    username: `${SMOKE_USERNAME}_x`,
+    password: SMOKE_PASSWORD,
+    fullName: 'ผู้ทดสอบ ข้ามงาน',
+    phone: SMOKE_PHONE,
+    accountType: 'user',
+    verificationToken: resetTicket,
+  });
+  check('ตั๋วที่ออกเพื่อรีเซ็ตรหัสผ่าน เอาไปสมัครสมาชิกไม่ได้',
+    crossPurpose.status === 400, `ได้ ${crossPurpose.status}`);
+
+  const NEW_PASSWORD = 'wingdai-smoke-5678';
+  const reset = await call('POST', '/auth/password/reset',
+    { phone: SMOKE_PHONE, verificationToken: resetTicket, newPassword: NEW_PASSWORD });
+  check('ตั้งรหัสผ่านใหม่สำเร็จ', reset.status === 204, `ได้ ${reset.status}`);
+
+  check('ล็อกอินด้วยรหัสใหม่ได้',
+    (await call('POST', '/auth/login', { identifier: SMOKE_USERNAME, password: NEW_PASSWORD }))
+      .status === 200);
+  check('รหัสเดิมใช้ไม่ได้แล้ว',
+    (await call('POST', '/auth/login', { identifier: SMOKE_USERNAME, password: SMOKE_PASSWORD }))
+      .status === 401);
+
+  /** หนึ่ง OTP รีเซ็ตได้ครั้งเดียว ไม่ใช่ไม่จำกัดครั้งตลอดอายุตั๋ว */
+  const resetAgain = await call('POST', '/auth/password/reset',
+    { phone: SMOKE_PHONE, verificationToken: resetTicket, newPassword: 'wingdai-smoke-9999' });
+  check('ตั๋วรีเซ็ตใบเดิมใช้ซ้ำไม่ได้', resetAgain.status === 400, `ได้ ${resetAgain.status}`);
+
+  /**
+   * product-spec §4.1 admin ไม่มีทางสร้างผ่านช่องทางสาธารณะ
+   * ต้องใช้ตั๋วใบใหม่ที่ยังไม่ถูกใช้ ไม่งั้นคำขอถูกปฏิเสธเพราะตั๋วหมด แล้วเทสต์นี้ผ่านด้วยเหตุผลผิด
+   */
+  const admPhone = `08${suffix}`;
+  const admOtp = await call('POST', '/auth/otp/request', { phone: admPhone });
+  const admTicket = (await call('POST', '/auth/otp/verify',
+    { phone: admPhone, code: admOtp.body?.devCode })).body?.verificationToken as string;
+  check('ได้ตั๋วใบใหม่สำหรับทดสอบสมัครเป็นแอดมิน', typeof admTicket === 'string');
+
   const asAdmin = await call('POST', '/auth/register', {
     username: `${SMOKE_USERNAME}_adm`,
     password: SMOKE_PASSWORD,
     fullName: 'แอบเป็นแอดมิน',
-    phone: SMOKE_PHONE,
+    phone: admPhone,
     accountType: 'admin',
-    verificationToken,
+    verificationToken: admTicket,
   });
   check('สมัครเป็น admin ผ่าน API สาธารณะไม่ได้', asAdmin.status === 400, `ได้ ${asAdmin.status}`);
+
+  /** พิสูจน์ว่าตั๋วใบนั้นยังดีอยู่จริง ไม่งั้นข้อบนก็ยังผ่านด้วยเหตุผลผิดอยู่ดี */
+  const asUser = await call('POST', '/auth/register', {
+    username: `${SMOKE_USERNAME}_adm`,
+    password: SMOKE_PASSWORD,
+    fullName: 'ผู้ทดสอบ ปกติ',
+    phone: admPhone,
+    accountType: 'user',
+    verificationToken: admTicket,
+  });
+  check('ตั๋วใบเดียวกันสมัครเป็น user ได้ ยืนยันว่าที่ถูกปฏิเสธคือบทบาท ไม่ใช่ตั๋ว',
+    asUser.status === 201, `ได้ ${asUser.status}`);
 
   console.log('\nรายการร้านและเมนู');
 

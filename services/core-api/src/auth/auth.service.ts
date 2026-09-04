@@ -13,7 +13,10 @@ import { hashPassword, verifyPassword, burnPasswordTime } from './password';
 import { normalizePhone, THAI_MOBILE } from './phone';
 import { OtpService } from './otp.service';
 import { GoogleVerifier } from './google';
-import type { RegisterInput, LoginInput, GoogleRegisterInput, ChangePasswordInput, ChangePhoneInput } from './dto';
+import type {
+  RegisterInput, LoginInput, GoogleRegisterInput, ChangePasswordInput, ChangePhoneInput,
+  ResetPasswordInput,
+} from './dto';
 import type { AccountType } from './roles';
 import { PlatformService } from '../platform/platform.service';
 
@@ -70,7 +73,7 @@ export class AuthService {
     if (!(await this.platform.isEnabled('registration_open'))) {
       throw new BadRequestException({ message: 'ตอนนี้ปิดรับสมัครสมาชิกใหม่ชั่วคราว' });
     }
-    await this.otp.assertPhoneVerified(input.verificationToken, input.phone);
+    await this.otp.consumeTicket(input.verificationToken, input.phone, 'phone_verify');
 
     const clash = await this.db
       .select({ username: accounts.username, phone: accounts.phone })
@@ -187,7 +190,7 @@ export class AuthService {
       throw new UnauthorizedException({ message: 'ตั๋วนี้ใช้สมัครไม่ได้' });
     }
 
-    await this.otp.assertPhoneVerified(input.verificationToken, input.phone);
+    await this.otp.consumeTicket(input.verificationToken, input.phone, 'phone_verify');
 
     const clash = await this.db
       .select({ username: accounts.username, phone: accounts.phone, googleSub: accounts.googleSub })
@@ -301,11 +304,37 @@ export class AuthService {
   }
 
   /**
+   * ตั้งรหัสผ่านใหม่หลังยืนยันเบอร์ ไม่ต้องล็อกอิน (product-spec §4.2 "forgot password")
+   *
+   * ตอบเหมือนกันทุกกรณีโดยตั้งใจ ทั้งเบอร์ที่ไม่มีบัญชีและเบอร์ที่มี — ปลายทางนี้ไม่ต้อง
+   * ล็อกอินและยกบัญชีให้ ถ้าตอบต่างกันมันก็กลายเป็นเครื่องไล่เดาว่าเบอร์ไหนสมัครไว้แล้ว
+   * ตั๋วถูกเผาก่อนเสมอ คนที่เดาเบอร์มั่วจึงเสีย OTP หนึ่งใบต่อการเดาหนึ่งครั้ง
+   *
+   * บัญชีที่สมัครผ่าน Google ยังไม่มีรหัสผ่าน เส้นทางนี้คือที่ที่มันได้รหัสแรก (§4.2)
+   */
+  async resetPassword(input: ResetPasswordInput): Promise<void> {
+    await this.otp.consumeTicket(input.verificationToken, input.phone, 'password_reset');
+
+    const [row] = await this.db
+      .select({ id: accounts.id })
+      .from(accounts)
+      .where(eq(accounts.phone, input.phone))
+      .limit(1);
+
+    if (!row) return;
+
+    await this.db
+      .update(accounts)
+      .set({ passwordHash: await hashPassword(input.newPassword) })
+      .where(eq(accounts.id, row.id));
+  }
+
+  /**
    * เปลี่ยนเบอร์ ต้องยืนยัน OTP ของเบอร์ใหม่ก่อน
    * เบอร์ใช้ล็อกอินได้และเป็นช่องทางกู้บัญชี ปล่อยให้แก้ลอย ๆ คือเปิดทางยึดบัญชี
    */
   async changePhone(accountId: string, input: ChangePhoneInput): Promise<PublicAccount> {
-    await this.otp.assertPhoneVerified(input.verificationToken, input.phone);
+    await this.otp.consumeTicket(input.verificationToken, input.phone, 'phone_verify');
 
     const clash = await this.db
       .select({ id: accounts.id })

@@ -13,6 +13,7 @@ import {
   UpdateProfileSchema, type UpdateProfileInput,
   ChangePasswordSchema, type ChangePasswordInput,
   ChangePhoneSchema, type ChangePhoneInput,
+  ResetPasswordSchema, type ResetPasswordInput,
 } from './dto';
 
 /** ลำดับการสมัครตรงกับที่แอปทำอยู่ (product-spec §4.2): */
@@ -26,7 +27,7 @@ export class AuthController {
   @Post('otp/request')
   @HttpCode(200)
   requestOtp(@Body(new ZodBody(OtpRequestSchema)) body: OtpRequestInput) {
-    return this.otp.request(body.phone);
+    return this.otp.request(body.phone, body.purpose);
   }
 
   @Post('otp/verify')
@@ -38,6 +39,13 @@ export class AuthController {
   @Post('register')
   register(@Body(new ZodBody(RegisterSchema)) body: RegisterInput) {
     return this.auth.register(body);
+  }
+
+  /** ลืมรหัสผ่าน ไม่ต้องล็อกอิน คำตอบเหมือนกันเสมอ ไม่บอกว่าเบอร์นี้มีบัญชีไหม (§4.2) */
+  @Post('password/reset')
+  @HttpCode(204)
+  async resetPassword(@Body(new ZodBody(ResetPasswordSchema)) body: ResetPasswordInput) {
+    await this.auth.resetPassword(body);
   }
 
   @Post('login')
