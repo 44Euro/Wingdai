@@ -359,6 +359,10 @@
           "title": "Credit / debit card",
           "subtitle": "Pay by card in the app"
         }
+      },
+      "unavailable": {
+        "cash_payment": "Temporarily unavailable",
+        "card_payment": "Payment gateway pending"
       }
     },
     "promptpay": {
@@ -1182,7 +1186,7 @@
       },
       "flagHint": {
         "cash_payment": "Off: cash orders are rejected platform-wide",
-        "card_payment": "Off: cards disappear from the payment picker",
+        "card_payment": "Off: card shows in the picker but cannot be selected",
         "auto_dispatch": "Off: every job goes back to manual assignment",
         "registration_open": "Off: new sign-ups are paused"
       }
@@ -1368,5 +1372,11 @@
         "body": "A real app names the legal entity, its registered address and the data protection officer's email here. This demo has no legal entity behind it, so the field is deliberately left blank."
       }
     }
+  },
+  "a11y": {
+    "back": "Back",
+    "decrease": "Decrease quantity",
+    "increase": "Increase quantity",
+    "rateStars": "Rate {{n}} out of 5"
   }
 }

@@ -220,6 +220,7 @@ function Stepper({
   onChange: (v: number) => void;
   min: number;
 }) {
+  const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   return (
     <View
@@ -235,7 +236,7 @@ function Stepper({
       <Pressable
         testID={`${testID}-dec`}
         accessibilityRole="button"
-        accessibilityLabel="ลด"
+        accessibilityLabel={t('a11y.decrease')}
         onPress={() => onChange(Math.max(min, value - 1))}
         hitSlop={8}
         style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: tokens.bgRaised, alignItems: 'center', justifyContent: 'center' }}
@@ -248,7 +249,7 @@ function Stepper({
       <Pressable
         testID={`${testID}-inc`}
         accessibilityRole="button"
-        accessibilityLabel="เพิ่ม"
+        accessibilityLabel={t('a11y.increase')}
         onPress={() => onChange(value + 1)}
         hitSlop={8}
         style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: tokens.brandAccent, alignItems: 'center', justifyContent: 'center' }}

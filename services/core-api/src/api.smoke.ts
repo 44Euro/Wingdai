@@ -759,36 +759,43 @@ async function superConfigChecks(
   check('เปิดกลับแล้วสั่งเงินสดได้เหมือนเดิม', cashAgain.status === 201, `ได้ ${cashAgain.status}`);
   if (cashAgain.body?.id) createdOrderIds.push(cashAgain.body.id);
 
-  // ── บัตร: ใช้ได้จริง และปิดได้จริง (2026-08-05 เจ้าของโปรเจกต์สั่งเปิด) ──
-  const cardOrder = await placeSmokeOrder(ctx, 'card');
-  check('สั่งด้วยบัตรได้จริง ไม่ใช่แค่โผล่ในรายการ', cardOrder.paymentMethod === 'card',
-    JSON.stringify(cardOrder.paymentMethod));
-  check('บัตรถือว่าจ่ายจบก่อนออเดอร์เริ่มเดิน เหมือนพร้อมเพย์',
-    cardOrder.paymentStatus === 'paid', cardOrder.paymentStatus);
+  // ── บัตร: ปิดอยู่ตาม §6.5 จนกว่า §11.3 จะตอบว่าใช้เกตเวย์ไหน แต่กลไกพร้อมใช้ ──
+  const cardOff = await call('GET', '/config');
+  check('บัตรไม่อยู่ในช่องทางที่ใช้ได้ ตราบใดที่ยังไม่มีเกตเวย์',
+    !cardOff.body?.paymentMethods?.includes('card'),
+    JSON.stringify(cardOff.body?.paymentMethods));
 
-  await call('PATCH', '/super/config/flags/card_payment', { enabled: false }, superToken);
+  /** §6.5 บัตรต้อง "listed in the picker but not selectable" ถ้าหายไปเลย ลูกค้าไม่รู้ว่ากำลังจะมี */
+  check('บัตรยังอยู่ในรายการที่แอปเอาไปวาดเป็นแถวกดไม่ได้ พร้อมเหตุผล',
+    cardOff.body?.unavailablePaymentMethods?.some(
+      (u: { method: string; gate: string }) => u.method === 'card' && u.gate === 'card_payment'),
+    JSON.stringify(cardOff.body?.unavailablePaymentMethods));
+
   const cardBlocked = await call('POST', '/orders', {
     restaurantId: ctx.restaurantId,
     items: [{ menuItemId: ctx.menuItemId, quantity: 1, choiceIds: [ctx.choiceId] }],
     paymentMethod: 'card',
   }, ctx.customerToken);
-  check('ปิด flag บัตรแล้ว สร้างออเดอร์บัตรไม่ได้ที่ API',
+  check('ปิด flag บัตรแล้ว สร้างออเดอร์บัตรไม่ได้ที่ API ไม่ใช่แค่ซ่อนปุ่มในแอป',
     cardBlocked.status === 400, `ได้ ${cardBlocked.status}`);
 
-  /** แอปวาดตัวเลือกจากรายการนี้ ถ้ามันไม่หายตามที่ปิด แอปจะโชว์ปุ่มที่กดแล้วล้ม */
-  const publicOff = await call('GET', '/config');
-  check('ปิดบัตรแล้ว /config ไม่คืนบัตรให้แอปวาดปุ่ม',
-    !publicOff.body?.paymentMethods?.includes('card'),
-    JSON.stringify(publicOff.body?.paymentMethods));
-
+  /** เปิดชั่วคราวเพื่อพิสูจน์ว่ากลไกพร้อม วันที่ §11.3 ตอบ จะเป็นการพลิก flag ไม่ใช่เขียนของใหม่ */
   await call('PATCH', '/super/config/flags/card_payment', { enabled: true }, superToken);
+  const cardOrder = await placeSmokeOrder(ctx, 'card');
+  check('เปิด flag แล้วสั่งด้วยบัตรได้จริง', cardOrder.paymentMethod === 'card',
+    JSON.stringify(cardOrder.paymentMethod));
+  check('บัตรถือว่าจ่ายจบก่อนออเดอร์เริ่มเดิน เหมือนพร้อมเพย์',
+    cardOrder.paymentStatus === 'paid', cardOrder.paymentStatus);
+
   const publicOn = await call('GET', '/config');
-  check('เปิดกลับแล้วบัตรโผล่ใน /config อีกครั้ง',
+  check('เปิดแล้วบัตรย้ายมาอยู่ฝั่งใช้ได้',
     publicOn.body?.paymentMethods?.includes('card'),
     JSON.stringify(publicOn.body?.paymentMethods));
   check('พร้อมเพย์อยู่ใน /config เสมอ ปิดไม่ได้ (§3 ข้อ 5)',
     publicOn.body?.paymentMethods?.[0] === 'promptpay',
     JSON.stringify(publicOn.body?.paymentMethods));
+
+  await call('PATCH', '/super/config/flags/card_payment', { enabled: false }, superToken);
 
   const badFlag = await call('PATCH', '/super/config/flags/surge_pricing',
     { enabled: true }, superToken);
@@ -822,7 +829,8 @@ async function superConfigChecks(
       serviceFeeSatang: 500,
     }, superToken);
     await call('PATCH', '/super/config/flags/cash_payment', { enabled: true }, superToken);
-    await call('PATCH', '/super/config/flags/card_payment', { enabled: true }, superToken);
+    // บัตรคืนเป็นปิด ไม่ใช่เปิด นั่นคือสถานะจริงจนกว่า §11.3 จะได้คำตอบ
+    await call('PATCH', '/super/config/flags/card_payment', { enabled: false }, superToken);
   }
 }
 

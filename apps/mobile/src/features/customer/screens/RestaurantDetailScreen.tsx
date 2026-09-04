@@ -16,10 +16,12 @@ import { openStateLabel } from '../openStateLabel';
 import { formatBaht, ratingLabel, distanceLabel } from '../../../lib/format';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
 import type { MenuItem } from '../../../data/types';
+import { usePricing } from '../../payment/pricingStore';
 
 type Props = NativeStackScreenProps<CustomerStackParamList, 'RestaurantDetail'>;
 
 export function RestaurantDetailScreen({ navigation, route }: Props) {
+  const pricing = usePricing();
   const { restaurantId } = route.params;
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
@@ -106,7 +108,7 @@ export function RestaurantDetailScreen({ navigation, route }: Props) {
             {restaurant ? (
               <>
                 <Badge label={`${restaurant.prepTimeMinutes} ${t('customer.home.minutes')}`} tone="brand" />
-                <Badge label={`${t('customer.home.deliveryFee')} ${deliveryFeeLabel(restaurant.distanceKm, t)}`} tone="teal" />
+                <Badge label={`${t('customer.home.deliveryFee')} ${deliveryFeeLabel(restaurant.distanceKm, t, pricing)}`} tone="teal" />
                 {distanceLabel(restaurant.distanceKm, t('customer.home.km')) ? (
                   <Badge label={distanceLabel(restaurant.distanceKm, t('customer.home.km'))!} tone="neutral" />
                 ) : null}

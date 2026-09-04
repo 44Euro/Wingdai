@@ -1,6 +1,7 @@
 import {
   applyFilters, DEFAULT_FILTERS, isDefaultFilters, priceTierOf, sortRestaurants,
 } from '../../src/features/customer/filters';
+import { FALLBACK_PRICING } from '../../src/features/cart/pricing';
 import type { Restaurant } from '../../src/data/types';
 
 const shop = (over: Partial<Restaurant> & { id: string }): Restaurant => ({
@@ -49,19 +50,19 @@ describe('sortRestaurants (C35)', () => {
 describe('applyFilters (C35)', () => {
   it('ค่าตั้งต้นไม่กรองอะไรออก', () => {
     const list = [shop({ id: 'a' }), shop({ id: 'b', isOpen: false, rating: 2 })];
-    expect(applyFilters(list, DEFAULT_FILTERS)).toHaveLength(2);
+    expect(applyFilters(list, DEFAULT_FILTERS, FALLBACK_PRICING)).toHaveLength(2);
     expect(isDefaultFilters(DEFAULT_FILTERS)).toBe(true);
   });
 
   it('เฉพาะร้านที่เปิดอยู่', () => {
     const list = [shop({ id: 'open' }), shop({ id: 'closed', isOpen: false })];
-    const out = applyFilters(list, { ...DEFAULT_FILTERS, openOnly: true });
+    const out = applyFilters(list, { ...DEFAULT_FILTERS, openOnly: true }, FALLBACK_PRICING);
     expect(out.map((r) => r.id)).toEqual(['open']);
   });
 
   it('คะแนนขั้นต่ำตัดร้านที่ยังไม่มีใครรีวิวออกด้วย', () => {
     const list = [shop({ id: 'rated', rating: 4.6 }), shop({ id: 'unrated', rating: null })];
-    const out = applyFilters(list, { ...DEFAULT_FILTERS, minRating: 4.5 });
+    const out = applyFilters(list, { ...DEFAULT_FILTERS, minRating: 4.5 }, FALLBACK_PRICING);
     // "ไม่รู้" ไม่ใช่ "ผ่าน" คนที่ขอ 4.5+ ไม่ได้ขอร้านที่ไม่รู้คะแนน
     expect(out.map((r) => r.id)).toEqual(['rated']);
   });
@@ -69,21 +70,21 @@ describe('applyFilters (C35)', () => {
   it('ค่าส่งไม่เกิน ตัดร้านที่ไกลจนค่าส่งเกิน', () => {
     // ฐาน ฿15 + ฿6 ต่อกิโลหลังกิโลแรก → 1 กม. = ฿15 3 กม. = ฿27
     const list = [shop({ id: 'near', distanceKm: 1 }), shop({ id: 'far', distanceKm: 3 })];
-    const out = applyFilters(list, { ...DEFAULT_FILTERS, maxDeliveryFeeSatang: 2100 });
+    const out = applyFilters(list, { ...DEFAULT_FILTERS, maxDeliveryFeeSatang: 2100 }, FALLBACK_PRICING);
     expect(out.map((r) => r.id)).toEqual(['near']);
   });
 
   it('ยังไม่รู้ระยะ = ไม่ตัดทิ้ง', () => {
     // คนที่ยังไม่ได้ใส่ที่อยู่ต้องไม่เจอจอว่างเปล่า (กติกาเดียวกับรัศมี §7)
     const list = [shop({ id: 'unknown', distanceKm: null })];
-    const out = applyFilters(list, { ...DEFAULT_FILTERS, maxDeliveryFeeSatang: 1500 });
+    const out = applyFilters(list, { ...DEFAULT_FILTERS, maxDeliveryFeeSatang: 1500 }, FALLBACK_PRICING);
     expect(out.map((r) => r.id)).toEqual(['unknown']);
   });
 
   it('ระดับราคากรองจากราคาเฉลี่ยที่ส่งเข้ามา และไม่ตัดร้านที่ไม่รู้ราคา', () => {
     const list = [shop({ id: 'cheap' }), shop({ id: 'pricey' }), shop({ id: 'unknown' })];
     const avg = (id: string) => (id === 'cheap' ? 5000 : id === 'pricey' ? 20000 : null);
-    const out = applyFilters(list, { ...DEFAULT_FILTERS, priceTiers: [1] }, avg);
+    const out = applyFilters(list, { ...DEFAULT_FILTERS, priceTiers: [1] }, FALLBACK_PRICING, avg);
     expect(out.map((r) => r.id).sort()).toEqual(['cheap', 'unknown']);
   });
 
@@ -92,7 +93,7 @@ describe('applyFilters (C35)', () => {
       shop({ id: 'a', distanceKm: 3, rating: 4.8 }),
       shop({ id: 'b', distanceKm: 1, rating: 4.6 }),
     ];
-    const out = applyFilters(list, { ...DEFAULT_FILTERS, sort: 'nearest', minRating: 4.5 });
+    const out = applyFilters(list, { ...DEFAULT_FILTERS, sort: 'nearest', minRating: 4.5 }, FALLBACK_PRICING);
     expect(out.map((r) => r.id)).toEqual(['b', 'a']);
   });
 });

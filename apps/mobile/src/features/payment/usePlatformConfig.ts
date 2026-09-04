@@ -2,10 +2,12 @@ import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { repos } from '../../data';
 import { usePaymentStore } from './paymentStore';
+import { usePricingStore } from './pricingStore';
 
-/** ดึงค่าจาก `GET /config` แล้วป้อนเข้า `paymentStore` */
+/** ดึงค่าจาก `GET /config` แล้วป้อนเข้า `paymentStore` กับ `pricingStore` */
 export function usePlatformConfig() {
   const setAvailable = usePaymentStore((s) => s.setAvailable);
+  const setPricing = usePricingStore((s) => s.setPricing);
 
   const query = useQuery({
     queryKey: ['config'],
@@ -16,9 +18,15 @@ export function usePlatformConfig() {
   });
 
   const methods = query.data?.paymentMethods;
+  const unavailable = query.data?.unavailablePaymentMethods;
   useEffect(() => {
-    if (methods) setAvailable(methods);
-  }, [methods, setAvailable]);
+    if (methods) setAvailable(methods, unavailable);
+  }, [methods, unavailable, setAvailable]);
+
+  const pricing = query.data?.pricing;
+  useEffect(() => {
+    if (pricing) setPricing(pricing);
+  }, [pricing, setPricing]);
 
   return query;
 }

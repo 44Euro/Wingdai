@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { IconName } from '../../ui/Icon';
-import type { PaymentMethod } from '../../data/types';
+import type { PaymentMethod, UnavailablePaymentMethod } from '../../data/types';
 
 export type { PaymentMethod };
 
@@ -25,13 +25,16 @@ type PaymentState = {
   method: PaymentMethod;
   /** ช่องทางที่เซิร์ฟเวอร์ยอมรับจริง มาจาก `GET /config` ไม่ใช่รายการตายตัวในแอป */
   available: PaymentMethod[];
+  /** ช่องทางที่รู้จักแต่ปิดอยู่ §6.5 สั่งให้โชว์เป็นแถวกดไม่ได้พร้อมเหตุผล ไม่ใช่ซ่อน */
+  unavailable: UnavailablePaymentMethod[];
   setMethod: (m: PaymentMethod) => void;
-  setAvailable: (list: PaymentMethod[]) => void;
+  setAvailable: (list: PaymentMethod[], unavailable?: UnavailablePaymentMethod[]) => void;
 };
 
 export const usePaymentStore = create<PaymentState>((set, get) => ({
   method: 'promptpay',
   available: ALWAYS_AVAILABLE,
+  unavailable: [],
 
   setMethod(m) {
     if (!isPayable(m, get().available)) return;
@@ -39,9 +42,9 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
   },
 
   /** ต้องย้ายช่องทางที่ลูกค้าเลือกไว้ด้วยถ้ามันเพิ่งถูกปิด */
-  setAvailable(list) {
+  setAvailable(list, unavailable = []) {
     const available = list.length > 0 ? list : ALWAYS_AVAILABLE;
     const method = isPayable(get().method, available) ? get().method : available[0]!;
-    set({ available, method });
+    set({ available, unavailable, method });
   },
 }));

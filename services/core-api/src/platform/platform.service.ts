@@ -9,7 +9,7 @@ import { DEFAULT_PRICING, type PricingConfig } from '../orders/pricing';
 export const FEATURE_FLAG_KEYS = [
   /** ปิดได้ถ้าเงินสดค้างในมือไรเดอร์เยอะเกินคุม (§6.2) */
   'cash_payment',
-  /** บัตรเครดิต/เดบิต เปิดใช้จริงตามที่เจ้าของโปรเจกต์สั่ง (2026-08-05) */
+  /** บัตรเครดิต/เดบิต รอเกตเวย์ตาม §11.3 ปิดไว้ก่อน (§6.5) */
   'card_payment',
   /** §6.3 บอกให้เก็บทางแทรกมือไว้เสมอ ปิดตัวนี้คือกลับไปจ่ายงานด้วยมือทั้งหมด */
   'auto_dispatch',
@@ -19,9 +19,13 @@ export const FEATURE_FLAG_KEYS = [
 
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number];
 
+/**
+ * §6.5 บัตรอยู่ในจอเลือกช่องทางแต่ยังเลือกไม่ได้ จนกว่า §11.3 จะตอบว่าใช้เกตเวย์ไหน
+ * ปิดที่ flag ไม่ใช่ที่จอ เพราะไคลเอนต์ที่ถูกดัดแปลงเดินผ่านสวิตช์ที่แค่ซ่อนปุ่มได้
+ */
 export const DEFAULT_FLAGS: Record<FeatureFlagKey, boolean> = {
   cash_payment: true,
-  card_payment: true,
+  card_payment: false,
   auto_dispatch: true,
   registration_open: true,
 };
@@ -121,15 +125,6 @@ export class PlatformService {
     const out = {} as Record<FeatureFlagKey, boolean>;
     for (const key of FEATURE_FLAG_KEYS) out[key] = byKey.get(key) ?? DEFAULT_FLAGS[key];
     return out;
-  }
-
-  /** ช่องทางจ่ายเงินที่เซิร์ฟเวอร์ยอมรับ จริง ตอนนี้ */
-  async availablePaymentMethods(known?: Record<FeatureFlagKey, boolean>): Promise<PaymentMethodName[]> {
-    const flags = known ?? (await this.flags());
-    return PAYMENT_METHOD_NAMES.filter((m) => {
-      const gate = gateOfPaymentMethod(m);
-      return gate === undefined || flags[gate.flag];
-    });
   }
 
   /** อ่าน flag ตัวเดียวสำหรับโค้ดที่ต้องตัดสินใจตามมัน (เช่น กันสร้างออเดอร์เงินสด) */

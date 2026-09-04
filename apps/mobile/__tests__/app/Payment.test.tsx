@@ -12,6 +12,7 @@ import { useAuthStore } from '../../src/features/auth/authStore';
 import { usePaymentStore, isPayable } from '../../src/features/payment/paymentStore';
 import type { MenuItem } from '../../src/data/types';
 import { repos } from '../../src/data';
+import { createMockRepos } from '../../src/data/mock';
 
 const item = (id: string, price: number): MenuItem => ({
   id,
@@ -128,13 +129,39 @@ describe('PaymentMethodScreen (C18)', () => {
     expect(usePaymentStore.getState().method).toBe('cash');
   });
 
-  /** ช่องทางที่ปิดอยู่ต้องไม่โผล่เลย ไม่ใช่โผล่แบบจาง ๆ กดไม่ได้ */
-  it('ช่องทางที่เซิร์ฟเวอร์ปิดอยู่ไม่โผล่บนจอ', () => {
+  /**
+   * §6.5 "listed in the picker but not selectable yet, labelled payment gateway pending"
+   * ซ่อนทิ้งไปเลยทำให้ลูกค้าอ่านว่าแอปไม่รองรับบัตร ทั้งที่มันแค่ยังไม่เปิด
+   */
+  it('ช่องทางที่เซิร์ฟเวอร์ปิดอยู่ยังโผล่ แต่กดไม่ได้และบอกเหตุผล', () => {
+    act(() => usePaymentStore.getState().setAvailable(
+      ['promptpay', 'cash'],
+      [{ method: 'card', gate: 'card_payment' }],
+    ));
     const result = render(
       <PaymentMethodScreen navigation={{ goBack: jest.fn() } as never} route={{ key: 'k', name: 'PaymentMethod' } as never} />,
     );
-    expect(findAll(result.root, 'payment-card')).toHaveLength(0);
+
+    const row = pressable(result.root, 'payment-card');
+    expect(row.props.disabled).toBe(true);
+    expect(findAll(result.root, 'payment-card-reason').length).toBeGreaterThan(0);
     expect(findAll(result.root, 'payment-promptpay').length).toBeGreaterThan(0);
+  });
+
+  /** ปุ่มที่กดไม่ได้ต้องไม่เปลี่ยนค่าจริง ๆ ไม่ใช่แค่ดูจาง */
+  it('กดแถวที่ปิดอยู่แล้วช่องทางเริ่มต้นไม่เปลี่ยน', () => {
+    act(() => usePaymentStore.getState().setAvailable(
+      ['promptpay', 'cash'],
+      [{ method: 'card', gate: 'card_payment' }],
+    ));
+    const result = render(
+      <PaymentMethodScreen navigation={{ goBack: jest.fn() } as never} route={{ key: 'k', name: 'PaymentMethod' } as never} />,
+    );
+
+    act(() => {
+      pressable(result.root, 'payment-card').props.onPress();
+    });
+    expect(usePaymentStore.getState().method).toBe('promptpay');
   });
 
   it('เซิร์ฟเวอร์เปิดบัตร → แถวบัตรโผล่และกดเลือกได้', () => {
@@ -222,5 +249,26 @@ describe('PromptPayScreen (C5)', () => {
       />,
     );
     expect(pressable(result.root, 'btn-paid').props.disabled).toBe(true);
+  });
+});
+
+/**
+ * โหมดข้อมูลจำลองคือสิ่งที่ URL สาธารณะถอยมาใช้ตอน API ล่ม ค่าตั้งต้นของมันจึงต้องตรง
+ * กับ `DEFAULT_FLAGS` ฝั่งเซิร์ฟเวอร์ ไม่งั้นเดโมขายด้วยบัตรได้ทั้งที่ §11.3 ยังไม่ได้คำตอบ
+ */
+describe('ค่าตั้งต้นของโหมดข้อมูลจำลอง', () => {
+  it('บัตรปิดอยู่ และโผล่ในรายการที่ใช้ไม่ได้พร้อมเหตุผล', async () => {
+    const config = await createMockRepos().config.get();
+
+    expect(config.paymentMethods).not.toContain('card');
+    expect(config.unavailablePaymentMethods).toContainEqual({
+      method: 'card',
+      gate: 'card_payment',
+    });
+  });
+
+  it('พร้อมเพย์กับเงินสดยังใช้ได้ ไม่ได้ปิดไปด้วยกัน', async () => {
+    const config = await createMockRepos().config.get();
+    expect(config.paymentMethods).toEqual(['promptpay', 'cash']);
   });
 });

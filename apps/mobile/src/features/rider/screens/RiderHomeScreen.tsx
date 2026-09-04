@@ -171,7 +171,7 @@ export function RiderHomeScreen({ navigation }: Props) {
   );
 }
 
-/** ⭐ การ์ดข้อเสนอ 15 วินาที (product-spec §6.3 §10 ห้าม blur) */
+/** การ์ดข้อเสนอ 15 วินาที จอที่พังไม่ได้ (product-spec §6.3, §10 ห้าม blur) */
 function OfferCard({
   offer,
   secondsLeft,

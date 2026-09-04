@@ -106,10 +106,29 @@ export interface Address {
 /** ช่องทางชำระเงิน (product-spec §6.5) */
 export type PaymentMethod = 'promptpay' | 'cash' | 'card';
 
+/** คีย์ของ feature flag ที่ปิดช่องทางนั้นอยู่ แอปเอาไปหาข้อความบอกเหตุผล */
+export type PaymentGate = 'cash_payment' | 'card_payment';
+
+/** ช่องทางที่ระบบรู้จักแต่ตอนนี้ใช้ไม่ได้ (product-spec §6.5) */
+export interface UnavailablePaymentMethod {
+  method: PaymentMethod;
+  gate: PaymentGate;
+}
+
+/** ค่าธรรมเนียมที่ตะกร้าต้องใช้คิดราคาล่วงหน้า ค่าจริงมาจากตาราง `platform_pricing` (design SA6) */
+export interface PricingConfig {
+  deliveryBaseSatang: number;
+  deliveryPerKmSatang: number;
+  serviceFeeSatang: number;
+}
+
 /** ค่าที่เซิร์ฟเวอร์บอกแอปตอนเปิดแอป ไม่ต้องล็อกอิน */
 export interface PlatformConfig {
   /** ช่องทางที่เซิร์ฟเวอร์ยอมรับจริงตอนนี้ เรียงตามลำดับที่ควรแสดง (พร้อมเพย์มาก่อนเสมอ) */
   paymentMethods: PaymentMethod[];
+  /** ช่องทางที่รู้จักแต่ปิดอยู่ §6.5 สั่งให้โชว์เป็นแถวกดไม่ได้ ไม่ใช่ซ่อนหายไป */
+  unavailablePaymentMethods: UnavailablePaymentMethod[];
+  pricing: PricingConfig;
   registrationOpen: boolean;
 }
 

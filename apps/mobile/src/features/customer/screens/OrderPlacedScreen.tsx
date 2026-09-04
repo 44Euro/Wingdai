@@ -37,7 +37,6 @@ export function OrderPlacedScreen({ navigation, route }: Props) {
             p.shadow.teal,
           ]}
         >
-          {/* เดิมฝังสี '#7CE0B0' ไว้ตรงนี้ ซึ่งคือค่าของโทเคน success ของโหมดมืด */}
           <Icon name="check" color={tokens.textOnTeal} size={44} strokeWidth={2.6} />
         </View>
 

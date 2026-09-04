@@ -5,6 +5,7 @@ import { useTheme } from '../../../theme/ThemeProvider';
 import { Text } from '../../../ui/Text';
 import { Card, Badge } from '../../../ui/Surface';
 import { useAuthStore } from '../../auth/authStore';
+import { isSuperAdmin } from '../../../lib/capabilities';
 
 /**
  * บอกว่ากำลังทำงานในนามใครและสิทธิ์ระดับไหน
@@ -18,7 +19,7 @@ export function WhoAmICard() {
   const account = useAuthStore((s) => s.account);
   if (!account) return null;
 
-  const isSuper = account.accountType === 'super_admin';
+  const isSuper = isSuperAdmin(account.accountType);
 
   return (
     <Card testID="who-am-i">

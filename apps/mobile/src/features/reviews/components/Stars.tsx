@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { Icon } from '../../../ui/Icon';
 
@@ -15,6 +16,7 @@ export function Stars({
   size?: number;
   testID?: string;
 }) {
+  const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
 
   return (
@@ -38,7 +40,7 @@ export function Stars({
             key={n}
             testID={testID ? `${testID}-${n}` : undefined}
             accessibilityRole="button"
-            accessibilityLabel={`${n} ดาว`}
+            accessibilityLabel={t('a11y.rateStars', { n })}
             hitSlop={6}
             onPress={() => onChange(n)}
             style={{ minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}

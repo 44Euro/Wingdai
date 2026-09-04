@@ -21,6 +21,7 @@ import { countUnread } from '../notifications';
 import type { CustomerStackParamList, CustomerTabParamList } from '../../../app/navigators/CustomerStack';
 import type { CuisineCategory, Restaurant } from '../../../data/types';
 import { AnnouncementCarousel } from '../components/AnnouncementCarousel';
+import { usePricing } from '../../payment/pricingStore';
 
 // Home อยู่ในแท็บ แต่ navigate ไป RestaurantDetail ซึ่งอยู่ใน stack แม่ → composite
 type Props = CompositeScreenProps<
@@ -238,6 +239,7 @@ export function CustomerHomeScreen({ navigation }: Props) {
 
 /** การ์ดร้านสองคอลัมน์ตาม design: รูป + แบดจ์ระยะทาง + ชื่อ + เวลา/ค่าส่ง */
 function RestaurantCard({ r, onPress }: { r: Restaurant; onPress: () => void }) {
+  const pricing = usePricing();
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   return (
@@ -294,7 +296,7 @@ function RestaurantCard({ r, onPress }: { r: Restaurant; onPress: () => void }) 
           }}
         >
           <Text variant="caption" color="onTealTint" bold numberOfLines={1} style={{ flex: 1 }}>
-            {r.prepTimeMinutes} {t('customer.home.minutes')} · {deliveryFeeLabel(r.distanceKm, t)}
+            {r.prepTimeMinutes} {t('customer.home.minutes')} · {deliveryFeeLabel(r.distanceKm, t, pricing)}
           </Text>
           <View
             style={{

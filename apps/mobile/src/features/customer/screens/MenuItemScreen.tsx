@@ -173,7 +173,7 @@ export function MenuItemScreen({ navigation, route }: Props) {
             <Pressable
               testID="mi-qty-dec"
               accessibilityRole="button"
-              accessibilityLabel="ลดจำนวน"
+              accessibilityLabel={t('a11y.decrease')}
               onPress={() => setQuantity((q) => Math.max(1, q - 1))}
               hitSlop={10}
               style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: tokens.bgSunken, alignItems: 'center', justifyContent: 'center' }}
@@ -186,7 +186,7 @@ export function MenuItemScreen({ navigation, route }: Props) {
             <Pressable
               testID="mi-qty-inc"
               accessibilityRole="button"
-              accessibilityLabel="เพิ่มจำนวน"
+              accessibilityLabel={t('a11y.increase')}
               onPress={() => setQuantity((q) => q + 1)}
               hitSlop={10}
               style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: tokens.brandAccent, alignItems: 'center', justifyContent: 'center' }}

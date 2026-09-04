@@ -1,4 +1,4 @@
-import type { Restaurant } from '../../data/types';
+import type { Restaurant, PricingConfig } from '../../data/types';
 import { deliveryFeeOf } from '../cart/pricing';
 
 /** ตัวกรองและการเรียงลำดับผลค้นหา (design C35) */
@@ -49,6 +49,8 @@ export function priceTierOf(averagePriceSatang: number | null): PriceTier | null
 export function applyFilters(
   list: Restaurant[],
   filters: RestaurantFilters,
+  /** ค่าธรรมเนียมที่ใช้อยู่จริง มาจาก `GET /config` ตัวกรองจึงตัดด้วยเลขชุดเดียวกับที่จอโชว์ */
+  pricing: PricingConfig,
   /** ราคาเฉลี่ยต่อจานของแต่ละร้าน ไม่มีข้อมูล = ไม่ถูกกรองด้วยระดับราคา */
   averagePriceOf: (restaurantId: string) => number | null = () => null,
 ): Restaurant[] {
@@ -63,8 +65,9 @@ export function applyFilters(
     if (filters.maxDeliveryFeeSatang !== null) {
       /** ยังไม่รู้ระยะ = ไม่รู้ค่าส่ง จึงไม่ตัดทิ้ง (กติกาเดียวกับที่ §7 ใช้กับรัศมี) */
       if (r.distanceKm !== null) {
-        // ใช้ค่าตั้งต้นเดียวกับป้ายค่าส่งบนการ์ดร้าน (`deliveryFeeLabel`) ไม่งั้นตัวกรอง
-        const fee = deliveryFeeOf(r.distanceKm);
+        // ใช้ราคาชุดเดียวกับป้ายค่าส่งบนการ์ดร้าน (`deliveryFeeLabel`) ไม่งั้นตัวกรอง
+        // ตัดร้านทิ้งด้วยตัวเลขที่ลูกค้าไม่เคยเห็น
+        const fee = deliveryFeeOf(r.distanceKm, pricing);
         if (fee > filters.maxDeliveryFeeSatang) return false;
       }
     }

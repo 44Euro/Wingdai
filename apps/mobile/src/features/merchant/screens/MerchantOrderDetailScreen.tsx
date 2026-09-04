@@ -16,7 +16,7 @@ import type { MerchantStackParamList } from '../../../app/navigators/MerchantSta
 
 type Props = NativeStackScreenProps<MerchantStackParamList, 'MerchantOrderDetail'>;
 
-/** M2 รับ/ปฏิเสธออเดอร์ พร้อมนาฬิกานับถอยหลัง ⭐ */
+/** M2 รับ/ปฏิเสธออเดอร์ พร้อมนาฬิกานับถอยหลัง จอที่พังไม่ได้ */
 export function MerchantOrderDetailScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();

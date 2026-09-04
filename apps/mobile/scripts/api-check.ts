@@ -824,18 +824,24 @@ async function main() {
   }
 
   try {
-    const off = await repos.super.setFlag('card_payment', false);
-    check('ปิด flag บัตรได้', off.enabled === false && off.key === 'card_payment');
-    // flag ที่แค่ซ่อนปุ่มในแอปคือ flag ที่ไคลเอนต์ดัดแปลงเดินผ่านได้ ต้องหายจาก /config ด้วย
+    const on = await repos.super.setFlag('card_payment', true);
+    check('เปิด flag บัตรได้', on.enabled === true && on.key === 'card_payment');
     await store.clear();
-    check('ปิดแล้วบัตรหายจากค่าที่แอปอ่าน',
-      !(await repos.config.get()).paymentMethods.includes('card'));
+    check('เปิดแล้วบัตรอยู่ในช่องทางที่ใช้ได้',
+      (await repos.config.get()).paymentMethods.includes('card'));
   } finally {
+    // คืนเป็นปิด flag ค้างในตาราง ถ้าคืนเป็นเปิด เดโมจะขายด้วยบัตรได้จนกว่าจะมีคนไปปิดเอง
     await repos.auth.login('super_root', SEED_PASSWORD);
-    await repos.super.setFlag('card_payment', true);
+    await repos.super.setFlag('card_payment', false);
   }
-  check('เปิดกลับแล้วบัตรโผล่อีกครั้ง',
-    (await repos.config.get()).paymentMethods.includes('card'));
+  await store.clear();
+  const closed = await repos.config.get();
+  // flag ที่แค่ซ่อนปุ่มในแอปคือ flag ที่ไคลเอนต์ดัดแปลงเดินผ่านได้ ต้องหายจากช่องทางที่ใช้ได้ด้วย
+  check('ปิดแล้วบัตรไม่อยู่ในช่องทางที่ใช้ได้',
+    !closed.paymentMethods.includes('card'));
+  // §6.5 แต่ยังต้องอยู่ในรายการที่แอปเอาไปวาดเป็นแถวกดไม่ได้ ไม่ใช่หายไปเฉย ๆ
+  check('ปิดแล้วบัตรยังอยู่ในรายการที่ใช้ไม่ได้ พร้อมเหตุผล',
+    closed.unavailablePaymentMethods.some((u) => u.method === 'card' && u.gate === 'card_payment'));
 
   const audit = await repos.super.audit();
   check('SA5 อ่านประวัติการกระทำได้', audit.length > 0);

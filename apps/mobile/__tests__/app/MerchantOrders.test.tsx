@@ -95,7 +95,7 @@ describe('MerchantOrdersScreen — คิวออร์เดอร์ของ
 
     expect(findAll(result.root, 'screen-merchant-orders').length).toBe(1);
     expect(findAny(result.root, `queue-card-${orderId}`).length).toBeGreaterThanOrEqual(1);
-    // ⭐ นาฬิกาต้องมี เป็นหัวใจของจอนี้ตาม design M3
+    // นาฬิกาต้องมี เป็นหัวใจของจอนี้ตาม design M3
     expect(findAll(result.root, `queue-countdown-${orderId}`).length).toBe(1);
   });
 

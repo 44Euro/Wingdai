@@ -10,6 +10,7 @@ import { useNotificationStore } from './notificationStore';
 import { useCartStore } from '../cart/cartStore';
 import { usePaymentStore } from '../payment/paymentStore';
 import { orderTotals } from '../cart/pricing';
+import { usePricing } from '../payment/pricingStore';
 import { fetchRoute, interpolatePosition, progressBetweenPings, PING_INTERVAL_MS } from '../../lib/route';
 import type { Address, Order, Restaurant } from '../../data/types';
 import type { CreateOrderInput, NewAddressInput } from '../../data/repositories';
@@ -113,7 +114,8 @@ export function usePlaceOrder() {
   const paymentMethod = usePaymentStore((s) => s.method);
   // ค่าส่งขึ้นกับระยะตั้งแต่ SA6 อ่านระยะจากร้านในตะกร้า ไม่ใช่ค่าคงที่
   const { data: restaurant } = useRestaurant(cart.restaurantId ?? '');
-  const totals = orderTotals(cart.foodTotal(), restaurant?.distanceKm ?? null);
+  const pricing = usePricing();
+  const totals = orderTotals(cart.foodTotal(), restaurant?.distanceKm ?? null, pricing);
 
   // ผู้เรียกได้รับเหตุผลเสมอ ปุ่มที่กดแล้วเงียบอ่านว่าแอปพัง ไม่ใช่ว่ายังทำอะไรไม่ได้
   function placeOrder(handlers: {

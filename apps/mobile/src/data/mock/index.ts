@@ -4,7 +4,8 @@ import type {
 import type {
   Account, AccountType, Address, MenuItem, Order, OrderStatus, Restaurant, RefundCase, RefundFault,
   RiderApplication, Zone, RiderPayout, RiderWorkBase, EarningsPeriod, RiderIssueKind,
-  RiderDocument, RiderDocumentKind, PaymentMethod, FeatureFlagKey, PlatformPricing, AuditRow,
+  RiderDocument, RiderDocumentKind, PaymentMethod, UnavailablePaymentMethod, FeatureFlagKey,
+  PlatformPricing, AuditRow,
   TicketKind, TicketStatus, SupportTicket, Review, ReviewSummary, ChatChannel,
   WeeklyHours, MerchantRestaurant,
   MerchantPayout,
@@ -14,6 +15,7 @@ import { matchesFilter } from '../../lib/adminOrders';
 import { commissionOf } from '../../lib/commission';
 import { deliveryFeeOf } from '../../features/cart/pricing';
 import { canOrderFromRestaurant, canPayNowWithPromptPay } from '../../lib/rules';
+import { isAdmin } from '../../lib/capabilities';
 import { validateDraft } from '../../lib/riderApplication';
 import { isOutsideOfficeHours, nextOpenAt } from '../../lib/officeHours';
 import {
@@ -233,7 +235,9 @@ export function createMockRepos(): Repos {
   let pricing: PlatformPricing = { ...DEFAULT_MOCK_PRICING, updatedAt: null };
   /** ของจริงคือตาราง `feature_flags` ตัวที่ยังไม่เคยตั้งใช้ค่าตั้งต้น ไม่ใช่หายไปจากรายการ */
   const flags: Record<FeatureFlagKey, boolean> = {
-    cash_payment: true, card_payment: true, auto_dispatch: true, registration_open: true,
+    // บัตรปิดเหมือน DEFAULT_FLAGS ฝั่งเซิร์ฟเวอร์ (§6.5) โหมดนี้คือสิ่งที่ URL สาธารณะถอยมาใช้
+    // ตอน API ล่ม ถ้าตรงนี้เปิด เดโมจะขายด้วยบัตรได้ทั้งที่ §11.3 ยังไม่ได้คำตอบ
+    cash_payment: true, card_payment: false, auto_dispatch: true, registration_open: true,
   };
   const zoneList = MOCK_ZONES.map((z) => ({ ...z }));
   /** ประวัติการกระทำ เพิ่มได้อย่างเดียว ไม่มีที่ไหนในไฟล์นี้ที่แก้หรือลบแถวเดิม */
@@ -265,7 +269,7 @@ export function createMockRepos(): Repos {
   const readableTicket = (me: Account, ticketId: string) => {
     const ticket = tickets.find((t) => t.id === ticketId);
     if (!ticket) throw new Error('ไม่พบตั๋วนี้');
-    const isStaff = me.accountType === 'admin' || me.accountType === 'super_admin';
+    const isStaff = isAdmin(me.accountType);
     if (ticket.openedByAccountId !== me.id && !isStaff) throw new Error('ตั๋วนี้ไม่ใช่ของคุณ');
     return ticket;
   };
@@ -461,9 +465,23 @@ export function createMockRepos(): Repos {
       async get() {
         await delay();
         const methods: PaymentMethod[] = ['promptpay'];
+        const unavailable: UnavailablePaymentMethod[] = [];
+        // §6.5 ช่องทางที่ปิดยังต้องโผล่ให้แอปวาดเป็นแถวกดไม่ได้ ไม่ใช่หายไปเฉย ๆ
         if (flags.cash_payment) methods.push('cash');
+        else unavailable.push({ method: 'cash', gate: 'cash_payment' });
         if (flags.card_payment) methods.push('card');
-        return { paymentMethods: methods, registrationOpen: flags.registration_open };
+        else unavailable.push({ method: 'card', gate: 'card_payment' });
+
+        return {
+          paymentMethods: methods,
+          unavailablePaymentMethods: unavailable,
+          pricing: {
+            deliveryBaseSatang: pricing.deliveryBaseSatang,
+            deliveryPerKmSatang: pricing.deliveryPerKmSatang,
+            serviceFeeSatang: pricing.serviceFeeSatang,
+          },
+          registrationOpen: flags.registration_open,
+        };
       },
     },
 
@@ -654,11 +672,7 @@ export function createMockRepos(): Repos {
         const foodTotal = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
         const drop = addresses.find((a) => a.accountId === me.id);
         /** ค่าธรรมเนียมอ่านจากค่าที่ตั้งไว้ (design SA6) และค่าส่งคิดตามระยะ เหมือนเซิร์ฟเวอร์ */
-        const deliveryFee = deliveryFeeOf(
-          restaurant.distanceKm,
-          pricing.deliveryBaseSatang,
-          pricing.deliveryPerKmSatang,
-        );
+        const deliveryFee = deliveryFeeOf(restaurant.distanceKm, pricing);
         const order: Order = {
           id: `o-${++seq}`,
           reference: `WD-MOCK${seq}`,
@@ -728,7 +742,7 @@ export function createMockRepos(): Repos {
         if (status === 'cancelled') {
           o.cancelledBy = byRestaurant
             ? 'restaurant'
-            : me.accountType === 'admin' || me.accountType === 'super_admin'
+            : isAdmin(me.accountType)
               ? 'admin'
               : 'customer';
           o.cancelReason = proof?.reason ?? null;
@@ -2067,7 +2081,7 @@ export function createMockRepos(): Repos {
         const mine = ticketMessages.filter((m) => m.ticketId === ticketId);
         const answered = mine.some((m) => {
           const author = accounts.find((a) => a.id === m.authorAccountId);
-          return author?.accountType === 'admin' || author?.accountType === 'super_admin';
+          return author ? isAdmin(author.accountType) : false;
         });
         return {
           ticket: {
@@ -2090,7 +2104,7 @@ export function createMockRepos(): Repos {
                 id: m.id,
                 authorAccountId: m.authorAccountId,
                 authorName: author?.fullName ?? '',
-                fromStaff: author?.accountType === 'admin' || author?.accountType === 'super_admin',
+                fromStaff: author ? isAdmin(author.accountType) : false,
                 body: m.body,
                 createdAt: m.createdAt,
               };
@@ -2155,7 +2169,7 @@ export function createMockRepos(): Repos {
         await delay();
         requireSuper();
         return accounts
-          .filter((a) => a.accountType === 'admin' || a.accountType === 'super_admin')
+          .filter((a) => isAdmin(a.accountType))
           .map((a) => ({
             accountId: a.id,
             username: a.username,

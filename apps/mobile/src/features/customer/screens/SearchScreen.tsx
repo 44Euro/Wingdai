@@ -16,11 +16,13 @@ import { applyFilters, isDefaultFilters } from '../filters';
 import { CUISINE_ICON } from '../cuisineIcon';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
 import type { Restaurant } from '../../../data/types';
+import { usePricing } from '../../payment/pricingStore';
 
 type Props = NativeStackScreenProps<CustomerStackParamList, 'Search'>;
 
 /** C2 ช่องค้นหาโฟกัสอยู่แล้วตั้งแต่เปิดจอ + ลิงก์ยกเลิกข้าง ๆ + ผลลัพธ์เป็นแถวแนวนอน */
 export function SearchScreen({ navigation }: Props) {
+  const pricing = usePricing();
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const [query, setQuery] = useState('');
@@ -29,7 +31,7 @@ export function SearchScreen({ navigation }: Props) {
 
   const typing = query.trim().length > 0;
   /** C35 กรองในเครื่อง ไม่ยิงคำขอใหม่ทุกครั้งที่แตะตัวกรอง */
-  const results = applyFilters(found ?? [], filters);
+  const results = applyFilters(found ?? [], filters, pricing);
 
   return (
     <SafeAreaView testID="screen-search" edges={['top']} style={{ flex: 1, backgroundColor: tokens.bgSurface }}>
@@ -165,6 +167,7 @@ export function SearchScreen({ navigation }: Props) {
 
 /** แถวผลค้นหาตาม C2: รูป 62px + ชื่อ + "หมวด ★ คะแนน ระยะ" + "นาที ค่าส่ง" */
 function SearchResultRow({ r, onPress }: { r: Restaurant; onPress: () => void }) {
+  const pricing = usePricing();
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   return (
@@ -200,7 +203,7 @@ function SearchResultRow({ r, onPress }: { r: Restaurant; onPress: () => void })
           )}
         </Text>
         <Text variant="kicker" color="onTealTint" numberOfLines={1} style={{ marginTop: 6 }}>
-          {r.prepTimeMinutes} {t('customer.home.minutes')} · {deliveryFeeLabel(r.distanceKm, t)}{' '}
+          {r.prepTimeMinutes} {t('customer.home.minutes')} · {deliveryFeeLabel(r.distanceKm, t, pricing)}{' '}
           {t('customer.search.deliveryFee')}
         </Text>
       </View>

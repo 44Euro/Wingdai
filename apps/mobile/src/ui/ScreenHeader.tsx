@@ -1,5 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme/ThemeProvider';
 import { Text } from './Text';
 import { RoundButton } from './Surface';
@@ -20,6 +21,7 @@ export function ScreenHeader({
   onDark?: boolean;
   testID?: string;
 }) {
+  const { t } = useTranslation();
   const { primitives: p } = useTheme();
   return (
     <View
@@ -39,7 +41,7 @@ export function ScreenHeader({
           icon="chevronLeft"
           tone={onDark ? 'onDark' : 'surface'}
           onPress={onBack}
-          accessibilityLabel="ย้อนกลับ"
+          accessibilityLabel={t('a11y.back')}
         />
       ) : null}
       <View style={{ flex: 1, minWidth: 0 }}>

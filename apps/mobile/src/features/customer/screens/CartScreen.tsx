@@ -12,6 +12,7 @@ import { ScreenHeader } from '../../../ui/ScreenHeader';
 import { useCartStore } from '../../cart/cartStore';
 import { useRestaurant } from '../hooks';
 import { orderTotals } from '../../cart/pricing';
+import { usePricing } from '../../payment/pricingStore';
 import { formatBaht } from '../../../lib/format';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
 
@@ -23,7 +24,8 @@ export function CartScreen({ navigation }: Props) {
   const cart = useCartStore();
   const { data: restaurant } = useRestaurant(cart.restaurantId ?? '');
   // ค่าส่งขึ้นกับระยะตั้งแต่ SA6 ยอดนี้ยังเป็นการคาดการณ์ ยอดจริงมาจากเซิร์ฟเวอร์
-  const totals = orderTotals(cart.foodTotal(), restaurant?.distanceKm ?? null);
+  const pricing = usePricing();
+  const totals = orderTotals(cart.foodTotal(), restaurant?.distanceKm ?? null, pricing);
 
   if (cart.lines.length === 0) {
     return (
@@ -136,7 +138,7 @@ export function CartScreen({ navigation }: Props) {
               <Pressable
                 testID={`qty-dec-${l.lineId}`}
                 accessibilityRole="button"
-                accessibilityLabel="ลดจำนวน"
+                accessibilityLabel={t('a11y.decrease')}
                 onPress={() => cart.setQuantity(l.lineId, l.quantity - 1)}
                 hitSlop={10}
                 style={[
@@ -152,7 +154,7 @@ export function CartScreen({ navigation }: Props) {
               <Pressable
                 testID={`qty-inc-${l.lineId}`}
                 accessibilityRole="button"
-                accessibilityLabel="เพิ่มจำนวน"
+                accessibilityLabel={t('a11y.increase')}
                 onPress={() => cart.setQuantity(l.lineId, l.quantity + 1)}
                 hitSlop={10}
                 style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: tokens.brandAccent, alignItems: 'center', justifyContent: 'center' }}

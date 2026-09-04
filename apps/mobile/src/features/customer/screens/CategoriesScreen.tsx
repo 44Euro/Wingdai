@@ -14,6 +14,7 @@ import { openStateLabel } from '../openStateLabel';
 import { TAB_BAR_CLEARANCE } from '../../../app/navigators/WingdaiTabBar';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
 import type { CuisineCategory } from '../../../data/types';
+import { usePricing } from '../../payment/pricingStore';
 
 const CATEGORIES: CuisineCategory[] = ['rice', 'noodle', 'somtam', 'drink', 'dessert'];
 
@@ -30,6 +31,7 @@ type Props = NativeStackScreenProps<CustomerStackParamList>;
 
 /** C15 กริดหมวดอาหาร กดแล้วสลับเป็นรายชื่อร้านในหมวดนั้นในจอเดียวกัน */
 export function CategoriesScreen({ navigation }: Props) {
+  const pricing = usePricing();
   const { t } = useTranslation();
   const { tokens, primitives: p } = useTheme();
   const { data: restaurants } = useRestaurants();
@@ -136,7 +138,7 @@ export function CategoriesScreen({ navigation }: Props) {
                     )}
                   </Text>
                   <Text variant="caption" color="faint">
-                    {r.prepTimeMinutes} min · {deliveryFeeLabel(r.distanceKm, t)}
+                    {r.prepTimeMinutes} min · {deliveryFeeLabel(r.distanceKm, t, pricing)}
                   </Text>
                 </Card>
               </Pressable>
