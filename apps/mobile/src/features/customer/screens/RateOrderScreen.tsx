@@ -15,6 +15,7 @@ import { Stars } from '../../reviews/components/Stars';
 import { useOrderReview, useWriteReview } from '../../reviews/hooks';
 import { useOrder, useRestaurant, useTipRider } from '../hooks';
 import type { CustomerStackParamList } from '../../../app/navigators/CustomerStack';
+import { useTippingEnabled } from '../../payment/paymentStore';
 
 type Props = NativeStackScreenProps<CustomerStackParamList, 'RateOrder'>;
 
@@ -36,6 +37,7 @@ export function RateOrderScreen({ navigation, route }: Props) {
   const [riderRating, setRiderRating] = useState(0);
   const [comment, setComment] = useState('');
   const [tip, setTip] = useState(0);
+  const tippingEnabled = useTippingEnabled();
   const sendTip = useTipRider();
 
   const body = (() => {
@@ -82,8 +84,8 @@ export function RateOrderScreen({ navigation, route }: Props) {
           </Field>
         </Card>
 
-        {/* ทิป (design C11) โผล่เฉพาะใบที่มีไรเดอร์และยังไม่เคยให้ */}
-        {order?.riderId && order.tipSatang === 0 ? (
+        {/* ทิป (design C11) โผล่เฉพาะใบที่มีไรเดอร์ ยังไม่เคยให้ และเก็บเงินได้จริง (§6.2) */}
+        {tippingEnabled && order?.riderId && order.tipSatang === 0 ? (
           <Card style={{ gap: p.space.sm }}>
             <Text variant="h3">{t('customer.tip.title')}</Text>
             <Text variant="small" color="muted">{t('customer.tip.allToRider')}</Text>

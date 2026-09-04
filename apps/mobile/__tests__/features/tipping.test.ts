@@ -3,7 +3,17 @@ import { createMockRepos } from '../../src/data/mock';
 /** ทิปให้ไรเดอร์ (design C11) */
 type Repos = ReturnType<typeof createMockRepos>;
 
+/**
+ * §6.2 ทิปเก็บผ่านเกตเวย์ ประตูจึงปิดอยู่จนกว่า §11.3 จะได้คำตอบ เทสต์ชุดนี้สนใจกติกาบัญชี
+ * ของทิป ไม่ได้สนใจตัวประตู จึงเปิดให้เหมือนที่ซูเปอร์แอดมินจะทำในวันที่เกตเวย์พร้อม
+ */
+async function openTipping(repos: Repos) {
+  await repos.auth.login('super_root', '1234');
+  await repos.super.setFlag('card_payment', true);
+}
+
 async function deliveredOrder(repos: Repos) {
+  await openTipping(repos);
   await repos.auth.login('somchai', '1234');
   const order = await repos.orders.create({
     restaurantId: 'r-malee',
@@ -128,5 +138,20 @@ describe('เงินทิปไปถึงไรเดอร์', () => {
 
     expect(after.today.netSatang).toBe(before.today.netSatang);
     expect(after.today.foodSalesSatang).toBe(before.today.foodSalesSatang);
+  });
+});
+
+describe('ประตูเกตเวย์ของทิป (product-spec §6.2)', () => {
+  /** ปุ่มทิปที่เครดิตไรเดอร์โดยไม่เก็บเงินลูกค้าคือหนี้ที่สร้างจากอากาศ */
+  it('ยังไม่มีเกตเวย์ ให้ทิปไม่ได้ แม้ออร์เดอร์จะครบเงื่อนไขอื่นทุกข้อ', async () => {
+    const repos = createMockRepos();
+    const order = await deliveredOrder(repos);
+
+    await repos.auth.login('super_root', '1234');
+    await repos.super.setFlag('card_payment', false);
+    await repos.auth.login('somchai', '1234');
+
+    await expect(repos.orders.tip(order.id, 5000)).rejects.toThrow();
+    expect((await repos.orders.get(order.id))?.tipSatang).toBe(0);
   });
 });

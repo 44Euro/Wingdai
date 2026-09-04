@@ -824,6 +824,10 @@ export function createMockRepos(): Repos {
         if (amountSatang > MAX_TIP_SATANG) {
           throw new Error(`ทิปได้สูงสุด ${MAX_TIP_SATANG / 100} บาทต่อออเดอร์`);
         }
+        // §6.2 ทิปเก็บผ่านเกตเวย์เสมอ ประตูบานเดียวกับบัตร ลำดับตรงกับ `assertCanTip` ฝั่งเซิร์ฟเวอร์
+        if (!flags.card_payment) {
+          throw new Error('ให้ทิปผ่านแอปยังไม่เปิดใช้งาน รอเชื่อมต่อระบบชำระเงิน');
+        }
 
         o.tipSatang = amountSatang;
         riderState(o.riderId).tipsSatang += amountSatang;

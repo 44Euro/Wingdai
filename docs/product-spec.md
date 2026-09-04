@@ -218,6 +218,20 @@ Every completed order must produce balanced ledger entries. Example for a ฿170
 
 **The rider never fronts the food cost.** The restaurant is paid by the platform on the weekly run no matter how the customer paid. Requiring riders to carry working capital would gate recruitment on having cash on hand and would push cancellation losses onto them — both are direct threats to the rider supply the whole model depends on. At payout, `rider_cash_held` is netted against `rider_payable`; a rider with ฿170 collected and ฿30 earned owes the platform ฿140, deducted from their cashless earnings. Enforce a cash-in-hand ceiling (`rider_profiles.cash_limit_satang`, default ฿1,500) — over the ceiling, stop offering cash orders until they settle.
 
+**Tips (added 2026-09-05).** A tip is a separate movement from the order it hangs off, and it follows one rule: **the tip is collected before the rider is credited.** Crediting `rider_payable` the moment the customer taps creates a payable against money nobody has paid — the platform then settles a tip it never received.
+
+**A tip is always collected by the platform, never handed over in cash.** Tipping opens only once the order is `delivered`, and by then the rider has left; there is no moment at which the customer could put the tip in their hand. That holds even for a cash-on-delivery order — the cash changed hands at the door, before the job closed. So the tip always travels the gateway, whatever the order itself was paid with:
+
+| Account | Debit | Credit |
+|---|---|---|
+| `cash` (net settled by the gateway) | tip − fee | |
+| `payment_fee_expense` | fee | |
+| `rider_payable` | | tip (gross) |
+
+Same shape as the corrected order entries above, and for the same reason: the gateway never remits the gross amount, and the fee must show as an expense rather than shrink what the rider is owed. **The rider receives 100% of the tip; no commission is ever taken from it.**
+
+**Tipping is therefore gated behind the payment gateway and is not enabled in Phase 1.** There is nothing to collect through until §11.3 is answered, and a tip button that credits a rider without taking the customer's money is a payable built on nothing. This is the same switch that keeps card payment disabled — one unanswered question, one gate.
+
 Rules:
 - Entries are **append-only** — never UPDATE or DELETE a ledger row. Corrections are reversal entries.
 - Write ledger entries in the **same DB transaction** as the order status change.

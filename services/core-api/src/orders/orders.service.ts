@@ -463,8 +463,26 @@ export class OrdersService {
     return this.publicOrder(orderId);
   }
 
-  /** ลูกค้าให้ทิปไรเดอร์หลังส่งถึงแล้ว (design C11) เข้าไรเดอร์ 100% ไม่หักคอม */
+  /**
+   * ลูกค้าให้ทิปไรเดอร์หลังส่งถึงแล้ว (design C11) เข้าไรเดอร์ 100% ไม่หักคอม
+   *
+   * §6.2 ทิปต้องถูกเก็บก่อนจึงเครดิตไรเดอร์ ทิปเงินสดผ่านเงื่อนไขนั้นเองเพราะเงินถึงมือ
+   * ไรเดอร์อยู่แล้ว ส่วนทิปที่ต้องเก็บผ่านเกตเวย์ยังเก็บไม่ได้จริงจนกว่า §11.3 จะได้คำตอบ
+   * ปล่อยให้กดได้คือสร้างหนี้ต่อไรเดอร์จากเงินที่แพลตฟอร์มเก็บไม่ได้
+   */
   async tip(orderId: string, customerId: string, amountSatang: number): Promise<PublicOrder> {
+    /**
+     * อ่าน flag ก่อนเปิดทรานแซกชัน `isEnabled` ใช้คอนเนกชันจากพูลของตัวเอง เรียกมันตอนที่
+     * ทรานแซกชันถือคอนเนกชันหนึ่งกับล็อกแถวออเดอร์อยู่ = ถือหนึ่งแล้วรออีกหนึ่ง
+     * พูลมีสิบตัว ทิปพร้อมกันสิบใบก็ตันกันเองจนหมดเวลา ด่านเงินสดที่ `create` ก็อยู่นอกด้วยเหตุผลเดียวกัน
+     */
+    if (!(await this.platform.isEnabled('card_payment'))) {
+      throw new BadRequestException({
+        message: 'ให้ทิปผ่านแอปยังไม่เปิดใช้งาน รอเชื่อมต่อระบบชำระเงิน',
+        fields: { amountSatang: 'ยังไม่เปิดให้ใช้' },
+      });
+    }
+
     await this.db.transaction(async (tx) => {
       const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1).for('update');
       // ตอบ 404 ไม่ใช่ 403 ให้คนที่ไม่ใช่เจ้าของ ไม่ยืนยันว่าออเดอร์รหัสนี้มีอยู่จริง
@@ -483,9 +501,17 @@ export class OrdersService {
 
       await tx.update(orders).set({ tipSatang: amountSatang }).where(eq(orders.id, orderId));
 
+      /**
+       * ทิปเดินทางผ่านเกตเวย์ ไม่ใช่ตามวิธีจ่ายของออเดอร์ ลูกค้าจ่ายด้วยพร้อมเพย์ซึ่งเป็น
+       * ทางที่ปิดไม่ได้ (§3 ข้อ 5) ค่าธรรมเนียมจึงคิดจากอัตรานั้น ส่วน `card_payment` ที่ใช้
+       * เป็นประตูข้างบนคือตัวแทนของคำถาม "มีเกตเวย์หรือยัง" ไม่ใช่ช่องทางที่ทิปเดินจริง
+       * วันที่ §11.3 ได้คำตอบต้องกลับมาดูทั้งสองจุดพร้อมกัน — ตั๋ว 12
+       */
+      const paymentFeeSatang = paymentFeeOf('promptpay', amountSatang);
+
       const entryGroupId = randomUUID();
       await tx.insert(ledgerEntries).values(
-        postTip({ amountSatang }).map((l) => ({
+        postTip({ amountSatang, paymentFeeSatang }).map((l) => ({
           entryGroupId,
           orderId,
           account: l.account,
