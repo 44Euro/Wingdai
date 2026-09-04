@@ -246,7 +246,9 @@ dispatch_time = predicted_food_ready_time − rider_travel_time_to_restaurant
 ```
 If a rider arrives before food is ready, they wait unpaid, their earnings/hour drops, and they churn. Predict prep time per restaurant from a moving average (by restaurant, time of day, order size); **seed it from a restaurant-set constant** (collected during restaurant onboarding, §7) since there's no historical order data on day 1 — the algorithm is designed to work cold-start, so this isn't a blocker to shipping auto-dispatch in Phase 1.
 
-**Batching:** if 2+ orders from the same/nearby restaurant are headed to nearby drop-offs within a 5-minute window, assign them to one rider.
+**Batching — deferred, not built (2026-09-04).** The intended rule is: if 2+ orders from the same/nearby restaurant are headed to nearby drop-offs within a 5-minute window, assign them to one rider. It is deliberately not implemented yet, and dispatch offers one order at a time.
+
+The reason is the same one this section already gives for the prep-time constants: there is no historical order data. Batching needs a drop-off proximity threshold and a batching window, and both are only honest once the scoring weights have been tuned against real Orders per Rider Hour (§8) — picking 5 minutes and "nearby" today would be guessing, and a wrong batch costs a rider two late deliveries instead of one on-time one. Revisit once the launch-week numbers exist.
 
 **Monitor closely at launch:** since there's no real prep-time data yet, watch Orders per Rider Hour (§8) closely in the first weeks and expect to tune the scoring weights and prep-time constants based on what actually happens.
 
