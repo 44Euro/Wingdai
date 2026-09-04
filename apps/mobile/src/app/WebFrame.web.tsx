@@ -43,6 +43,8 @@ export function WebFrame({ children }: { children: ReactNode }) {
               borderRadius: p.radius.xl,
               maxHeight: 932,
               alignSelf: 'center',
+              // ค่าดิบโดยตั้งใจ: นี่คือ CSS boxShadow ของเบราว์เซอร์ ไม่ใช่สไตล์ RN
+              // เป็นเงาของกรอบมือถือจำลองบนจอกว้าง อยู่นอกแอป ไม่ใช่พื้นผิวในระบบโทเคน
               boxShadow: '0 24px 60px rgba(0,0,0,0.28)',
             }
           : null),

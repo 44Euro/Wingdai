@@ -147,7 +147,7 @@ export function ChatScreen({
                 backgroundColor: draft.trim() === '' ? tokens.bgSunken : tokens.brandAccent,
               }}
             >
-              <Icon name="chevronRight" color={draft.trim() === '' ? tokens.textFaint : '#FFFFFF'} size={22} />
+              <Icon name="chevronRight" color={draft.trim() === '' ? tokens.textFaint : tokens.textOnBrand} size={22} />
             </Pressable>
           </View>
         </View>

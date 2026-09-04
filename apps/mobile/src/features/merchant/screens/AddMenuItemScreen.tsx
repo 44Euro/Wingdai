@@ -254,7 +254,7 @@ function Stepper({
         hitSlop={8}
         style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: tokens.brandAccent, alignItems: 'center', justifyContent: 'center' }}
       >
-        <Icon name="plus" color="#FFFFFF" size={16} strokeWidth={2.8} />
+        <Icon name="plus" color={tokens.textOnBrand} size={16} strokeWidth={2.8} />
       </Pressable>
     </View>
   );

@@ -181,7 +181,7 @@ export function RestaurantDetailScreen({ navigation, route }: Props) {
                     canAdd ? p.shadow.card : null,
                   ]}
                 >
-                  <Icon name="plus" color={canAdd ? '#FFFFFF' : tokens.textFaint} size={18} strokeWidth={2.8} />
+                  <Icon name="plus" color={canAdd ? tokens.textOnBrand : tokens.textFaint} size={18} strokeWidth={2.8} />
                 </View>
               </View>
             </Pressable>

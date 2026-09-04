@@ -77,7 +77,7 @@ export function CardPayScreen({ navigation }: Props) {
           style={[
             {
               width: '100%',
-              backgroundColor: '#FFFFFF',
+              backgroundColor: tokens.surfaceFixedLight,
               borderRadius: 24,
               padding: p.space.lg,
               marginTop: p.space.xl,
@@ -99,29 +99,29 @@ export function CardPayScreen({ navigation }: Props) {
             >
               <Icon name="card" color={tokens.textOnBrand} size={22} strokeWidth={2} />
             </View>
-            <Text variant="caption" style={{ color: '#7A7370' }}>
+            <Text variant="caption" style={{ color: tokens.textOnFixedLightMuted }}>
               {t('customer.card.testCard')}
             </Text>
           </View>
 
-          <Text testID="cardpay-number" variant="h3" style={{ color: '#1B1917', letterSpacing: 2 }}>
+          <Text testID="cardpay-number" variant="h3" style={{ color: tokens.textOnFixedLight, letterSpacing: 2 }}>
             •••• •••• •••• 4242
           </Text>
 
           <View style={{ flexDirection: 'row', gap: p.space.xl }}>
             <View>
-              <Text variant="caption" style={{ color: '#7A7370' }}>
+              <Text variant="caption" style={{ color: tokens.textOnFixedLightMuted }}>
                 {t('customer.card.expiry')}
               </Text>
-              <Text variant="small" bold style={{ color: '#1B1917' }}>
+              <Text variant="small" bold style={{ color: tokens.textOnFixedLight }}>
                 12/30
               </Text>
             </View>
             <View>
-              <Text variant="caption" style={{ color: '#7A7370' }}>
+              <Text variant="caption" style={{ color: tokens.textOnFixedLightMuted }}>
                 {t('customer.card.cvc')}
               </Text>
-              <Text variant="small" bold style={{ color: '#1B1917' }}>
+              <Text variant="small" bold style={{ color: tokens.textOnFixedLight }}>
                 •••
               </Text>
             </View>
@@ -137,7 +137,7 @@ export function CardPayScreen({ navigation }: Props) {
             testID="cardpay-error"
             variant="small"
             bold
-            style={{ color: '#FFB4AB', marginTop: p.space.md, textAlign: 'center' }}
+            style={{ color: tokens.dangerOnTeal, marginTop: p.space.md, textAlign: 'center' }}
           >
             {t(error, { defaultValue: error })}
           </Text>

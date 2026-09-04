@@ -88,7 +88,8 @@ export function AnnouncementCarousel({ restaurantCount }: { restaurantCount: num
                   width: 110,
                   height: 110,
                   borderRadius: 55,
-                  backgroundColor: 'rgba(241,90,34,0.35)',
+                  backgroundColor: tokens.brandAccent,
+                  opacity: 0.35,
                 }}
               />
             </Card>

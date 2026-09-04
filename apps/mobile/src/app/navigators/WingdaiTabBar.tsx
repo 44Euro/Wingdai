@@ -112,7 +112,7 @@ export function WingdaiTabBar({ state, descriptors, navigation }: BottomTabBarPr
             p.shadow.brand,
           ]}
         >
-          <Icon name="cart" color="#FFFFFF" size={24} strokeWidth={2.2} />
+          <Icon name="cart" color={tokens.textOnBrand} size={24} strokeWidth={2.2} />
           <View
             style={{
               position: 'absolute',
@@ -153,7 +153,7 @@ export function WingdaiTabBar({ state, descriptors, navigation }: BottomTabBarPr
             paddingHorizontal: p.space.sm,
           },
           // เงา teal ใต้แถบดำในโหมดมืดจะเห็นเป็นคราบเขียว C32 ใช้เงาดำล้วน
-          isDark ? { ...p.shadow.teal, shadowColor: '#000000', shadowOpacity: 0.5 } : p.shadow.teal,
+          isDark ? p.shadow.navDark : p.shadow.teal,
         ]}
       >
         {routes.slice(0, mid).map((r, i) => renderTab(r, i))}
@@ -189,7 +189,7 @@ export function WingdaiTabBar({ state, descriptors, navigation }: BottomTabBarPr
               p.shadow.brand,
             ]}
           >
-            <Icon name="burger" color="#FFFFFF" size={26} strokeWidth={2.4} />
+            <Icon name="burger" color={tokens.textOnBrand} size={26} strokeWidth={2.4} />
           </Pressable>
         ) : null}
       </View>

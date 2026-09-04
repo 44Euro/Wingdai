@@ -133,7 +133,7 @@ export function MenuItemScreen({ navigation, route }: Props) {
                         justifyContent: 'center',
                       }}
                     >
-                      {isSel ? <Icon name="check" color="#FFFFFF" size={14} strokeWidth={3.4} /> : null}
+                      {isSel ? <Icon name="check" color={tokens.textOnBrand} size={14} strokeWidth={3.4} /> : null}
                     </View>
                     <Text variant="body" style={{ flex: 1 }} numberOfLines={2}>{c.name}</Text>
                     {c.priceDelta > 0 ? (
@@ -191,7 +191,7 @@ export function MenuItemScreen({ navigation, route }: Props) {
               hitSlop={10}
               style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: tokens.brandAccent, alignItems: 'center', justifyContent: 'center' }}
             >
-              <Icon name="plus" color="#FFFFFF" size={18} strokeWidth={2.8} />
+              <Icon name="plus" color={tokens.textOnBrand} size={18} strokeWidth={2.8} />
             </Pressable>
           </View>
         </View>

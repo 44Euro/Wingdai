@@ -159,7 +159,7 @@ export function CartScreen({ navigation }: Props) {
                 hitSlop={10}
                 style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: tokens.brandAccent, alignItems: 'center', justifyContent: 'center' }}
               >
-                <Icon name="plus" color="#FFFFFF" size={16} strokeWidth={2.8} />
+                <Icon name="plus" color={tokens.textOnBrand} size={16} strokeWidth={2.8} />
               </Pressable>
             </View>
           </Card>

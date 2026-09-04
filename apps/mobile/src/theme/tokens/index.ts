@@ -30,4 +30,13 @@ export type SemanticTokens = {
   navIdle: string;
   danger: string;
   success: string;
+  /**
+   * พื้นผิวที่ตั้งใจให้เป็นสีอ่อนทั้งสองโหมด: หน้าบัตรจำลอง (C19) และแผ่นรอง QR (C5, M12)
+   * บัตรจริงกับกระดาษ QR เป็นสีอ่อนเสมอ ไม่ได้พลิกตามธีมของแอป
+   */
+  surfaceFixedLight: string;
+  textOnFixedLight: string;
+  textOnFixedLightMuted: string;
+  /** ข้อความผิดพลาดบนพื้น teal เข้ม `danger` ปกติจมกับพื้น */
+  dangerOnTeal: string;
 };

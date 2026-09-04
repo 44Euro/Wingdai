@@ -41,7 +41,7 @@ export function MerchantQrScreen({ navigation, route }: Props) {
         <Card style={{ alignItems: 'center', gap: p.space.md, paddingVertical: p.space.lg }}>
           <Text variant="h3" numberOfLines={1}>{shop?.name ?? ''}</Text>
           {/* พื้นขาวเสมอ ไม่ใช่สีพื้นของธีม QR บนพื้นสีเข้มในโหมดมืดสแกนไม่ติด */}
-          <View style={{ backgroundColor: '#FFFFFF', padding: p.space.md, borderRadius: p.radius.md }}>
+          <View style={{ backgroundColor: tokens.surfaceFixedLight, padding: p.space.md, borderRadius: p.radius.md }}>
             <QRCode value={link} size={200} />
           </View>
           <Text variant="small" color="muted" style={{ textAlign: 'center' }}>

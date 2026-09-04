@@ -40,7 +40,7 @@ export function RiderTabBar({ state, descriptors, navigation }: BottomTabBarProp
           paddingHorizontal: p.space.sm,
         },
         // เงา teal ใต้แถบดำในโหมดมืดจะเห็นเป็นคราบเขียว ใช้เงาดำล้วนแทน
-        isDark ? { ...p.shadow.teal, shadowColor: '#000000', shadowOpacity: 0.5 } : p.shadow.teal,
+        isDark ? p.shadow.navDark : p.shadow.teal,
       ]}
     >
       {state.routes.map((route, index) => {

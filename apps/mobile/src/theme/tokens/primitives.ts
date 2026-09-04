@@ -116,6 +116,14 @@ export const primitives = {
       elevation: 8,
     },
     /** พื้นผิว teal ลอย (nav pill, การ์ด teal): 0 14px 32px rgba(14,59,58,.3) */
+    /** แถบนำทางลอยในโหมดมืด teal จมกับพื้นดำ ต้องใช้เงาดำที่เข้มกว่า */
+    navDark: {
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 14 },
+      shadowOpacity: 0.5,
+      shadowRadius: 28,
+      elevation: 12,
+    },
     teal: {
       shadowColor: '#0E3B3A',
       shadowOffset: { width: 0, height: 14 },

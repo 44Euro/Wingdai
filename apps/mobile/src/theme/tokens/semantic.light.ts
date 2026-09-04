@@ -25,4 +25,15 @@ export const semanticLight = {
   navIdle: '#A3B5B4',          // = ขาว 62% ทับ teal ทำเป็นค่าทึบเพื่อให้เทสต์ contrast ตรวจได้
   danger: p.danger,
   success: p.success,
+  /**
+   * พื้นผิวที่ตั้งใจให้เป็นสีอ่อนทั้งสองโหมด: หน้าบัตรจำลอง (C19) และแผ่นรอง QR (C5, M12)
+   * บัตรจริงกับกระดาษ QR เป็นสีอ่อนเสมอ พลิกตามธีมแล้วอ่านเหมือนความผิดพลาด
+   * และ QR ต้องคอนทราสต์สูงสุดถึงจะสแกนติด
+   */
+  surfaceFixedLight: '#FFFFFF',
+  textOnFixedLight: p.ink[100],
+  // ค่าเดิมของหน้าบัตร ไม่ใช่ ink[70] ซึ่งเข้มกว่า เปลี่ยนคือเปลี่ยนหน้าตาโดยไม่มีใครขอ
+  textOnFixedLightMuted: '#7A7370',
+  /** ข้อความผิดพลาดบนพื้น teal เข้ม danger ปกติจมกับพื้น */
+  dangerOnTeal: '#FFB4AB',
 } as const;

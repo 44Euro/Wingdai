@@ -121,7 +121,7 @@ export function PromptPayScreen({ navigation, route }: Props) {
         <View
           style={[
             {
-              backgroundColor: '#FFFFFF',
+              backgroundColor: tokens.surfaceFixedLight,
               borderRadius: 26,
               padding: p.space.xl,
               marginTop: p.space.xl,
@@ -140,6 +140,8 @@ export function PromptPayScreen({ navigation, route }: Props) {
                   style={{
                     width: QR_CELL,
                     height: QR_CELL,
+                    // ค่าดิบโดยตั้งใจ: โมดูล QR ต้องดำสนิทบนขาวสนิทถึงจะสแกนติด
+                    // โทเคนที่ขยับตามธีมทำให้กล้องอ่านไม่ออก
                     backgroundColor: qrCell(row, col) ? '#1B1917' : '#FFFFFF',
                   }}
                 />
@@ -198,7 +200,7 @@ export function PromptPayScreen({ navigation, route }: Props) {
             testID="promptpay-error"
             variant="small"
             bold
-            style={{ color: '#FFB4AB', marginTop: p.space.md, textAlign: 'center' }}
+            style={{ color: tokens.dangerOnTeal, marginTop: p.space.md, textAlign: 'center' }}
           >
             {t(error, { defaultValue: error })}
           </Text>

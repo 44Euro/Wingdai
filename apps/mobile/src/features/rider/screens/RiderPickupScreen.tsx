@@ -121,7 +121,7 @@ export function RiderPickupScreen({ navigation, route }: Props) {
                         justifyContent: 'center',
                       }}
                     >
-                      {on ? <Icon name="check" color="#FFFFFF" size={14} strokeWidth={3.4} /> : null}
+                      {on ? <Icon name="check" color={tokens.textOnBrand} size={14} strokeWidth={3.4} /> : null}
                     </View>
 
                     <View style={{ flex: 1, minWidth: 0, gap: 2 }}>

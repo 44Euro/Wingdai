@@ -46,6 +46,8 @@ function Dot({ color, size = 16, ring = false }: { color: string; size?: number;
         borderRadius: size / 2,
         backgroundColor: color,
         borderWidth: ring ? 4 : 3,
+        // ค่าดิบโดยตั้งใจ: หมุดวางบนไทล์แผนที่ ไม่ใช่บนพื้นของแอป ขอบที่พลิกตามธีม
+        // จะหายไปกับไทล์สว่าง §10 จึงไม่บังคับโทเคนกับสีที่วางบนภาพจากภายนอก
         borderColor: '#FFFFFF',
       }}
     />

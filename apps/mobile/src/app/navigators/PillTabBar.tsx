@@ -38,7 +38,7 @@ export function PillTabBar({
           alignItems: 'center',
           paddingHorizontal: p.space.xs,
         },
-        isDark ? { ...p.shadow.teal, shadowColor: '#000000', shadowOpacity: 0.5 } : p.shadow.teal,
+        isDark ? p.shadow.navDark : p.shadow.teal,
       ]}
     >
       {state.routes.map((route, index) => {
