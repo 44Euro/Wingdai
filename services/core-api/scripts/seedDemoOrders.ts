@@ -106,7 +106,7 @@ async function main() {
   const enRoute = await place('');
   await toRider(enRoute);
 
-  // ใบที่สี่ ส่งถึงแล้ว มีใบเสร็จ รีวิว ทิป และรายการบัญชีครบวง
+  // ใบที่สี่ ส่งถึงแล้ว มีใบเสร็จ รีวิว และรายการบัญชีครบวง
   const done = await place('ขอช้อนส้อมด้วย');
   await toRider(done);
   const view = expect('ลูกค้าเปิดใบที่สี่', await call('GET', `/orders/${done}`, undefined, customer));
@@ -129,7 +129,11 @@ async function main() {
     }, customer),
     [200, 201],
   );
-  expect('ลูกค้าให้ทิป', await call('POST', `/orders/${done}/tip`, { amountSatang: 2000 }, customer));
+  /**
+   * ไม่มีทิปในข้อมูลสาธิต ทิปเก็บผ่านเกตเวย์เสมอ (§6.2) และเกตเวย์ยังไม่มีตาม §11.3
+   * ข้อมูลสาธิตต้องสะท้อนสิ่งที่สินค้าทำได้จริง ไม่ใช่แอบเปิด flag ตอน seed แล้วปิดคืน —
+   * สคริปต์ตายกลางทางเมื่อไหร่ flag ก็ค้างเปิด ซึ่งเป็นบั๊กแบบเดียวกับที่ `api-check` เพิ่งแก้ไป
+   */
 
   expect(
     'เปิดตั๋วซัพพอร์ต',
