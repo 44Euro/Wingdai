@@ -275,6 +275,30 @@ describe('SA4+SA6 — ตั้งค่า', () => {
 
     expect((await repos.config.get()).paymentMethods).not.toContain('cash');
   });
+
+  /**
+   * §6.5 เซิร์ฟเวอร์ไม่ยอมให้เปิดบัตรจนกว่าจะตั้งอัตราค่าธรรมเนียม สวิตช์เด้งกลับเองอยู่แล้ว
+   * เพราะค่ามาจากเซิร์ฟเวอร์ แต่สวิตช์ที่กดไม่ติดโดยไม่บอกอะไรเลยคือบั๊กในสายตาคนกด
+   */
+  it('เปิดแล้วเซิร์ฟเวอร์ปฏิเสธ จอบอกเหตุผลที่เซิร์ฟเวอร์ส่งมา ไม่ใช่เงียบ', async () => {
+    const reason = 'เปิดบัตรยังไม่ได้ ยังไม่รู้ค่าธรรมเนียมเกตเวย์ของช่องทางนี้';
+    const spy = jest.spyOn(repos.super, 'setFlag').mockRejectedValueOnce(new Error(reason));
+    try {
+      const result = render();
+      await goToTab(result, 'SuperConfig');
+      expect(findAll(result.root, 'flag-error').length).toBe(0);
+
+      await act(async () => {
+        pressable(result.root, 'flag-card_payment').props.onPress();
+      });
+      await flush();
+
+      expect(textUnder(result.root, 'flag-error')).toContain('ค่าธรรมเนียม');
+      expect((await repos.config.get()).paymentMethods).not.toContain('card');
+    } finally {
+      spy.mockRestore();
+    }
+  });
 });
 
 describe('SA3 — สิทธิ์ผู้ดูแลระบบ', () => {

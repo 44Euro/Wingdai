@@ -3,6 +3,7 @@ import {
   priceOrder,
   orderReference,
   paymentFeeOf,
+  PAYMENT_FEE_BP,
   DEFAULT_DELIVERY_BASE_SATANG,
   SERVICE_FEE_SATANG,
   type PricedItem,
@@ -70,8 +71,23 @@ describe('ค่าธรรมเนียมเกตเวย์', () => {
     expect(paymentFeeOf('promptpay', 17000)).toBe(0);
   });
 
+  /**
+   * เงินสดกับพร้อมเพย์คิดออกมาเป็น 0 เท่ากัน แต่ด้วยเหตุผลคนละเรื่อง
+   * ถ้าเก็บเป็นเลข 0 ทั้งคู่ วันที่มีเกตเวย์แล้วจะแยกไม่ออกว่าช่องไหนตั้งค่าแล้วช่องไหนลืม
+   */
+  it('อัตราที่ยังไม่รู้เป็น null ไม่ใช่ 0 — ต่างกับเงินสดที่รู้แล้วว่าเป็นศูนย์', () => {
+    expect(PAYMENT_FEE_BP.cash).toBe(0);
+    expect(PAYMENT_FEE_BP.promptpay).toBeNull();
+    expect(PAYMENT_FEE_BP.card).toBeNull();
+  });
+
   it('ค่าธรรมเนียมเป็นจำนวนเต็มสตางค์ ปัดลง', () => {
     expect(Number.isInteger(paymentFeeOf('card', 17777))).toBe(true);
+  });
+
+  /** §6.2 ยกตัวอย่างออเดอร์ ฿170 เสีย ฿1.36 ตัวเลขนั้นถึงได้จริงเมื่อตั้งอัตรา 80 bp เท่านั้น */
+  it('สูตรให้ตัวเลขตรงตัวอย่างใน §6.2 เมื่ออัตราถูกตั้งเป็น 80 bp', () => {
+    expect(Math.floor((17000 * 80) / 10000)).toBe(136);
   });
 });
 

@@ -206,6 +206,12 @@ Every completed order must produce balanced ledger entries. Example for a ฿170
 
 **Corrected 2026-07-29.** An earlier version of this table debited `cash` the full ฿170 and credited `platform_revenue` ฿13.86. It balanced, but it was wrong in two ways: the gateway never remits the gross amount (it nets its fee out before settlement), and crediting revenue ฿13.86 overstated it by exactly the fee — which made cash and PromptPay look equally profitable, contradicting §6.5. With the corrected entries, `platform_revenue` is ฿12.50 regardless of payment method and the fee shows up only as an expense, so net contribution is ฿12.50 for cash and ฿11.14 for PromptPay. The property test in `services/core-api/src/ledger/postOrder.test.ts` is what surfaced this.
 
+**The fee rate is unset, not zero (2026-09-05).** The ฿1.36 above is 80 bp, the bottom of the PromptPay range in §6.5 — it shows the *shape* of the entries once a gateway is settling money, not a number this system produces today. `PAYMENT_FEE_BP` is `null` for PromptPay and card, so no real order currently writes a `payment_fee_expense` row at all. That is the honest state: §11.3 has not picked a gateway, the QR screen is mocked, and nobody has deducted a fee from anything. Putting 80 bp in now would post an expense the platform never incurred and debit `cash` less than it actually received — the same class of error as the corrected table above, arriving from the other direction.
+
+`null` is deliberately not `0`. Cash is `0` because there is no gateway to charge it, forever; PromptPay and card are `null` because the rate is unknown. Same arithmetic today, opposite futures, and once a gateway lands the distinction is what tells you which channels still need a number.
+
+**A payment channel cannot be switched on while its fee rate is unknown.** `setFlag` refuses to enable `card_payment` until `PAYMENT_FEE_BP.card` holds a real rate. Without that, flipping the switch would make every card order post the full `platform_revenue` with no fee line, and card — which costs 3.2–3.65% against PromptPay's 0.8–1.8% — would read as exactly as profitable as cash. §6.5 warns about that directly, and the corrected table above already had to fix that same mistake once; the flag is the other door into it. Disabling is never blocked, so an emergency shut-off still works.
+
 **Same order paid in cash** — the rider collects money that belongs to the platform, so it lands in `rider_cash_held` rather than `cash`, and there is no gateway fee:
 
 | Account | Debit | Credit |
@@ -296,7 +302,7 @@ Phase 1 ships **three** payment methods (decided 2026-07-29): **PromptPay QR**, 
 Status of each:
 - **PromptPay** — mocked QR screen until the gateway question in §11 is answered.
 - **Cash on delivery** — works end to end; the rider collects. Cash orders need their own ledger treatment (rider holds platform money) — get this right before launch.
-- **Card** — listed in the picker but **not selectable yet**, labelled "payment gateway pending". Enable it the moment §11.3 is resolved. The fee delta (0.8–1.8% vs 3.2–3.65%) must be visible in internal margin reporting — don't let card become invisible overhead.
+- **Card** — listed in the picker but **not selectable yet**, labelled "payment gateway pending". Enable it the moment §11.3 is resolved — but enabling is one action with two halves: set the card fee rate *and* flip the flag. The server enforces that pairing (§6.2), so the flag alone is refused. The fee delta (0.8–1.8% vs 3.2–3.65%) must be visible in internal margin reporting — don't let card become invisible overhead.
 
 **Cash shortfall — the customer picked cash but doesn't have enough (resolved 2026-07-30).** Grab and LINE MAN riders handle this informally by taking a personal bank transfer, sometimes after fronting the food cost themselves. **Wingdai does not support that, and the app must never suggest it.** Three reasons, in order of severity:
 1. A rider who fronts food cost needs working capital to take jobs at all — §6.2 rules that out explicitly, because it gates rider recruitment on having cash on hand.

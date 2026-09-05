@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { DB, type Db } from '../db/db.module';
 import { platformPricing, featureFlags } from '../db/schema';
 import { writeAudit } from './audit.service';
-import { DEFAULT_PRICING, type PricingConfig } from '../orders/pricing';
+import { DEFAULT_PRICING, PAYMENT_FEE_BP, type PricingConfig } from '../orders/pricing';
 
 /** feature flag ที่ มีอยู่จริงและมีผลกับเซิร์ฟเวอร์ (design SA4) */
 export const FEATURE_FLAG_KEYS = [
@@ -44,6 +44,27 @@ export function gateOfPaymentMethod(
   method: PaymentMethodName,
 ): { flag: FeatureFlagKey; label: string } | undefined {
   return PAYMENT_METHOD_GATE[method as keyof typeof PAYMENT_METHOD_GATE];
+}
+
+/**
+ * เปิดช่องทางจ่ายเงินที่ยังไม่รู้ค่าธรรมเนียมเกตเวย์ไม่ได้ (§6.5)
+ *
+ * §6.5 เตือนไว้ตรง ๆ ว่าห้ามให้บัตรกลายเป็นต้นทุนที่มองไม่เห็น ถ้าเปิดบัตรตอนที่อัตรายังว่าง
+ * ทุกออเดอร์บัตรจะลงบัญชีโดยไม่มีบรรทัด `payment_fee_expense` แล้วบัตรที่เสียจริง 3.2–3.65%
+ * จะดูกำไรเท่าเงินสดที่ไม่เสียเลย — ความผิดพลาดเดียวกับที่ §6.2 ย่อหน้า "Corrected 2026-07-29"
+ * แก้ไปแล้วรอบหนึ่ง ตอนนั้นมันเข้ามาทางตารางบัญชี รอบนี้มันจะเข้ามาทางสวิตช์
+ *
+ * แยกออกมาให้เทสต์เรียกได้โดยไม่ต้องมีฐานข้อมูล แบบเดียวกับ `assertGrantable`
+ */
+export function assertFeeRateKnown(key: FeatureFlagKey): void {
+  const method = PAYMENT_METHOD_NAMES.find((m) => gateOfPaymentMethod(m)?.flag === key);
+  if (!method || PAYMENT_FEE_BP[method] !== null) return;
+
+  throw new BadRequestException({
+    message:
+      `เปิด${gateOfPaymentMethod(method)!.label}ยังไม่ได้ ยังไม่รู้ค่าธรรมเนียมเกตเวย์ของช่องทางนี้ ` +
+      `ตั้ง PAYMENT_FEE_BP.${method} ให้เป็นอัตราจริงก่อน แล้วค่อยเปิด (product-spec §6.5)`,
+  });
 }
 
 export type PricingView = PricingConfig & {
@@ -138,6 +159,9 @@ export class PlatformService {
   }
 
   async setFlag(actorId: string, key: FeatureFlagKey, enabled: boolean) {
+    // ปิดไม่เคยถูกกัน ด่านนี้กันแค่ขาเปิด ไม่งั้นปิดบัตรฉุกเฉินก็ทำไม่ได้
+    if (enabled) assertFeeRateKnown(key);
+
     return this.db.transaction(async (tx) => {
       const [before] = await tx
         .select({ enabled: featureFlags.enabled })

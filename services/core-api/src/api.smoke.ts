@@ -779,23 +779,25 @@ async function superConfigChecks(
   check('ปิด flag บัตรแล้ว สร้างออเดอร์บัตรไม่ได้ที่ API ไม่ใช่แค่ซ่อนปุ่มในแอป',
     cardBlocked.status === 400, `ได้ ${cardBlocked.status}`);
 
-  /** เปิดชั่วคราวเพื่อพิสูจน์ว่ากลไกพร้อม วันที่ §11.3 ตอบ จะเป็นการพลิก flag ไม่ใช่เขียนของใหม่ */
-  await call('PATCH', '/super/config/flags/card_payment', { enabled: true }, superToken);
-  const cardOrder = await placeSmokeOrder(ctx, 'card');
-  check('เปิด flag แล้วสั่งด้วยบัตรได้จริง', cardOrder.paymentMethod === 'card',
-    JSON.stringify(cardOrder.paymentMethod));
-  check('บัตรถือว่าจ่ายจบก่อนออเดอร์เริ่มเดิน เหมือนพร้อมเพย์',
-    cardOrder.paymentStatus === 'paid', cardOrder.paymentStatus);
+  /**
+   * §6.5 ห้ามให้บัตรกลายเป็นต้นทุนที่มองไม่เห็น ตราบใดที่ `PAYMENT_FEE_BP.card` ยังว่าง
+   * เซิร์ฟเวอร์ต้องไม่ยอมให้เปิด ไม่ใช่เปิดได้แล้วเงียบ ๆ ลงบัญชีโดยไม่มีบรรทัดค่าธรรมเนียม
+   */
+  const cardOn = await call('PATCH', '/super/config/flags/card_payment',
+    { enabled: true }, superToken);
+  check('เปิดบัตรไม่ได้ ตราบใดที่ยังไม่ตั้งอัตราค่าธรรมเนียม',
+    cardOn.status === 400, `ได้ ${cardOn.status}`);
+  check('ข้อความบอกว่าติดที่ค่าธรรมเนียม ไม่ใช่ error เปล่า',
+    typeof cardOn.body?.message === 'string' && cardOn.body.message.includes('ค่าธรรมเนียม'),
+    JSON.stringify(cardOn.body?.message));
 
-  const publicOn = await call('GET', '/config');
-  check('เปิดแล้วบัตรย้ายมาอยู่ฝั่งใช้ได้',
-    publicOn.body?.paymentMethods?.includes('card'),
-    JSON.stringify(publicOn.body?.paymentMethods));
+  const publicAfter = await call('GET', '/config');
+  check('ถูกปฏิเสธแล้วบัตรยังอยู่ฝั่งใช้ไม่ได้ ไม่ใช่เปิดค้างครึ่งทาง',
+    !publicAfter.body?.paymentMethods?.includes('card'),
+    JSON.stringify(publicAfter.body?.paymentMethods));
   check('พร้อมเพย์อยู่ใน /config เสมอ ปิดไม่ได้ (§3 ข้อ 5)',
-    publicOn.body?.paymentMethods?.[0] === 'promptpay',
-    JSON.stringify(publicOn.body?.paymentMethods));
-
-  await call('PATCH', '/super/config/flags/card_payment', { enabled: false }, superToken);
+    publicAfter.body?.paymentMethods?.[0] === 'promptpay',
+    JSON.stringify(publicAfter.body?.paymentMethods));
 
   const badFlag = await call('PATCH', '/super/config/flags/surge_pricing',
     { enabled: true }, superToken);

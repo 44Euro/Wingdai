@@ -182,6 +182,14 @@ export function SuperConfigScreen() {
                     />
                   </View>
                 ))}
+
+                {/* §6.5 เซิร์ฟเวอร์ปฏิเสธเปิดบัตรตราบใดที่ยังไม่รู้ค่าธรรมเนียม สวิตช์เด้งกลับเอง
+                    เพราะค่ามาจากเซิร์ฟเวอร์ แต่ถ้าไม่บอกเหตุผล คนกดจะเห็นแค่สวิตช์ที่กดไม่ติด */}
+                {setFlag.isError ? (
+                  <Text testID="flag-error" variant="small" color="danger">
+                    {(setFlag.error as Error)?.message || t('common.errorGeneric')}
+                  </Text>
+                ) : null}
               </View>
             </Card>
           </>
