@@ -823,17 +823,20 @@ async function main() {
     });
   }
 
-  try {
-    const on = await repos.super.setFlag('card_payment', true);
-    check('เปิด flag บัตรได้', on.enabled === true && on.key === 'card_payment');
-    await store.clear();
-    check('เปิดแล้วบัตรอยู่ในช่องทางที่ใช้ได้',
-      (await repos.config.get()).paymentMethods.includes('card'));
-  } finally {
-    // คืนเป็นปิด flag ค้างในตาราง ถ้าคืนเป็นเปิด เดโมจะขายด้วยบัตรได้จนกว่าจะมีคนไปปิดเอง
-    await repos.auth.login('super_root', SEED_PASSWORD);
-    await repos.super.setFlag('card_payment', false);
-  }
+  /**
+   * §6.2 เปิดบัตรไม่ได้จนกว่าจะรู้ค่าธรรมเนียมเกตเวย์ ถ้าเปิดได้ บัตรที่เสียจริง 3.2–3.65%
+   * จะลงบัญชีโดยไม่มีบรรทัดค่าธรรมเนียม แล้วดูกำไรเท่าเงินสด
+   */
+  const cardOn = await repos.super.setFlag('card_payment', true).then(
+    () => null,
+    (e: unknown) => (e instanceof Error ? e.message : String(e)),
+  );
+  check('เปิดบัตรถูกปฏิเสธ ตราบใดที่ยังไม่ตั้งอัตราค่าธรรมเนียม', cardOn !== null, 'เปิดได้');
+  check('ข้อความบอกว่าติดที่ค่าธรรมเนียม ไม่ใช่ error เปล่า',
+    !!cardOn?.includes('ค่าธรรมเนียม'), cardOn ?? '');
+  // วันที่ตั้งอัตราแล้วบรรทัดบนจะแดง และ flag จะเปิดค้าง ปิดคืนไว้ก่อนเสมอ ไม่ปล่อยให้เดโมขายด้วยบัตร
+  if (cardOn === null) await repos.super.setFlag('card_payment', false);
+
   await store.clear();
   const closed = await repos.config.get();
   // flag ที่แค่ซ่อนปุ่มในแอปคือ flag ที่ไคลเอนต์ดัดแปลงเดินผ่านได้ ต้องหายจากช่องทางที่ใช้ได้ด้วย

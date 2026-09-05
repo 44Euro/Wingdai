@@ -9,6 +9,7 @@ import { Button } from '../../../ui/Button';
 import { Card, Toggle } from '../../../ui/Surface';
 import { Field, Input } from '../../../ui/Field';
 import { formatBaht } from '../../../lib/format';
+import { errorText } from '../../../lib/errorText';
 import { SUPER_TAB_CLEARANCE } from '../../../app/navigators/SuperAdminTabBar';
 import type { FeatureFlagKey, PlatformPricing } from '../../../data/types';
 import { useSuperConfig, useSetPricing, useSetFlag } from '../hooks';
@@ -39,7 +40,7 @@ function hundredths(text: string): number | null {
 
 /** SA4 + SA6 feature flag กับค่าธรรมเนียม */
 export function SuperConfigScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tokens, primitives: p } = useTheme();
 
   const { data: config, isPending } = useSuperConfig();
@@ -183,11 +184,11 @@ export function SuperConfigScreen() {
                   </View>
                 ))}
 
-                {/* §6.5 เซิร์ฟเวอร์ปฏิเสธเปิดบัตรตราบใดที่ยังไม่รู้ค่าธรรมเนียม สวิตช์เด้งกลับเอง
+                {/* §6.2 เซิร์ฟเวอร์ปฏิเสธเปิดบัตรตราบใดที่ยังไม่รู้ค่าธรรมเนียม สวิตช์เด้งกลับเอง
                     เพราะค่ามาจากเซิร์ฟเวอร์ แต่ถ้าไม่บอกเหตุผล คนกดจะเห็นแค่สวิตช์ที่กดไม่ติด */}
                 {setFlag.isError ? (
                   <Text testID="flag-error" variant="small" color="danger">
-                    {(setFlag.error as Error)?.message || t('common.errorGeneric')}
+                    {errorText(setFlag.error, t, i18n.language)}
                   </Text>
                 ) : null}
               </View>

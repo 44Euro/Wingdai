@@ -24,7 +24,7 @@ import { MAX_DELIVERY_RADIUS_KM, isWithinDeliveryRadius } from './deliveryRadius
 import { generateDeliveryPin } from './deliveryPin';
 import { assertDeliveryProof } from './deliveryProof';
 import { assertCanTip } from './tipping';
-import { priceOrder, paymentFeeOf, orderReference, type PricedItem } from './pricing';
+import { priceOrder, paymentFeeOf, feeRateKnown, orderReference, type PricedItem } from './pricing';
 import type { CreateOrderInput, CreateAddressInput, CancelReason } from './dto';
 
 /** รูปร่างเดียวกับ Order ในแอปมือถือ เพื่อให้สลับจากรีโปจำลองมาใช้ของจริงได้โดยไม่แก้จอ */
@@ -476,7 +476,12 @@ export class OrdersService {
      * ทรานแซกชันถือคอนเนกชันหนึ่งกับล็อกแถวออเดอร์อยู่ = ถือหนึ่งแล้วรออีกหนึ่ง
      * พูลมีสิบตัว ทิปพร้อมกันสิบใบก็ตันกันเองจนหมดเวลา ด่านเงินสดที่ `create` ก็อยู่นอกด้วยเหตุผลเดียวกัน
      */
-    if (!(await this.platform.isEnabled('card_payment'))) {
+    /**
+     * ทิปหักค่าธรรมเนียมด้วยอัตราพร้อมเพย์ ไม่ใช่อัตราบัตร ด่านที่ `setFlag` ดูแต่อัตราบัตร
+     * จึงไม่ครอบตรงนี้ ตั้งอัตราบัตรอย่างเดียวแล้วเปิด flag ทิปจะไหลออกมาโดยไม่มีบรรทัด
+     * ค่าธรรมเนียม ซึ่ง §6.2 ห้าม เช็คอัตราของตัวเองก่อน ถูกกว่าเพราะไม่ต้องแตะฐาน
+     */
+    if (!feeRateKnown('promptpay') || !(await this.platform.isEnabled('card_payment'))) {
       throw new BadRequestException({
         message: 'ให้ทิปผ่านแอปยังไม่เปิดใช้งาน รอเชื่อมต่อระบบชำระเงิน',
         fields: { amountSatang: 'ยังไม่เปิดให้ใช้' },

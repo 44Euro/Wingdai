@@ -100,6 +100,11 @@ export function paymentFeeOf(method: keyof typeof PAYMENT_FEE_BP, grossSatang: n
   return Math.floor((grossSatang * (PAYMENT_FEE_BP[method] ?? 0)) / 10000);
 }
 
+/** เส้นทางเงินที่ต้องเสียค่าธรรมเนียมจะเปิดไม่ได้จนกว่าตัวนี้จะจริง (§6.2) */
+export function feeRateKnown(method: keyof typeof PAYMENT_FEE_BP): boolean {
+  return PAYMENT_FEE_BP[method] !== null;
+}
+
 /** เลขที่ออเดอร์ที่ลูกค้าอ่านออก สั้น ไม่มีตัวอักษรที่สับสนกับเลข (I, O, l, 0, 1) */
 const ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 

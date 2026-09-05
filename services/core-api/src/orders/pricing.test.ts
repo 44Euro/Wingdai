@@ -3,6 +3,7 @@ import {
   priceOrder,
   orderReference,
   paymentFeeOf,
+  feeRateKnown,
   PAYMENT_FEE_BP,
   DEFAULT_DELIVERY_BASE_SATANG,
   SERVICE_FEE_SATANG,
@@ -85,9 +86,26 @@ describe('ค่าธรรมเนียมเกตเวย์', () => {
     expect(Number.isInteger(paymentFeeOf('card', 17777))).toBe(true);
   });
 
-  /** §6.2 ยกตัวอย่างออเดอร์ ฿170 เสีย ฿1.36 ตัวเลขนั้นถึงได้จริงเมื่อตั้งอัตรา 80 bp เท่านั้น */
-  it('สูตรให้ตัวเลขตรงตัวอย่างใน §6.2 เมื่ออัตราถูกตั้งเป็น 80 bp', () => {
-    expect(Math.floor((17000 * 80) / 10000)).toBe(136);
+  /**
+   * §6.2 ยกตัวอย่างออเดอร์ ฿170 เสีย ฿1.36 ตัวเลขนั้นจะลอยอยู่ในเอกสารเฉย ๆ ถ้าไม่มีอะไรผูกไว้
+   * ตั้งอัตราจริงในตารางชั่วคราวแล้วเรียกฟังก์ชันที่ service ใช้ ไม่ใช่เขียนสูตรซ้ำในเทสต์
+   * ถ้าสูตรใน `paymentFeeOf` เพี้ยน ข้อนี้แดง — เขียนสูตรซ้ำแล้วมันจะเขียวต่อไปแม้ฟังก์ชันหาย
+   */
+  it('ตัวอย่าง ฿170 → ฿1.36 ใน §6.2 ออกมาจาก paymentFeeOf จริงเมื่อตั้งอัตรา 80 bp', () => {
+    const before = PAYMENT_FEE_BP.promptpay;
+    PAYMENT_FEE_BP.promptpay = 80;
+    try {
+      expect(paymentFeeOf('promptpay', 17000)).toBe(136);
+      expect(feeRateKnown('promptpay')).toBe(true);
+    } finally {
+      PAYMENT_FEE_BP.promptpay = before;
+    }
+  });
+
+  it('อัตราที่ยังไม่รู้ทำให้ feeRateKnown เป็นเท็จ ประตูของช่องทางนั้นจึงเปิดไม่ได้', () => {
+    expect(feeRateKnown('cash')).toBe(true);
+    expect(feeRateKnown('promptpay')).toBe(false);
+    expect(feeRateKnown('card')).toBe(false);
   });
 });
 
